@@ -1,4 +1,4 @@
-
+import { Link } from "react-router-dom";          
 import React, { useState } from "react";
 import {
   Container,
@@ -34,40 +34,48 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 5 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          Login to EduMids
-        </Typography>
-        <form onSubmit={handleLogin}>
-          <Box mb={2}>
-            <TextField
-              label="Email"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </Box>
-          <Box mb={2}>
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </Box>
-          <Button variant="contained" type="submit" color="primary" fullWidth>
-            Login
-          </Button>
-        </form>
-        <Typography mt={2} align="center">
-          Don’t have an account? <a href="/signup">Sign up</a>
-        </Typography>
-      </Paper>
-    </Container>
+    <div className="relative">
+      <Container maxWidth="sm">
+        <Paper elevation={3} sx={{ p: 4, mt: 5, borderRadius: 4, position: "relative" }}>
+          <Link to="/" style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
+            <button className="btn btn-sm btn-circle btn-ghost">✕</button>
+          </Link>
+          <Typography variant="h5" gutterBottom align="center">
+            Login to EduMids
+          </Typography>
+          <form onSubmit={handleLogin}>
+            <Box mb={2}>
+              <TextField
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Box>
+            <Box mb={2}>
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </Box>
+            <Button variant="contained" type="submit" color="primary" fullWidth>
+              Login
+            </Button>
+          </form>
+          <Typography mt={2} align="center">
+            Don’t have an account?{" "}
+            <Link to='/Singup' className="underline text-blue-500 cursor-pointer">
+              <b>Signup</b>
+            </Link>
+          </Typography>
+        </Paper>
+      </Container>
+    </div>
   );
 };
 

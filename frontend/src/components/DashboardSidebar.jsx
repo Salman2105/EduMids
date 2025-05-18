@@ -8,13 +8,17 @@ import {
   CalendarDays, 
   BookOpen, 
   FileText, 
-  CreditCard, 
+  CreditCard,
+  BarChart2, 
   Settings, 
   LogOut, 
   Home
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, href }) => {
+  const navigation =[{
+    
+  }]
   return (
     <Link 
       to={href} 
@@ -79,6 +83,12 @@ const DashboardSidebar = () => {
           label="Courses" 
           active={pathname === '/courses'} 
           href="/courses" 
+        />
+        <SidebarItem 
+          icon={<BarChart2 size={18} />} 
+          label="Reports" 
+          active={pathname === '/reports'} 
+          href="/reports" 
         />
         {/* <SidebarItem 
           icon={<FileText size={18} />} 

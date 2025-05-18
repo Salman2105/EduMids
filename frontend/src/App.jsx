@@ -4,11 +4,12 @@ import AuthLayout from "./layout/AuthLayout";
 import Index from "./pages/index";
 // import Dashboard from "./components/dashboard"; // Ensure this component exists
 import "./index.css"; // Adjust the path as necessary
-import Signup from "./pages/Signup"; // Adjust the path as necessary
+import Signup from "./pages/SignUp"; // Adjust the path as necessary
 import Login from "./pages/Login";
 // import Dashboard from './pages/Dashboard';
 // import Students from './pages/Students';
 // import Teachers from './pages/Teachers';
+
 
 
 

@@ -9,7 +9,10 @@ import StatsCards from "../components/StatsCards"; // Adjusted import path
 import Students from "../components/Students"; 
 import SignUp from "./SignUp"; 
 import Login from "./Login";
-
+import UserDashboardSidebar from "../components/UserDashboardSidebar";
+import TeacherDashboardSidebar from "../components/TeacherDashboardSidebar"; // Adjusted import path
+// import Courses from "./Courses"; // Adjusted import path
+import Footer from "./Footer";
 
 const Index = () => {
   return (
@@ -27,7 +30,10 @@ const Index = () => {
         <Students />
         <SignUp />
         <Login />
-
+       <UserDashboardSidebar />
+        <TeacherDashboardSidebar />
+        <Footer />
+        {/* Top Performers Section */}            
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* <EarningsChart /> */}
