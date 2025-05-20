@@ -8,7 +8,7 @@ const SearchBar = () => {
     <div className="flex items-center justify-between mb-6">
       {/* Dashboard Title */}
       <div className="flex-1">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Heyy!</h1>
       </div>
 
       {/* Search Bar and Notifications */}
@@ -29,7 +29,7 @@ const SearchBar = () => {
         <div className="relative">
           <Bell size={20} className="text-gray-600" />
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
-            2
+            5
           </span>
         </div>
 

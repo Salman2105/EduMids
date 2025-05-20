@@ -22,12 +22,20 @@ const Login = () => {
         password,
       });
 
-      // Save token to localStorage
-      localStorage.setItem("token", res.data.token);
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", user.role);
+
       alert("Login successful!");
 
-      // Redirect to dashboard
-      window.location.href = "/dashboard";
+      // Redirect based on role
+      if (user.role === "admin") {
+        window.location.href = "/admin/dashboard";
+      } else if (user.role === "teacher") {
+        window.location.href = "/teacher/dashboard";
+      } else {
+        window.location.href = "/student/dashboard";
+      }
     } catch (err) {
       alert("Login failed: " + (err.response?.data?.message || "Server Error"));
     }

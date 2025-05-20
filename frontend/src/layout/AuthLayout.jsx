@@ -1,11 +1,12 @@
 import React from "react";
-import Index from "../pages/index";
+import Index from "../pages/LandingPage";
+import LandingPage from "../pages/LandingPage";
 
 export default function AuthLayout({ children }) {
   return (
     <div>
       
-      <Index />
+      <LandingPage />
       <div>{children}</div>
     </div>
   );

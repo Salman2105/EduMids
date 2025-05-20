@@ -3,10 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
   BookOpen,
-  PlusSquare,
-  Users,
+  BarChart2,
+  FileCheck2,
   Award,
-  Calendar,
   Settings,
   LogOut
 } from 'lucide-react';
@@ -25,7 +24,7 @@ const SidebarItem = ({ icon, label, active, href }) => (
   </Link>
 );
 
-const TeacherDashboardSidebar = () => {
+const StudentDashboardSidebar = () => {
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -41,46 +40,40 @@ const TeacherDashboardSidebar = () => {
         <SidebarItem
           icon={<Home size={18} />}
           label="Home"
-          active={pathname === '/teacher'}
-          href="/teacher/dashboard"
+          active={pathname === '/student'}
+          href="/student/dashboard"
         />
         <SidebarItem
           icon={<BookOpen size={18} />}
-          label="Created Courses"
-          active={pathname === '/teacher/courses'}
-          href="/teacher/courses"
+          label="My Courses"
+          active={pathname === '/student/courses'}
+          href="/student/courses"
         />
         <SidebarItem
-          icon={<PlusSquare size={18} />}
-          label="Add Lessons"
-          active={pathname === '/teacher/add-lessons'}
-          href="/teacher/add-lessons"
+          icon={<BarChart2 size={18} />}
+          label="Progress"
+          active={pathname === '/student/progress'}
+          href="/student/progress"
         />
         <SidebarItem
-          icon={<Users size={18} />}
-          label="View Enrollments"
-          active={pathname === '/teacher/enrollments'}
-          href="/teacher/enrollments"
+          icon={<FileCheck2 size={18} />}
+          label="Quizzes"
+          active={pathname === '/student/quizzes'}
+          href="/student/quizzes"
         />
         <SidebarItem
-                  icon={<Award size={18} />}
-                  label="Certificates"
-                  active={pathname === '/teacher/certificates'}
-                  href="/teacher/certificates"
-                />
-                <SidebarItem
-           icon={<Calendar size={18} />} 
-           label="Calendar"
-      active={pathname === '/Teacher/TeacherCalendar'}
-      href="/Teacher/TeacherCalendar"
-        /> 
+          icon={<Award size={18} />}
+          label="Certificates"
+          active={pathname === '/student/certificates'}
+          href="/student/certificates"
+        />
       </div>
       <div className="mt-auto px-2 mb-6">
         <SidebarItem
           icon={<Settings size={18} />}
           label="Settings"
-          active={pathname === '/teacher/settings'}
-          href="/teacher/settings"
+          active={pathname === '/student/settings'}
+          href="/student/settings"
         />
         <SidebarItem
           icon={<LogOut size={18} />}
@@ -92,4 +85,4 @@ const TeacherDashboardSidebar = () => {
   );
 };
 
-export default TeacherDashboardSidebar;
+export default StudentDashboardSidebar;
