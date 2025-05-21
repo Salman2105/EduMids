@@ -36,6 +36,7 @@ export default function Footer() {
           </p>
         </aside>
       </footer>
+      <hr />
     </>
   );
 }

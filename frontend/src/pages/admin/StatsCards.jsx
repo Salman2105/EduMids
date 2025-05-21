@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card } from "./ui/card";
+import { Card } from "../../components/ui/card"; 
 import { Users, UserCog, BookOpen, UserCheck, FileText } from "lucide-react";
 
 // StatCard Component
@@ -18,7 +18,6 @@ const StatCard = ({ title, value, icon, iconBg }) => (
 // StatsCards Component
 const StatsCards = () => {
   const [stats, setStats] = useState(null);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,21 +28,18 @@ const StatsCards = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!res.ok) throw new Error("Failed to fetch stats");
         const data = await res.json();
         setStats(data);
       } catch (err) {
-        setError("Failed to load analytics");
-        console.error("Failed to load analytics", err);
+        console.error("Failed to load Dashboard", err);
       }
     };
     fetchStats();
   }, []);
 
-  if (error) return <p>{error}</p>;
   if (!stats) return <p>Loading...</p>;
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
       <StatCard
         title="Students"
         value={stats.totalStudents ?? 0}

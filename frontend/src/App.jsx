@@ -37,6 +37,7 @@ import StudentCourses from "./pages/student/StudentCourses";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentProgress from "./pages/student/StudentProgress";
+import Footer from "./pages/Footer";
 
 // Reusable layout wrappers for each role
 const LayoutWithSidebar = ({ Sidebar, children }) => (
@@ -44,7 +45,9 @@ const LayoutWithSidebar = ({ Sidebar, children }) => (
     <Sidebar />
     <div className="flex-1 overflow-y-auto p-4">
       {children}
+       <Footer/>
     </div>
+   
   </div>
 );
 

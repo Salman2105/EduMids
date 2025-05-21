@@ -1,15 +1,15 @@
 import React from 'react'
 import SearchBar from "../../components/SearchBar";
-import Footer from "../Footer";
 
 
 const StudentProgress = () => {
   return (
- <>  
- <SearchBar />
- <Footer />
-    </>
-
+ <> <div className="p-6 h-full">
+      <SearchBar />
+      <h2 className="text-xl fon  t-bold">My progress</h2>
+      <p>This page displays all quizzes available or attempted.</p>
+    </div>
+    </> 
   )
 }
 

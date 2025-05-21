@@ -6,7 +6,7 @@ export default function AuthLayout({ children }) {
   return (
     <div>
       
-      <LandingPage />
+      {/* <LandingPage /> */}
       <div>{children}</div>
     </div>
   );

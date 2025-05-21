@@ -15,8 +15,8 @@ const SidebarItem = ({ icon, label, active, href }) => (
     to={href}
     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${
       active
-        ? 'bg-white bg-opacity-10 text-white font-medium'
-        : 'text-white text-opacity-70 hover:bg-white hover:bg-opacity-10 hover:text-white'
+        ? 'bg-white bg-opacity-10 text-black font-medium'
+        : 'text-white text-opacity-70 hover:bg-white hover:bg-opacity-10 hover:text-black'
     }`}
   >
     <span className="text-lg">{icon}</span>
@@ -40,7 +40,7 @@ const StudentDashboardSidebar = () => {
         <SidebarItem
           icon={<Home size={18} />}
           label="Home"
-          active={pathname === '/student'}
+          active={pathname === '/student/dashboard'}
           href="/student/dashboard"
         />
         <SidebarItem
