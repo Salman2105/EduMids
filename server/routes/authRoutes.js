@@ -44,21 +44,19 @@ router.post("/login", loginValidation, async (req, res) => {
 
   try {
     const { email, password } = req.body;
-
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    // Create JWT token
+    await notifyUser(user._id, "👋 Welcome back to your  Dashboard.");
+
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.status(200).json({ token, user: { id: user._id, name: user.name, role: user.role } });
   } catch (error) {
     console.error("Error logging in user:", error.message);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 

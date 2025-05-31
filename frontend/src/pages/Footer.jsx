@@ -3,40 +3,90 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <>
-      <hr />
-      <footer className="w-full flex flex-col items-center justify-center py-8 bg-transparent">
-        <nav className="flex gap-6 mb-4">
-          <a className="hover:underline cursor-pointer">About us</a>
-          <a className="hover:underline cursor-pointer">Contact</a>
-          <a className="hover:underline cursor-pointer">Jobs</a>
-          <a className="hover:underline cursor-pointer">Press kit</a>
-        </nav>
-        <nav className="flex gap-6 mb-4">
-          <a>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="fill-current" viewBox="0 0 24 24">
-              <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-            </svg>
-          </a>
-          <a>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="fill-current" viewBox="0 0 24 24">
-              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
-            </svg>
-          </a>
-          <a>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="fill-current" viewBox="0 0 24 24">
-              <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
-            </svg>
-          </a>
-        </nav>
-        <aside className="text-center text-sm text-gray-600">
-          <p>
-            Copyright © {new Date().getFullYear()} - All right reserved by{" "}
-            <Link to="/" className="underline text-blue-500 cursor-pointer">EduMids</Link> Ltd
+    
+      <footer className="bg-slate-900 text-white py-12">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold">
+                <span>E</span>
+              </div>
+              <span className="text-xl font-medium">EduMinds</span>
+            </div>
+            <p className="text-gray-400 mb-4">
+              Your pathway to knowledge and skills that matter in today's world.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-gray-400 hover:text-white transition" aria-label="Facebook">
+                {/* Facebook */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition" aria-label="Twitter">
+                {/* Twitter */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition" aria-label="Instagram">
+                {/* Instagram */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition" aria-label="LinkedIn">
+                {/* LinkedIn */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect x="2" y="9" width="4" height="12"></rect>
+                  <circle cx="4" cy="4" r="2"></circle>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Explore</h3>
+            <ul className="space-y-2">
+              <li><Link to="/courses" className="text-gray-400 hover:text-white transition">Courses</Link></li>
+              <li><Link to="/instructors" className="text-gray-400 hover:text-white transition">Instructors</Link></li>
+              <li><Link to="/resources" className="text-gray-400 hover:text-white transition">Resources</Link></li>
+              <li><Link to="/forum" className="text-gray-400 hover:text-white transition">Community</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Information</h3>
+            <ul className="space-y-2">
+              <li><Link to="/about" className="text-gray-400 hover:text-white transition">About Us</Link></li>
+              <li><Link to="/blog" className="text-gray-400 hover:text-white transition">Blog</Link></li>
+              <li><Link to="/faq" className="text-gray-400 hover:text-white transition">FAQ</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-white transition">Contact</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li><Link to="/terms" className="text-gray-400 hover:text-white transition">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-gray-400 hover:text-white transition">Privacy Policy</Link></li>
+              <li><Link to="/cookie" className="text-gray-400 hover:text-white transition">Cookie Policy</Link></li>
+              <li><Link to="/refund" className="text-gray-400 hover:text-white transition">Refund Policy</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 pt-8">
+          <p className="text-center text-gray-500">
+            © {new Date().getFullYear()} EduMinds. All rights reserved.
           </p>
-        </aside>
-      </footer>
-      <hr />
-    </>
+        </div>
+      </div>
+    </footer>
+    
   );
 }

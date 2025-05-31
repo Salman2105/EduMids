@@ -1,6 +1,7 @@
 
 import React from "react";
 import SearchBar from "../../components/SearchBar";
+import CertificateCard from "./CertificateCard";
 
 
 const StudentCertificates = () => {
@@ -9,6 +10,7 @@ const StudentCertificates = () => {
        <SearchBar />
       <h2 className="text-xl font-bold">My Certificates</h2>
       <p>This page lists all the certificates issued by you</p>
+      <CertificateCard/>
     </div>
     </>
   );

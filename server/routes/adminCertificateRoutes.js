@@ -3,7 +3,7 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const Enrollment = require("../Models/Enrollment");
 const User = require("../Models/user");
-const Course = require("../Models/course");
+const { Course } = require("../Models/course");
 const sendEmail = require("../utils/sendEmail");
 
 // ✅ Get All Issued Certificates (For Admins)
@@ -15,6 +15,7 @@ router.get("/issued-certificates", verifyToken, checkRole(["admin"]), async (req
       .populate("course", "title");
 
     const issuedCertificates = enrollments.map((enrollment) => ({
+      enrollmentId: enrollment._id, // <-- Add this line
       studentName: enrollment.student.name,
       studentEmail: enrollment.student.email,
       courseTitle: enrollment.course.title,
@@ -23,6 +24,7 @@ router.get("/issued-certificates", verifyToken, checkRole(["admin"]), async (req
 
     res.status(200).json({ issuedCertificates });
   } catch (error) {
+    console.error("Error in /issued-certificates:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 });

@@ -1,0 +1,183 @@
+import React, { useEffect, useState } from "react";
+
+export default function StudentCard() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/teacher/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setUsers(data.filter((u) => u.role === "student"));
+        } else {
+          setError(data.message || "Failed to fetch users.");
+        }
+      } catch (err) {
+        setError("Error fetching users.");
+      }
+      setLoading(false);
+    };
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:5000/api/teacher/delete-user/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => u._id !== userId));
+        setSearchResult(null);
+        alert("User deleted successfully!");
+      } else {
+        alert(data.message || "Failed to delete user.");
+      }
+    } catch (err) {
+      alert("Error deleting user.");
+    }
+  };
+
+  // Search handler
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!search.trim()) {
+      setSearchResult(null);
+      return;
+    }
+    const s = search.trim().toLowerCase();
+    const found = users.find(
+      (u) =>
+        u._id === s ||
+        (u.name && u.name.toLowerCase().includes(s)) ||
+        (u.email && u.email.toLowerCase().includes(s))
+    );
+    if (found) {
+      setSearchResult(found);
+    } else {
+      setSearchResult({ notFound: true });
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto mt-8 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-6">All Registered Students</h2>
+      {/* Search Bar */}
+      <form
+        onSubmit={handleSearch}
+        className="mb-8 flex flex-col sm:flex-row gap-2 items-center"
+      >
+        <input
+          type="text"
+          placeholder="Enter Student ID, Name, or Email to search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-72"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+      </form>
+
+      {/* Search Result */}
+      {searchResult && (
+        <div className="mb-8  rounded-lg p-4 bg-white shadow">
+          <h3 className="text-lg font-bold mb-2">Search Result</h3>
+          {searchResult.notFound ? (
+            <p className="text-red-500">Student not found.</p>
+          ) : (
+            <div className="rounded-xl bg-white border shadow flex flex-col overflow-hidden max-w-md">
+              <div className="flex-1 flex flex-col p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500 font-semibold">
+                    User ID: {searchResult._id.slice(-6)}
+                  </span>
+                  <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold capitalize">
+                    {searchResult.role}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold mb-1">{searchResult.name || "No Name"}</h3>
+                <p className="text-slate-600 text-sm mb-2 line-clamp-2">{searchResult.email}</p>
+                <div className="flex items-center gap-2 mt-auto">
+                  <span className="text-xs text-gray-400">
+                    Joined: {searchResult.createdAt && !isNaN(new Date(searchResult.createdAt))
+                      ? new Date(searchResult.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                  <button
+                    className="ml-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                    onClick={() => handleDelete(searchResult._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {loading && <p>Loading users...</p>}
+      {error && <p className="text-red-600">{error}</p>}
+      {!loading && users.length === 0 && <p>No students found.</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {users.map((user) => (
+          <div
+            key={user._id}
+            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden max-w-md"
+            style={{ minHeight: 220 }}
+          >
+            <div className="flex-1 flex flex-col p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500 font-semibold">
+                  User ID: {user._id.slice(-6)}
+                </span>
+                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold capitalize">
+                  {user.role}
+                </span>
+              </div>
+              <h3 className="text-lg font-bold mb-1">{user.name || "No Name"}</h3>
+              <p className="text-slate-600 text-sm mb-2 line-clamp-2">{user.email}</p>
+              <div className="flex items-center gap-2 mt-auto">
+                <span className="text-xs text-gray-400">
+                  Joined: {user.createdAt && !isNaN(new Date(user.createdAt))
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : "N/A"}
+                </span>
+                <button
+                  className="ml-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                  onClick={() => handleDelete(user._id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

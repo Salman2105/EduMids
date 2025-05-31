@@ -6,10 +6,11 @@ import {
   BarChart2,
   Award,
   CreditCard,
-  Calendar,
+  // Calendar,
   Settings,
   LogOut,
-  Home
+  Home,
+  MessageSquare // <-- Added for Question/Answer
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, href }) => (
@@ -70,10 +71,10 @@ const AdminDashboardSidebar = () => {
           href="/admin/paymentSummary"
         />
          <SidebarItem
-          icon={<Calendar size={18} />} // <-- Calendar icon added here
-          label="Calendar"
-          active={pathname === '/admin/AdminCalendar'}
-          href="/admin/AdminCalendar"
+          icon={<MessageSquare size={18} />} // <-- Calendar icon added here
+          label="QnAs"
+          active={pathname === '/admin/questions'}
+          href="/admin/questions"
         /> 
       </div>
       <div className="mt-auto px-2 mb-6">

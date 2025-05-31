@@ -1,13 +1,18 @@
 import React from "react";
+import { ToastContainer } from "react-toastify";
 import { Routes, Route } from "react-router-dom";
 import AuthLayout from "./layout/AuthLayout";
 import "./index.css";
-import Signup from "./pages/SignUp";
-import Login from "./pages/Login";
+import Signup from "./pages/auth/SignUp";
+import Login from "./pages/auth/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
-// import EventsCalendar from "./components/EventsCalendar";
-import New from "./components/New";
+// import Header from "./Header";
+import Footer from "./pages/Footer";
+import ContactPage from "./pages/ContactPage";
+import AboutPage from "./pages/AboutPage";
+import ServicesPage from "./pages/ServicesPage";
+
 
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -15,8 +20,10 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminStudents from "./pages/admin/AdminStudents";
 import AdminReports from "./pages/admin/AdminReports";
 import PaymentSummary from "./pages/admin/PaymentSummary";
-import AdminCalendar from "./pages/admin/AdminCalendar"
-import AdminCertificates from "./pages/admin/AdminCertificates"; 
+// import AdminCalendar from "./pages/admin/AdminCalendar";
+import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminNotify from "./pages/admin/AdminNotify";
+import AdminQna from "./pages/admin/AdminQnaCard"; // Assuming you have a Q&A page for teachers
 
 
 // Teacher
@@ -25,191 +32,289 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherCourses from "./pages/teacher/TeacherCourses";
 import TeacherLessons from "./pages/teacher/TeacherLessons";
 import TeacherEnrollments from "./pages/teacher/TeacherEnrollments";
-import TeacherCertificates from "./pages/Teacher/TeacherCertificates";
-import TecherCalendar from "./pages/Teacher/TeacherCalendar"
-
-
-
+import TeacherCertificates from "./pages/teacher/TeacherCertificates";
+// import TeacherCalendar from "./pages/teacher/TeacherCalendar";
+import TeacherStudent from "./pages/teacher/TeacherStudent"; 
+import TeacherQuiz from "./pages/teacher/TeacherQuiz"; 
+import TeacherNotify from "./pages/teacher/TeacherNotify"; 
+import TeacherQna from "./pages/teacher/TeacherQna"; // Assuming you have a Q&A page for teachers
 // Student
 import StudentDashboardSidebar from "./components/StudentDashboardSidebar";
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentFullCourses from "./pages/student/StudentFullCourses";
 import StudentCourses from "./pages/student/StudentCourses";
-import StudentQuizzes from "./pages/student/StudentQuizzes";
+import StudentQuizzes from "./pages/student/quiz/StudentQuizzes";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentProgress from "./pages/student/StudentProgress";
-import Footer from "./pages/Footer";
+// import StudentCalendar from "./pages/student/StudentCalendar";
+import StudentNotify from "./pages/student/StudentNotify"; 
+import StudentQna from "./pages/student/StudentQna"; // Assuming you have a Q&A page for teachers
 
-// Reusable layout wrappers for each role
+
+// Providers
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import ThemeProvider from "./lib/theme-provider";
 const LayoutWithSidebar = ({ Sidebar, children }) => (
   <div className="flex h-screen">
     <Sidebar />
     <div className="flex-1 overflow-y-auto p-4">
       {children}
-       <Footer/>
+      <Footer />
     </div>
-   
   </div>
 );
 
 function App() {
   return (
-    <AuthLayout>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="eduminds-theme">
+        <AuthLayout>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/Contact" element={<ContactPage />} />
+            <Route path="/AboutPage" element={<AboutPage />} />
+            <Route path="/ServicesPage" element={<ServicesPage />} />
 
-        {/* Admin Routes */}
-        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-          <Route
-            path="/admin/dashboard"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <AdminDashboard />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/admin/manage-users"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <AdminStudents />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <AdminReports />
-              </LayoutWithSidebar>
-            }
-          />
-           <Route
-            path="/admin/Certificates"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <AdminCertificates />
-              </LayoutWithSidebar>
-            }
+
+            {/* Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminDashboard />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/admin/manage-users"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminStudents />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminReports />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/admin/Certificates"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminCertificates />
+                  </LayoutWithSidebar>
+                }
+              />
+              {/* <Route
+                path="/admin/AdminCalendar"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminCalendar />
+                  </LayoutWithSidebar>
+                }
+              /> */}
+              <Route
+                path="/admin/PaymentSummary"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <PaymentSummary />
+                  </LayoutWithSidebar>
+                }
+              />
+              
+               <Route
+                path="/admin/notifications"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminNotify />
+                  </LayoutWithSidebar>
+                }
+              />
+               <Route
+                path="/admin/questions"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminQna />
+                  </LayoutWithSidebar>
+                }
+              />
+              
+            </Route>
+
+            {/* Teacher Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
+              <Route
+                path="/teacher/dashboard"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherDashboard />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/courses"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherCourses />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/add-lessons"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherLessons />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/enrollments"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherEnrollments />
+                  </LayoutWithSidebar>
+                }
+              />
+             
+              <Route
+                path="/teacher/Certificates"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherCertificates />
+                  </LayoutWithSidebar>
+                }
+              />
+              {/* <Route
+                path="/teacher/TeacherCalendar"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherCalendar />
+                  </LayoutWithSidebar>
+                }
+              /> */}
+              <Route
+                path="/teacher/students"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherStudent />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/quiz"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherQuiz />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/questions"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherQna/>
+                  </LayoutWithSidebar>
+                }
+              />
+               <Route
+                path="/teacher/notifications"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherNotify />
+                  </LayoutWithSidebar>
+                }
+              />
+            </Route>
             
-          />
-          <Route
-            path="/admin/AdminCalendar"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <AdminCalendar />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/admin/PaymentSummary"
-            element={
-              <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                <PaymentSummary />
-              </LayoutWithSidebar>
-            }
-          />
-        </Route>
-        
 
-        {/* Teacher Routes */}
-        <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
-          <Route
-            path="/teacher/dashboard"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TeacherDashboard />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/teacher/courses"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TeacherCourses />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/teacher/add-lessons"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TeacherLessons />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/teacher/enrollments"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TeacherEnrollments />
-              </LayoutWithSidebar>
-            }
-          />
-           <Route
-            path="/teacher/Certificates"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TeacherCertificates />
-              </LayoutWithSidebar>
-            }
-          />
-        </Route>
-          <Route
-            path="/Teacher/TeacherCalendar"
-            element={
-              <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
-                <TecherCalendar />
-              </LayoutWithSidebar>
-            }
-          />
-
-        {/* Student Routes */}
-        <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-          <Route
-            path="/student/dashboard"
-            element={
-              <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
-                <StudentDashboard />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/student/courses"
-            element={
-              <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
-                <StudentCourses />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/student/progress"
-            element={
-              <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
-                <StudentProgress />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/student/quizzes"
-            element={
-              <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
-                <StudentQuizzes />
-              </LayoutWithSidebar>
-            }
-          />
-          <Route
-            path="/student/certificates"
-            element={
-              <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
-                <StudentCertificates />
-              </LayoutWithSidebar>
-            }
-          />
-        </Route>
-      </Routes>
-    </AuthLayout>
+            {/* Student Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+              <Route
+                path="/student/dashboard"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentDashboard />
+                  </LayoutWithSidebar>
+                }
+              />
+               <Route
+                path="/student/all-courses"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentFullCourses />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/student/courses"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentCourses />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/student/progress"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentProgress />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/student/quizzes"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentQuizzes />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/student/certificates"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentCertificates />
+                  </LayoutWithSidebar>
+                }
+              />
+              {/* <Route
+                path="/student/StudentCalendar"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentCalendar />
+                  </LayoutWithSidebar>
+                }
+              /> */}
+                <Route
+                path="/student/questions"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentQna />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/student/notifications"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                  <StudentNotify />
+                  </LayoutWithSidebar>
+                }
+              />
+            </Route>
+          </Routes>
+          <ToastContainer />
+        </AuthLayout>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

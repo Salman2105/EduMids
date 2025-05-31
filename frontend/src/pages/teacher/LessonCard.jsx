@@ -1,0 +1,460 @@
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+export default function LessonCard() {
+  const [courses, setCourses] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  const [title, setTitle] = useState("");
+  const [contentType, setContentType] = useState("video");
+  const [contentURL, setContentURL] = useState("");
+  const [file, setFile] = useState(null);
+
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // For displaying lessons per course
+  const [lessons, setLessons] = useState({});
+
+  // Fetch teacher's courses and their lessons on mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/teacher/my-courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setCourses(data);
+      setFilteredCourses(data);
+
+      // Fetch lessons for each course
+      const lessonsData = {};
+      for (const course of data) {
+        const lessonRes = await fetch(
+          `http://localhost:5000/api/lessons/course/${course._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const lessonList = await lessonRes.json();
+        lessonsData[course._id] = lessonList.lessons;
+      }
+      setLessons(lessonsData);
+    };
+    fetchCourses();
+  }, []);
+
+  // Filter courses by search
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredCourses(courses);
+    } else {
+      setFilteredCourses(
+        courses.filter(
+          (c) =>
+            c.title.toLowerCase().includes(search.toLowerCase()) ||
+            c._id === search.trim()
+        )
+      );
+    }
+  }, [search, courses]);
+
+  // Handle lesson submission
+  const handleLessonSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    const teacherId = userStr ? JSON.parse(userStr).id : null; // get teacher id from user object
+
+    const formData = new FormData();
+    formData.append("courseId", selectedCourse._id);
+    formData.append("title", title);
+    formData.append("contentType", contentType);
+    formData.append("createdBy", teacherId);
+
+    if (contentType === "link") {
+      formData.append("contentURL", contentURL);
+    } else if (file) {
+      formData.append("file", file);
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/lessons/add", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+       toast.success(data.message || "Lesson added successfully!");
+        // setMessage("Lesson added successfully!");
+        setTitle("");
+        setContentType("video");
+        setContentURL("");
+        setFile(null);
+
+        // Refresh lessons for the selected course
+        const lessonRes = await fetch(
+          `http://localhost:5000/api/lessons/course/${selectedCourse._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const lessonList = await lessonRes.json();
+        setLessons((prev) => ({
+          ...prev,
+          [selectedCourse._id]: lessonList.lessons,
+        }));
+      } else {
+        setMessage(data.message || "Failed to add lesson.");
+      }
+    } catch (err) {
+      setMessage("Error adding lesson.");
+    }
+    setLoading(false);
+  };
+
+  // Update Lesson
+  const handleUpdateLesson = async (lessonId, updatedFields) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/lessons/update/${lessonId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedFields),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Lesson updated successfully!");
+        // Refresh lessons for the selected course
+        if (selectedCourse) {
+          const lessonRes = await fetch(
+            `http://localhost:5000/api/lessons/course/${selectedCourse._id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const lessonList = await lessonRes.json();
+          setLessons((prev) => ({
+            ...prev,
+            [selectedCourse._id]: lessonList.lessons,
+          }));
+        }
+      } else {
+        toast.error(data.message || "Failed to update lesson.");
+      }
+    } catch (err) {
+      toast.error("Error updating lesson.");
+    }
+  };
+
+  // Delete Lesson
+  const handleDeleteLesson = async (lessonId, courseId) => {
+    const token = localStorage.getItem("token");
+    if (!window.confirm("Are you sure you want to delete this lesson?")) return;
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/lessons/delete/${lessonId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Lesson deleted successfully!");
+        // Refresh lessons for the course
+        const lessonRes = await fetch(
+          `http://localhost:5000/api/lessons/course/${courseId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const lessonList = await lessonRes.json();
+        setLessons((prev) => ({
+          ...prev,
+          [courseId]: lessonList.lessons,
+        }));
+      } else {
+        toast.error(data.message || "Failed to delete lesson.");
+      }
+    } catch (err) {
+      toast.error("Error deleting lesson.");
+    }
+  };
+
+  // Helper to get correct video/pdf src
+  const getFileSrc = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    return url.startsWith("/") ? url : `/${url}`;
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md ">
+      <h2 className="text-2xl font-bold mb-4">Add Lesson to Course</h2>
+      {message && (
+        <div className="mb-4 text-center text-sm text-blue-700">{message}</div>
+      )}
+
+      {/* Course Search and Select */}
+      <div className="mb-4">
+        <label className="block mb-1 font-semibold">Search Course</label>
+        <input
+          type="text"
+          className="border px-3 py-2 rounded w-full"
+          placeholder="Enter course title or ID"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className="mt-2 max-h-32 overflow-y-auto border rounded bg-white">
+          <div>
+            {filteredCourses.map((course) => (
+              <div
+                key={course._id}
+                className={`px-3 py-2 cursor-pointer hover:bg-blue-100 ${
+                  selectedCourse && selectedCourse._id === course._id
+                    ? "bg-blue-200 font-bold"
+                    : ""
+                }`}
+                onClick={() => setSelectedCourse(course)}
+              >
+                <div className="font-semibold">{course.title}</div>
+                {/* Category and Price */}
+                <div className="flex items-center justify-between mb-1">
+                  <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full capitalize">
+                    {course.category || "General"}
+                  </span>
+                  <span className="text-blue-700 font-semibold text-xs">
+                    ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
+                  </span>
+                </div>
+                {course.picture && (
+                  <img
+                    src={`http://localhost:5000/${course.picture}`}
+                    alt={course.title}
+                    className="w-32 h-20 object-cover rounded mb-2"
+                  />
+                )}
+                <div className="text-xs text-slate-600">{course.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Lesson Form */}
+      {selectedCourse && (
+        <form onSubmit={handleLessonSubmit} className="mt-4" encType="multipart/form-data">
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Lesson Title</label>
+            <input
+              type="text"
+              className="border px-3 py-2 rounded w-full"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              placeholder="Enter lesson title"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Content Type</label>
+            <select
+              className="border px-3 py-2 rounded w-full"
+              value={contentType}
+              onChange={(e) => setContentType(e.target.value)}
+            >
+              <option value="video">Video</option>
+              <option value="pdf">PDF</option>
+              <option value="link">URL</option>
+            </select>
+          </div>
+          {contentType === "link" ? (
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Content URL</label>
+              <input
+                type="url"
+                className="border px-3 py-2 rounded w-full"
+                value={contentURL}
+                onChange={(e) => setContentURL(e.target.value)}
+                required
+                placeholder="Enter content URL"
+              />
+            </div>
+          ) : (
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">
+                {contentType === "video" ? "Upload Video" : "Upload PDF"}
+              </label>
+              <input
+                type="file"
+                accept={contentType === "video" ? "video/*" : "application/pdf"}
+                className="w-full"
+                onChange={(e) => setFile(e.target.files[0])}
+                required
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? "Adding..." : "Add Lesson"}
+          </button>
+        </form>
+      )}
+
+      <h3 className="text-xl font-bold mb-4 mt-8">All Courses & Lessons</h3>
+      {courses.length === 0 && <p>No courses found.</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6 " style={{animationDelay: '0.1s'}}>
+        {courses.map((course, idx) => (
+          <div
+            key={course._id}
+            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden max-w-md"
+          >
+            {course.picture && (
+              <img
+                src={`http://localhost:5000/${course.picture}`}
+                alt={course.title}
+                className="w-full h-40 object-cover"
+              />
+            )}
+            <div className="flex-1 flex flex-col p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500 font-semibold">
+                  Course #{idx + 1} | ID: {course._id.slice(-6)}
+                </span>
+              </div>
+              <h3 className="text-lg font-bold mb-1">{course.title}</h3>
+              <p className="text-slate-600 text-sm mb-2 line-clamp-2">{course.description}</p>
+              {/* Category and Price */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full capitalize">
+                  {course.category || "General"}
+                </span>
+                <span className="text-blue-700 font-semibold text-xs">
+                  ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
+                </span>
+              </div>
+              <div className="mt-2">
+                <h4 className="font-bold text-sm mb-1">Lessons:</h4>
+                {lessons[course._id] && lessons[course._id].length > 0 ? (
+                  <ul className="list-disc pl-4 text-xs">
+                    {lessons[course._id].slice(0, 2).map((lesson) => (
+                      <li key={lesson._id} className="mb-2">
+                        <span className="font-semibold">{lesson.title}</span>
+                        {" - "}
+                        <span className="italic">{lesson.contentType}</span>
+                        {lesson.contentType === "video" && lesson.contentURL && (
+                          <video
+                            src={`http://localhost:5000/${lesson.contentURL}`}
+                            controls
+                            className="w-40 h-24 rounded mt-1"
+                          />
+                        )}
+                        {lesson.contentType === "pdf" && lesson.contentURL && (
+                          <a
+                            href={`http://localhost:5000/${lesson.contentURL}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline ml-2"
+                          >
+                            View PDF
+                          </a>
+                        )}
+                        {lesson.contentType === "link" && lesson.contentURL && (
+                          <a
+                            href={lesson.contentURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline ml-2"
+                          >
+                            Open Link
+                          </a>
+                        )}
+                        <button
+                          className="ml-2 text-blue-600 underline"
+                          onClick={() => {
+                            // Example: prompt for new title, you can make a modal for better UX
+                            const newTitle = prompt("Enter new lesson title:", lesson.title);
+                            if (newTitle && newTitle !== lesson.title) {
+                              handleUpdateLesson(lesson._id, { title: newTitle });
+                            }
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="ml-2 text-red-600 underline"
+                          onClick={() => handleDeleteLesson(lesson._id, course._id)}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                    {lessons[course._id].length > 2 && (
+                      <li>and {lessons[course._id].length - 2} more...</li>
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-slate-500 text-xs">No lessons added yet.</p>
+                )}
+                <p className="mt-2 font-semibold text-xs">
+                  Total Lessons: {lessons[course._id] ? lessons[course._id].length : 0}
+                </p>
+              </div>
+              <button
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={async () => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete this course? This action cannot be undone."
+                    )
+                  ) {
+                    try {
+                      const token = localStorage.getItem("token");
+                      const res = await fetch(
+                        `http://localhost:5000/api/teacher/courses/${course._id}`,
+                        {
+                          method: "DELETE",
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
+                      );
+                      const data = await res.json();
+                      if (res.ok) {
+                        alert("Course deleted successfully!");
+                        setCourses((prev) => prev.filter((c) => c._id !== course._id));
+                        setLessons((prev) => {
+                          const updated = { ...prev };
+                          delete updated[course._id];
+                          return updated;
+                        });
+                      } else {
+                        alert(data.message || "Failed to delete course.");
+                      }
+                    } catch (err) {
+                      alert("Error deleting course.");
+                    }
+                  }
+                }}
+              >
+                Delete Course
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

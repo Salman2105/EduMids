@@ -1,60 +1,76 @@
 const express = require("express");
 const Lesson = require("../Models/lesson");
-const Course = require("../Models/course");
+const { Course } = require("../Models/course");
 const auth = require("../middleware/auth");
 const { lessonValidation } = require("../validators/lessonValidator");
 const { validationResult } = require("express-validator");
 const upload = require("../utils/upload");
 const notifyUser = require("../utils/notifyUser");
 const router = express.Router();
+const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 
-// ✅ Add a Lesson to a Course (Admin Only)
-router.post("/add", auth, lessonValidation, async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  try {
-    const { courseId, title, contentType, contentURL } = req.body;
+// ✅ Add a Lesson to a Course (Admin/Teacher)
+router.post(
+  "/add",
+  auth,
+  checkRole(["teacher"]),
+  upload.single("file"),
+  lessonValidation,
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    // Validate required fields
-    if (!courseId || !title || !contentType || !contentURL) {
-      return res.status(400).json({ message: "Course ID, title, content type, and content URL are required" });
+    try {
+      const { courseId, title, contentType } = req.body;
+      const createdBy = req.user.id;
+      let contentURL = req.body.contentURL;
+
+      // If file is uploaded, set contentURL to the file path
+      if (req.file) {
+        contentURL = `uploads/${req.file.filename}`;
+      }
+
+      // Validate required fields
+      if (!courseId || !title || !contentType || !contentURL || !createdBy) {
+        return res.status(400).json({ message: "Course ID, title, content type, content URL, and createdBy are required" });
+      }
+
+      // Validate content type
+      const validContentTypes = ["video", "pdf", "quiz", "link"];
+      if (!validContentTypes.includes(contentType)) {
+        return res.status(400).json({ message: "Invalid content type. Must be one of: video, pdf, quiz, link" });
+      }              
+
+      // Check if the course exists
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Check if the logged-in user is the course instructor (admin/teacher)
+      if (course.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Create the lesson with createdBy
+      const lesson = new Lesson({ courseId, title, contentType, contentURL, createdBy });
+      await lesson.save();
+
+      // Add lesson to course
+      course.lessons.push(lesson._id);
+      await course.save();
+
+      // Notify the instructor
+      await notifyUser(course.createdBy, `A new lesson "${lesson.title}" has been added to your course.`);
+
+      res.status(201).json({ message: "Lesson added successfully", lesson });
+    } catch (error) {
+      console.error("Error adding lesson:", error.message);
+      res.status(500).json({ message: "Server Error", error: error.message });
     }
-
-    // Validate content type
-    const validContentTypes = ["video", "pdf", "quiz"];
-    if (!validContentTypes.includes(contentType)) {
-      return res.status(400).json({ message: "Invalid content type. Must be one of: video, pdf, quiz" });
-    }
-
-    // Check if the course exists
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
-    }
-
-    // Check if the logged-in user is the course instructor (admin)
-    if (course.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    // Create the lesson
-    const lesson = new Lesson({ courseId, title, contentType, contentURL });
-    await lesson.save();
-
-    // Add lesson to course
-    course.lessons.push(lesson._id);
-    await course.save();
-
-    // Notify the instructor
-    await notifyUser(course.createdBy, `A new lesson "${lesson.title}" has been added to your course.`);
-
-    res.status(201).json({ message: "Lesson added successfully", lesson });
-  } catch (error) {
-    console.error("Error adding lesson:", error.message); // Log the error message
-    res.status(500).json({ message: "Server Error", error: error.message });
   }
-});
+);
 
 // ✅ Upload File for Lesson Content
 router.post("/upload", upload.single("file"), (req, res) => {
@@ -81,7 +97,7 @@ router.put("/update/:lessonId", auth, async (req, res) => {
 
     // Check if the logged-in user is the course instructor (admin)
     const course = await Course.findById(lesson.courseId);
-    if (!course || (course.createdBy.toString() !== req.user.id && req.user.role !== "admin")) {
+    if (!course || (course.createdBy.toString() !== req.user.id && req.user.role !== "teacher")) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 

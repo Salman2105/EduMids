@@ -1,45 +1,69 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import StartCardTemplate from "./StartCardTemplate";
+import { BookOpen, UserCheck, FileText, BarChart2, Users } from "lucide-react";
 
-const Card = ({ title, value }) => (
-  <div className="bg-white shadow rounded p-6 w-full md:w-1/3">
-    <h4 className="text-gray-500">{title}</h4>
-    <p className="text-2xl font-bold">{value}</p>
-  </div>
-);
-
-const TeacherDashboard = () => {
-  const [data, setData] = useState(null);
+const TeacherStatsCards = () => {
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    const fetchTeacherStats = async () => {
+    const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/teacher/dashboard/teacher-dashboard", {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch("http://localhost:5000/api/teacher/dashboard/teacher-dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setData(res.data);
+        const data = await res.json();
+        if (res.ok) {
+          setStats(data);
+        } else {
+          setStats(null);
+          console.error("Failed to load Teacher Dashboard:", data.message || "Unknown error");
+        }
       } catch (err) {
-        console.error("Error fetching teacher stats", err);
+        setStats(null);
+        console.error("Failed to load Teacher Dashboard", err);
       }
     };
-    fetchTeacherStats();
+    fetchStats();
   }, []);
 
-  if (!data) return <p>Loading...</p>;
-
+  if (!stats) return <p>Loading...</p>;
   return (
-    <div className="p-6 h-full">
-      {/* <h2 className="text-2xl font-bold mb-6">Teacher Dashboard</h2> */}
-      <div className="flex flex-wrap gap-4">
-        <Card title="Courses Created" value={data.totalCourses} />
-        <Card title="Total Enrollments" value={data.totalEnrollments} />
-        <Card title="Quizzes Created" value={data.totalQuizzes} />
-        <Card title="Average Quiz Score" value={data.averageScore !== undefined ? data.averageScore.toFixed(2) : "0.00"} />
-        <Card title="Total Students" value={data.totalStudents} />
-      </div>
+    <div className="flex flex-col md:flex-row md:flex-wrap gap-6 mb-6">
+      <StartCardTemplate
+        title="Courses"
+        value={stats.totalCourses ?? 0}
+        icon={BookOpen}
+        color="bg-indigo-500"
+      />
+      <StartCardTemplate
+        title="Enrollments"
+        value={stats.totalEnrollments ?? 0}
+        icon={UserCheck}
+        color="bg-emerald-500"
+      />
+      <StartCardTemplate
+        title="Quizzes"
+        value={stats.totalQuizzes ?? 0}
+        icon={FileText}
+        color="bg-yellow-500"
+      />
+      <StartCardTemplate
+        title="Average Quiz Score"
+        value={stats.averageScore !== undefined ? stats.averageScore.toFixed(2) : "0.00"}
+        icon={BarChart2}
+        color="bg-purple-500"
+      />
+      <StartCardTemplate
+        title="Students"
+        value={stats.totalStudents ?? 0}
+        icon={Users}
+        color="bg-blue-500"
+      />
     </div>
   );
 };
 
-export default TeacherDashboard;
+export default TeacherStatsCards;

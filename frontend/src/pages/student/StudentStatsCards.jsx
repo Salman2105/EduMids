@@ -1,44 +1,74 @@
-
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import StartCardTemplate from "./StartCardTemplate";
+import { BookOpen, UserCheck, FileText, BarChart2, Users } from "lucide-react";
 
-const Card = ({ title, value }) => (
-  <div className="bg-white shadow rounded p-6 w-full md:w-1/3">
-    <h4 className="text-gray-500">{title}</h4>
-    <p className="text-2xl font-bold">{value}</p>
-  </div>
-);
-
-const StudentDashboard = () => {
-  const [data, setData] = useState(null);
+const StudentStatsCards = () => {
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    const fetchStudentStats = async () => {
+    const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/student/dashboard/student-dashboard", {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch("http://localhost:5000/api/student/dashboard/student-dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setData(res.data);
+        const data = await res.json();
+        setStats(data);
+        // Removed problematic localStorage.setItem that overwrites the user object
       } catch (err) {
-        console.error("Error fetching student stats", err);
+        console.error("Failed to load Student Dashboard", err);
       }
     };
-    fetchStudentStats();
+    fetchStats();
   }, []);
 
-  if (!data) return <p>Loading...</p>;
+  if (!stats) return <p>Loading...</p>;
+
+  // Use backend-calculated stats if available, fallback to 0
+  const activeEnrollments = stats.activeEnrollments ?? 0;
+  const quizzesAttempted = stats.quizzesAttempted ?? 0;
+  const averageScore =
+    stats.averageScore !== undefined && stats.averageScore !== null
+      ? Number(stats.averageScore).toFixed(2)
+      : "0.00";
 
   return (
-    <div className="p-6">
-      {/* <h2 className="text-2xl font-bold mb-6">Student Dashboard</h2> */}
-      <div className="flex flex-wrap gap-4">
-        <Card title="Courses Enrolled" value={data.coursesEnrolled} />
-        <Card title="Courses Completed" value={data.coursesCompleted} />
-        <Card title="Certificates Earned" value={data.certificates} />
-      </div>
+    <div className="flex flex-col md:flex-row md:flex-wrap gap-6 mb-6">
+      <StartCardTemplate
+        title="Courses Enrolled"
+        value={stats.coursesEnrolled ?? 0}
+        icon={BookOpen}
+        color="bg-indigo-500"
+      />
+      <StartCardTemplate
+        title="Active Enrollments"
+        value={activeEnrollments}
+        icon={UserCheck}
+        color="bg-emerald-500"
+      />
+      <StartCardTemplate
+        title="Quizzes Attempted"
+        value={quizzesAttempted}
+        icon={FileText}
+        color="bg-yellow-500"
+      />
+      <StartCardTemplate
+        title="Average Quiz Score"
+        value={averageScore}
+        icon={BarChart2}
+        color="bg-purple-500"
+      />
+      <StartCardTemplate
+        title="Total Certificates"
+        value={stats.certificates ?? 0}
+        icon={Users}
+        color="bg-blue-500"
+      />
     </div>
   );
 };
 
-export default StudentDashboard;
+export default StudentStatsCards;
+

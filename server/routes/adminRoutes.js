@@ -2,71 +2,71 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const Lesson = require("../Models/lesson");
-const Course = require("../Models/course");
+// const Course = require("../Models/course");
 const User = require("../Models/user");
 
 // ✅ Create a Course
-router.post("/create-course", verifyToken, checkRole(["admin"]), async (req, res) => {
-  try {
-    const { title, description, createdBy } = req.body;
+// router.post("/create-course", verifyToken, checkRole(["admin"]), async (req, res) => {
+//   try {
+//     const { title, description, createdBy } = req.body;
 
-    // Validate createdBy (instructor)
-    const instructorUser = await User.findById(createdBy);
-    if (!instructorUser || instructorUser.role !== "teacher") {
-      return res.status(400).json({ message: "Invalid instructor ID or the user is not a teacher" });
-    }
+//     // Validate createdBy (instructor)
+//     const instructorUser = await User.findById(createdBy);
+//     if (!instructorUser || instructorUser.role !== "teacher") {
+//       return res.status(400).json({ message: "Invalid instructor ID or the user is not a teacher" });
+//     }
 
-    const course = new Course({ title, description, createdBy });
-    await course.save();
-    res.status(201).json({ message: "Course created successfully", course });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
+//     const course = new Course({ title, description, createdBy });
+//     await course.save();
+//     res.status(201).json({ message: "Course created successfully", course });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server Error", error });
+//   }
+// });
 
-// ✅ Add a Lesson to a Course
-router.post("/lessons", verifyToken, async (req, res) => {
-  try {
-    const { courseId, title, contentType, contentURL } = req.body;
+// // ✅ Add a Lesson to a Course
+// router.post("/lessons", verifyToken, async (req, res) => {
+//   try {
+//     const { courseId, title, contentType, contentURL } = req.body;
 
-    // Validate request
-    if (!courseId || !title || !contentType || !contentURL) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+//     // Validate request
+//     if (!courseId || !title || !contentType || !contentURL) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
 
-    // Check if the course exists
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
-    }
+//     // Check if the course exists
+//     const course = await Course.findById(courseId);
+//     if (!course) {
+//       return res.status(404).json({ message: "Course not found" });
+//     }
 
-    // Check if the logged-in user is an admin or the instructor of the course
-    if (course.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+//     // Check if the logged-in user is an admin or the instructor of the course
+//     if (course.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
+//       return res.status(403).json({ message: "Unauthorized" });
+//     }
 
-    // Create a new lesson
-    const lesson = new Lesson({ courseId, title, contentType, contentURL });
-    await lesson.save();
+//     // Create a new lesson
+//     const lesson = new Lesson({ courseId, title, contentType, contentURL });
+//     await lesson.save();
 
-    // Add lesson ID to the course's lessons array
-    await Course.findByIdAndUpdate(courseId, { $push: { lessons: lesson._id } });
+//     // Add lesson ID to the course's lessons array
+//     await Course.findByIdAndUpdate(courseId, { $push: { lessons: lesson._id } });
 
-    res.status(201).json({ message: "Lesson added successfully", lesson });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
+//     res.status(201).json({ message: "Lesson added successfully", lesson });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server Error", error });
+//   }
+// });
 
 // ✅ Update a Course
-router.put("/courses/:id", verifyToken, checkRole(["admin"]), async (req, res) => {
-  try {
-    const course = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.status(200).json({ message: "Course updated successfully", course });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
+// router.put("/courses/:id", verifyToken, checkRole(["admin"]), async (req, res) => {
+//   try {
+//     const course = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//     res.status(200).json({ message: "Course updated successfully", course });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server Error", error });
+//   }
+// });
 
 // ✅ Delete a Course
 router.delete("/courses/:id", verifyToken, checkRole(["admin"]), async (req, res) => {

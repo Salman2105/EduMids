@@ -1,13 +1,13 @@
 
 import React from "react";
 import SearchBar from "../../components/SearchBar";
+import AdminStudentsCard from "./AdminStudentsCard";
 
 const AdminStudents = () => {
   return (
-  <> <div className="p-6 h-full">
+  <> <div className="p-6">
                   <SearchBar />
-      <h2 className="text-xl font-bold">Manage Students</h2>
-      <p>This page allows the admin to view and manage all students.</p>
+  <AdminStudentsCard />
     </div>
     </> 
   );

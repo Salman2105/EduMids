@@ -1,9 +1,57 @@
-import React from "react";
-import { Input } from "./ui/input"; // Adjusted import path
+import React, { useEffect, useState } from "react";
+import { Input } from "./ui/input";
 import { Search, Bell } from "lucide-react";
-import { Avatar } from "./ui/avatar"; // Adjusted import path
+import { Avatar } from "./ui/avatar";
+import { Link, useNavigate } from "react-router-dom";
 
 const SearchBar = () => {
+  const [userInitial, setUserInitial] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get user info from localStorage (assuming user object is stored after login)
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+    console.log("User from localStorage:", user);
+    if (user && user.name && user.name.length > 0) {
+      setUserInitial(user.name[0].toUpperCase());
+    }
+
+    // Fetch unread notifications count
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("token from localStorage:", token);
+        const res = await fetch("http://localhost:5000/api/notifications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data)) {
+          const unread = data.filter((n) => !n.isRead).length;
+          setUnreadCount(unread);
+        }
+      } catch (err) {
+        setUnreadCount(0);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  // Handler for bell click
+  const handleBellClick = () => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      navigate("/admin/notifications");
+    } else if (role === "teacher") {
+      navigate("/teacher/notifications");
+    } else {
+      navigate("/student/notifications");
+    }
+  };
+
   return (
     <div className="flex items-center justify-between mb-6">
       {/* Dashboard Title */}
@@ -27,19 +75,21 @@ const SearchBar = () => {
 
         {/* Notifications */}
         <div className="relative">
-          <Bell size={20} className="text-gray-600" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
-            5
-          </span>
+          <Bell
+            size={20}
+            className="text-gray-600 cursor-pointer"
+            onClick={handleBellClick}
+          />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
         </div>
 
         {/* User Avatar */}
-        <Avatar className="h-8 w-8">
-          <img
-            src="https://i.pravatar.cc/150?img=3"
-            alt="User avatar"
-            className="rounded-full"
-          />
+        <Avatar className="h-8 w-8 bg-blue-600 text-white flex items-center justify-center font-bold">
+          {userInitial || "✨"}
         </Avatar>
       </div>
     </div>
@@ -47,3 +97,5 @@ const SearchBar = () => {
 };
 
 export default SearchBar;
+
+

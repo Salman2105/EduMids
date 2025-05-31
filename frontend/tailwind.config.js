@@ -1,10 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // adjust based on your project structure
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./index.html"
   ],
   theme: {
-    extend: {},
+    extend: {
+      // You can add customizations here if needed
+    },
   },
-  plugins: [],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography")
+  ],
 };

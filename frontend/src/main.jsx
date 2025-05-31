@@ -1,8 +1,11 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 // import { Provider } from "./components/ui/provider";
 import "./index.css"; // Adjust the path as necessary
+// import store from "./redux/store";
+
 import App from "./App";
 
 // Ensure the root element exists in your index.html
@@ -13,7 +16,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter >
+    {/* store={store} */}
       {/* <Provider> */}
         <App />
       {/* </Provider> */}

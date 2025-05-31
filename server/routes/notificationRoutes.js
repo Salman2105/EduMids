@@ -2,18 +2,21 @@ const express = require("express");
 const router = express.Router();
 const Notification = require("../Models/notification");
 const auth = require("../middleware/auth");
+const notifyUser = require("../utils/notifyUser");
+
+
 
 // Get all notifications for logged-in user
 router.get("/", auth, async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.user._id }).sort({ createdAt: -1 });
+    console.log("Fetching notifications for user:", req.user.id); // Debug log
+    const notifications = await Notification.find({ user: req.user.id }).sort({ createdAt: -1 });
+    console.log("Found notifications:", notifications); // Debug log
     res.json(notifications);
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    res.status(500).json({ message: "Failed to fetch notifications" });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching notifications" });
   }
 });
-
 // Mark as read
 router.patch("/:id/read", auth, async (req, res) => {
   try {
@@ -27,5 +30,6 @@ router.patch("/:id/read", auth, async (req, res) => {
     res.status(500).json({ message: "Error marking as read" });
   }
 });
+
 
 module.exports = router;

@@ -8,7 +8,7 @@ const { validationResult } = require("express-validator");
 const notifyUser = require("../utils/notifyUser");
 
 // ✅ Create a Quiz (Admin Only)
-router.post("/create", verifyToken, checkRole(["admin"]), quizValidation, async (req, res) => {
+router.post("/create", verifyToken, checkRole(["teacher"]), quizValidation, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -50,7 +50,7 @@ router.get("/course/:courseId", verifyToken, async (req, res) => {
 });
 
 // ✅ Delete a Quiz (Admin Only)
-router.delete("/delete-quiz/:quizId", verifyToken, checkRole(["admin"]), async (req, res) => {
+router.delete("/delete-quiz/:quizId", verifyToken, checkRole(["teacher"]), async (req, res) => {
   try {
     const quiz = await Quiz.findByIdAndDelete(req.params.quizId);
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
@@ -121,6 +121,114 @@ router.get("/my-submissions", verifyToken, async (req, res) => {
     res.status(200).json(submissions);
   } catch (error) {
     console.error("Error fetching submissions:", error.message);
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Get All Available Quizzes for Student's Enrolled Courses
+router.get("/student/all", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const Enrollment = require("../Models/Enrollment");
+    const enrollments = await Enrollment.find({ student: req.user.id }).populate({
+      path: "course",
+      populate: { path: "quizzes", select: "title _id createdAt" }
+    });
+    const quizzes = enrollments.flatMap(enroll =>
+      (enroll.course.quizzes || []).map(quiz => ({
+        quizId: quiz._id,
+        title: quiz.title,
+        courseId: enroll.course._id,
+        courseTitle: enroll.course.title,
+        createdAt: quiz.createdAt
+      }))
+    );
+    res.status(200).json({ quizzes });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Save Quiz Progress (Partial)
+router.post("/save-progress/:quizId", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const QuizProgress = require("../Models/quizProgress");
+    let progress = await QuizProgress.findOneAndUpdate(
+      { quiz: req.params.quizId, student: req.user.id },
+      { answers, updatedAt: new Date() },
+      { upsert: true, new: true }
+    );
+    res.status(200).json({ message: "Progress saved", progress });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Get Quiz Progress
+router.get("/progress/:quizId", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const QuizProgress = require("../Models/quizProgress");
+    const progress = await QuizProgress.findOne({ quiz: req.params.quizId, student: req.user.id });
+    res.status(200).json({ progress });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Get All Quiz Results for Student
+router.get("/student/results", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const submissions = await QuizSubmission.find({ student: req.user.id })
+      .populate("quiz")
+      .sort({ createdAt: -1 });
+    const results = submissions.map(sub => ({
+      quizId: sub.quiz._id,
+      quizTitle: sub.quiz.title,
+      courseId: sub.quiz.course,
+      score: sub.score,
+      submittedAt: sub.createdAt
+    }));
+    res.status(200).json({ results });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Unified Quiz Dashboard for Student
+router.get("/student/dashboard", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const Enrollment = require("../Models/Enrollment");
+    const Quiz = require("../Models/quiz");
+    const QuizSubmission = require("../Models/quizSubmission");
+
+    // Get all enrolled courses
+    const enrollments = await Enrollment.find({ student: req.user.id }).populate("course");
+    const courseIds = enrollments.map(e => e.course._id);
+
+    // Get all quizzes for these courses
+    const quizzes = await Quiz.find({ course: { $in: courseIds } }).populate("course");
+
+    // Get all submissions for this student
+    const submissions = await QuizSubmission.find({ student: req.user.id });
+
+    // Map quizId to submission (use string keys)
+    const submissionMap = {};
+    submissions.forEach(sub => { submissionMap[String(sub.quiz)] = sub; });
+
+    // Build dashboard data
+    const quizCards = quizzes.map(q => ({
+      quizId: q._id,
+      title: q.title,
+      courseId: q.course._id,
+      courseTitle: q.course.title,
+      createdAt: q.createdAt,
+      completed: !!submissionMap[String(q._id)],
+      score: submissionMap[String(q._id)]?.score || null,
+      submittedAt: submissionMap[String(q._id)]?.createdAt || null
+    }));
+
+    res.status(200).json({ quizCards });
+  } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }
 });
