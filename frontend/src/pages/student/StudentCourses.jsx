@@ -5,7 +5,7 @@ import StudentCourseCard from "./StudentCourseCard"
 
 const StudentCourses = () => {
   return (
- <> <div className="p-6 h-full ">
+ <> <div className="p-6  ">
        <SearchBar />
       <StudentCourseCard />
     </div>

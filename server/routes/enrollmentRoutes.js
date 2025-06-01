@@ -9,7 +9,7 @@ const notifyUser = require("../utils/notifyUser");
 router.use(verifyToken);
 
 // 🟢 Enroll in a Course (Only Students)
-router.post("/:courseId", checkRole(["student"]), async (req, res) => {
+router.post("/:courseId", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
     const { courseId } = req.params;
 
@@ -45,38 +45,67 @@ router.post("/:courseId", checkRole(["student"]), async (req, res) => {
   }
 });
 
-// 🟡 Get All Enrollments for a Student
-router.get("/enroll", checkRole(["student"]), async (req, res) => {
+// 🟡 Get All Enrollments for a Student (updated to match Studentroutes.js logic)
+router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, res) => {
   try {
-    // Find all enrollments for the student, populate course details
-    const enrollments = await Enrollment.find({ student: req.user.id })
-      .populate({ path: "course", select: "title description lessons" });
+    // Get user info (basic)
+    const user = req.user;
 
-    // Build the courses array for the frontend
-    const courses = enrollments.map((enrollment) => {
-      const course = enrollment.course;
+    // Get all enrollments for the logged-in student
+    const enrollments = await Enrollment.find({ student: user.id }).populate({
+      path: "course",
+      populate: [
+        { path: "lessons", select: "title _id" },
+        { path: "quizzes", select: "title _id" }
+      ]
+    });
+
+    // Get all quiz submissions for this student
+    const QuizSubmission = require("../Models/quizSubmission");
+    const quizSubmissions = await QuizSubmission.find({ student: user.id });
+
+    // Build the dashboard data
+    const courses = enrollments.map(enroll => {
+      const course = enroll.course;
+      // Lessons breakdown
+      const lessons = (course.lessons || []).map(lesson => ({
+        lessonId: lesson._id,
+        title: lesson.title,
+        status: "unknown" // Placeholder, update if you have lesson progress tracking
+      }));
+      // Quizzes breakdown
+      const quizzes = (course.quizzes || []).map(quiz => {
+        const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
+        return {
+          quizId: quiz._id,
+          title: quiz.title,
+          completed: !!submission,
+          score: submission ? submission.score : null
+        };
+      });
+      // Course progress (from enrollment)
       return {
         courseId: course._id,
         title: course.title,
         description: course.description,
-        enrolledAt: enrollment.createdAt,
-        progress: enrollment.progress || 0,
-        lessons: Array.isArray(course.lessons)
-          ? course.lessons.map((lesson) => ({
-              lessonId: lesson._id || lesson.id || lesson,
-              title: lesson.title || "Lesson",
-            }))
-          : [],
-        quizzes: [], // You can fill this if you want to fetch quizzes for the course
+        picture: course.picture, // <-- Add this line to include course image
+        progress: typeof enroll.progress === "number" ? enroll.progress : 0,
+        enrolledAt: enroll.createdAt,
+        lessons,
+        quizzes
       };
     });
 
-    res.json({
-      user: { id: req.user.id, role: req.user.role },
-      courses,
+    res.status(200).json({
+      user: {
+        id: user.id,
+        role: user.role
+      },
+      courses
     });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching enrollments", error: error.message });
+    console.error("Error fetching student enrolled courses:", error.message);
+    res.status(500).json({ message: "Server Error", error });
   }
 });
 

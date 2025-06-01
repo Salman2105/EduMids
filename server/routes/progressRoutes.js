@@ -1,4 +1,4 @@
-const Progress = require("../models/Progress");
+const Progress = require("../Models/Progress");
 const express = require("express");
 const router = express.Router();
 const Course = require("../Models/course"); // Import Progress Model

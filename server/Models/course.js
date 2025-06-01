@@ -10,6 +10,7 @@ const CourseSchema = new mongoose.Schema({
   lessons: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Lesson" },
   ],
+  quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }],
   createdAt: { type: Date, default: Date.now },
 });
 

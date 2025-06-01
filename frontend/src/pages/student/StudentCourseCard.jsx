@@ -4,28 +4,47 @@ const StudentCourseCard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [unenrolling, setUnenrolling] = useState({});
+
+  const fetchData = async () => {
+    try {
+      const user = localStorage.getItem("user");
+      console.log("User from localStorage:", user);
+      const token = localStorage.getItem("token");
+      console.log("token from localStorage:", token);
+      const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      const result = await res.json();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user = localStorage.getItem("user");
-        console.log("User from localStorage:", user);
-        const token = localStorage.getItem("token");
-        console.log("token from localStorage:", token);
-        const res = await fetch("http://localhost:5000/api/student/courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
-        const result = await res.json();
-        setData(result);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  const handleUnenroll = async (courseId) => {
+    setUnenrolling((prev) => ({ ...prev, [courseId]: true }));
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/enrollments/${courseId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to unenroll from course");
+      await fetchData();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUnenrolling((prev) => ({ ...prev, [courseId]: false }));
+    }
+  };
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
@@ -52,14 +71,18 @@ const StudentCourseCard = () => {
               <div>
                 <h2 className="text-xl font-bold mb-1">{course.title}</h2>
                 <p className="text-gray-600 mb-2">{course.description}</p>
-                <div className="text-sm text-gray-500">Enrolled: {new Date(course.enrolledAt).toLocaleDateString()}</div>
+                <div className="text-sm text-gray-500">
+                  Enrolled: {new Date(course.enrolledAt).toLocaleDateString()}
+                </div>
               </div>
               <div className="mt-4 md:mt-0">
-                <div className="font-semibold">Progress: {course.progress}%</div>
+                <div className="font-semibold">
+                  Progress: {typeof course.progress === "number" ? course.progress : 0}%
+                </div>
                 <div className="w-40 h-2 bg-gray-200 rounded mt-1">
                   <div
                     className="h-2 bg-blue-500 rounded"
-                    style={{ width: `${course.progress}%` }}
+                    style={{ width: `${typeof course.progress === "number" ? course.progress : 0}%` }}
                   ></div>
                 </div>
               </div>
@@ -67,26 +90,23 @@ const StudentCourseCard = () => {
             {/* Lessons */}
             <div className="mb-4">
               <div className="font-semibold mb-2">Lessons</div>
-              {course.lessons.length === 0 ? (
-                <div className="text-gray-400 text-sm">No lessons available.</div>
-              ) : (
+              {(course.lessons && course.lessons.length > 0) ? (
                 <ul className="space-y-1">
                   {course.lessons.map((lesson) => (
                     <li key={lesson.lessonId} className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-gray-400"></span>
                       <span>{lesson.title}</span>
-                      {/* Add lesson status/progress here if available */}
                     </li>
                   ))}
                 </ul>
+              ) : (
+                <div className="text-gray-400 text-sm">No lessons available.</div>
               )}
             </div>
             {/* Quizzes */}
             <div>
               <div className="font-semibold mb-2">Quizzes</div>
-              {course.quizzes.length === 0 ? (
-                <div className="text-gray-400 text-sm">No quizzes available.</div>
-              ) : (
+              {(course.quizzes && course.quizzes.length > 0) ? (
                 <ul className="space-y-1">
                   {course.quizzes.map((quiz) => (
                     <li key={quiz.quizId} className="flex items-center gap-2">
@@ -98,8 +118,17 @@ const StudentCourseCard = () => {
                     </li>
                   ))}
                 </ul>
+              ) : (
+                <div className="text-gray-400 text-sm">No quizzes available.</div>
               )}
             </div>
+            <button
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              onClick={() => handleUnenroll(course.courseId)}
+              disabled={unenrolling[course.courseId]}
+            >
+              {unenrolling[course.courseId] ? "Unenrolling..." : "Unenroll"}
+            </button>
           </div>
         ))}
       </div>
