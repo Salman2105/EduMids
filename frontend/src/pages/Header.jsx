@@ -108,7 +108,7 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
           <Link to="/ServicesPage">
             <span className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium text-sm cursor-pointer">Services</span>
           </Link>
-          <Link to="/courses">
+          <Link to="/CoursesPage">
             <span className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium text-sm cursor-pointer">Courses</span>
           </Link>
           {/* <Link to="/pricing">
@@ -185,10 +185,10 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
             </>
           ) : (
             <div className="hidden md:flex items-center space-x-2">
-              <Link to="/auth/login">
+              <Link to="/auth/Login">
                 <Button className="bg-blue-300" variant="ghost" size="sm">Log in</Button>
               </Link>
-              <Link to="/auth/register">
+              <Link to="/auth/SignUp">
                 <Button className="bg-blue-300" size="sm">Sign up</Button>
               </Link>
             </div>
@@ -206,7 +206,7 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
             <Link to="/ServicesPage">
               <span className="block py-2 text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium">Services</span>
             </Link>
-            <Link to="/courses">
+            <Link to="/CoursesPage">
               <span className="block py-2 text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium">Courses</span>
             </Link>
             {/* <Link to="/pricing">

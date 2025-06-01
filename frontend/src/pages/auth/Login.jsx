@@ -84,7 +84,7 @@ const Login = () => {
         </form>
         <Typography mt={2} align="center">
           Don’t have an account?{" "}
-          <Link to='/signup' className="underline text-blue-500 cursor-pointer">
+          <Link to='/auth/signup' className="underline text-blue-500 cursor-pointer">
             <b>Signup</b>
           </Link>
         </Typography>

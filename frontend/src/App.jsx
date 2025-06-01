@@ -12,7 +12,9 @@ import Footer from "./pages/Footer";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import ServicesPage from "./pages/ServicesPage";
-
+import CoursesPage from "./pages/CoursesPage"; // Assuming you have a Courses page
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -72,11 +74,14 @@ function App() {
         <AuthLayout>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
             <Route path="/Contact" element={<ContactPage />} />
             <Route path="/AboutPage" element={<AboutPage />} />
             <Route path="/ServicesPage" element={<ServicesPage />} />
+            <Route path="/CoursesPage" element={<CoursesPage />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
 
 
             {/* Admin Routes */}

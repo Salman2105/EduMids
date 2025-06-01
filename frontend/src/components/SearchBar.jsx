@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const SearchBar = () => {
   const [userInitial, setUserInitial] = useState("");
+  const [userName, setUserName] = useState(""); // Add this line
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
@@ -16,6 +17,7 @@ const SearchBar = () => {
     console.log("User from localStorage:", user);
     if (user && user.name && user.name.length > 0) {
       setUserInitial(user.name[0].toUpperCase());
+      setUserName(user.name); // Add this line
     }
 
     // Fetch unread notifications count
@@ -56,7 +58,9 @@ const SearchBar = () => {
     <div className="flex items-center justify-between mb-6">
       {/* Dashboard Title */}
       <div className="flex-1">
-        <h1 className="text-2xl font-bold">Heyy!</h1>
+        <h1 className="text-2xl font-bold">
+          {userName ? `Welcome ${userName}` : "Welcome"}
+        </h1>
       </div>
 
       {/* Search Bar and Notifications */}

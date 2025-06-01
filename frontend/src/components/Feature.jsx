@@ -1,17 +1,50 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ChevronRight } from "lucide-react";
-
+import BuyButton from "../components/BuyButton";
+import { motion } from "framer-motion"; // Add this import
+ 
 export default function Feature() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/courses", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) throw new Error("Failed to fetch courses");
+        const data = await res.json();
+        setCourses(data);
+      } catch (err) {
+        setError(err.message || "Error fetching courses");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  const freeCourses = courses.filter(course => (course.price === 20.00 || course.price === "20.00"));
+
   return (
-    <section className="py-16 bg-white dark:bg-slate-900">
+    <section
+      className="py-16 bg-white dark:bg-slate-900"
+    >
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-10 fade-in">
+        <div
+          className="flex justify-between items-center mb-10 fade-in"
+        >
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white font-accent">
             Featured Courses
           </h2>
-          <Link to="/courses">
+          <Link to="/CoursesPage" className="hidden md:block">
             <Button
               variant="link"
               className="text-primary hover:text-primary-light dark:hover:text-primary-light flex items-center font-medium"
@@ -22,6 +55,51 @@ export default function Feature() {
           </Link>
         </div>
         {/* Add featured course cards here */}
+        {loading && <div>Loading featured courses...</div>}
+        {error && <div className="text-red-500">{error}</div>}
+        {!loading && !error && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {freeCourses.length === 0 ? (
+              <div>No free courses available at the moment.</div>
+            ) : (
+              freeCourses.map((course, idx) => (
+                <motion.div
+                  key={course._id}
+                  className="border rounded-xl shadow bg-white flex flex-col max-w-xs w-full mx-auto h-full hover:shadow-lg transition-transform duration-300 hover:scale-105"
+                  style={{ minHeight: "420px", transitionProperty: "box-shadow, transform" }}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.15, duration: 0.7, ease: "easeOut" }}
+                >
+                  {course.picture && (
+                    <img
+                      src={`http://localhost:5000/${course.picture}`}
+                      alt={course.title}
+                      className="w-full h-44 object-cover rounded-t-xl"
+                    />
+                  )}
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="font-bold text-lg mb-1">{course.title}</div>
+                    <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full capitalize">
+                        {course.category || "fantasy"}
+                      </span>
+                      <span className="text-green-700 font-semibold text-lg">
+                       Best sell
+                      </span>
+                    </div>
+                    <div className="mt-auto flex justify-end">
+                      <Link to={`/courses/${course._id}`}>
+                        <BuyButton course={course} />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </section>
   )

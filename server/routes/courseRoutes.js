@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Course } = require("../Models/course"); // <-- Use destructuring for new export
+const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const { createCourseValidation } = require("../validators/courseValidator");
 const { validationResult } = require("express-validator");
@@ -18,7 +18,18 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Middleware to verify token
+// 🟡 Get All Courses (For Students) - PUBLIC
+router.get("/", async (req, res) => {
+  try {
+    const courses = await Course.find().populate("createdBy", "name email");
+    res.json(courses);
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).json({ message: "Error fetching courses" });
+  }
+});
+
+// Middleware to verify token (applies to all routes below)
 router.use(verifyToken);
 
 // 🟢 Create a Course (Only Teachers/Admins)
@@ -59,17 +70,6 @@ router.post(
     }
   }
 );
-
-// 🟡 Get All Courses (For Students)
-router.get("/", async (req, res) => {
-  try {
-    const courses = await Course.find().populate("createdBy", "name email");
-    res.json(courses);
-  } catch (error) {
-    console.error("Error fetching courses:", error);
-    res.status(500).json({ message: "Error fetching courses" });
-  }
-});
 
 // 🔵 Get Single Course by ID
 router.get("/:id", async (req, res) => {

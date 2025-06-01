@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import BuyButton from "../../components/BuyButton";
+import BuyButton from "../components/BuyButton";
+import Header from "./Header"
+import Footer from "./Footer";
 
-export default function StudentAllCoursesCard() {
+export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,7 +34,9 @@ export default function StudentAllCoursesCard() {
   if (!courses.length) return <div className="p-4">No courses available at the moment.</div>;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 items-stretch">
+    <>
+        <Header/>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 items-stretch mb-10">
       {courses.map((course) => (
         <div
           key={course._id}
@@ -62,7 +66,9 @@ export default function StudentAllCoursesCard() {
             </div>
           </div>
         </div>
-      ))}
+      ))} 
     </div>
+    <Footer />
+    </>
   );
 }

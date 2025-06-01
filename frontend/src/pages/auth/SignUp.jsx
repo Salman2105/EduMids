@@ -105,7 +105,7 @@ const Signup = () => {
         </form>
         <Typography mt={2} align="center">
           Already have an account?{" "}
-          <Link to='/login' className="underline text-blue-500 cursor-pointer">
+          <Link to='/auth/login' className="underline text-blue-500 cursor-pointer">
             <b>Login</b>
           </Link>
         </Typography>
