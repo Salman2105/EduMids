@@ -18,7 +18,13 @@ export default function AboutPage() {
         <meta name="description" content="Learn about EduMinds - our mission, team, and vision for transforming online education with innovative learning experiences." />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-12">
+      <div
+        className="container mx-auto px-4 py-12 min-h-screen w-full"
+        style={{
+          background: "hsl(var(--background))",
+          color: "hsl(var(--foreground))"
+        }}
+      >
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">About EduMinds</h1>

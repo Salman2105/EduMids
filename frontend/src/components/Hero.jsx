@@ -53,7 +53,7 @@ const Hero = () => {
                 className="border-2 border-white text-white hover:bg-blue/10 py-6 font-medium transition"
                 asChild
               >
-                <Link to="../../pages/auth/signup">
+                <Link to="/auth/SignUp">
                   Sign Up Free
                 </Link>
               </Button>

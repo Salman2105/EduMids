@@ -8,7 +8,10 @@ const StudentCourseCard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const user = localStorage.getItem("user");
+        console.log("User from localStorage:", user);
         const token = localStorage.getItem("token");
+        console.log("token from localStorage:", token);
         const res = await fetch("http://localhost:5000/api/student/courses", {
           headers: { Authorization: `Bearer ${token}` },
         });

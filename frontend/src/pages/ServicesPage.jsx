@@ -37,7 +37,13 @@ export default function ServicesPage() {
         <meta name="description" content="Discover the comprehensive educational services offered by EduMinds - from online courses and mentorship to corporate training and AI-powered tutoring." />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-12">
+      <div
+        className="container mx-auto px-4 py-12 min-h-screen w-full"
+        style={{
+          background: "hsl(var(--background))",
+          color: "hsl(var(--foreground))"
+        }}
+      >
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">Our Educational Services</h1>
@@ -123,7 +129,7 @@ export default function ServicesPage() {
         <Cta/>
        
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 }

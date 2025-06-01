@@ -36,7 +36,13 @@ export default function ContactPage() {
         <meta name="description" content="Get in touch with EduMinds for support, partnership inquiries, or feedback. We're here to help with all your educational needs." />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-12">
+      <div
+        className="container mx-auto px-4 py-12 min-h-screen w-full"
+        style={{
+          background: "hsl(var(--background))",
+          color: "hsl(var(--foreground))"
+        }}
+      >
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">Contact Us</h1>

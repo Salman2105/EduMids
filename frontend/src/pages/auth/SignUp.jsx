@@ -42,55 +42,97 @@ const Signup = () => {
   };
 
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth>
-      <Paper elevation={3} sx={{ p: 4, mt: 2, borderRadius: 4, position: "relative" }}>
-        <Link to="/" style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
-          <button className="btn btn-sm btn-circle btn-ghost">✕</button>
-        </Link>
-        <Typography variant="h5" gutterBottom align="center">
-          Create Your EduMids Account
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "#eaf2fe",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          width: 430,
+          maxWidth: "95vw",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, color: "#1565d8", mb: 1, mt: 1 }}
+          align="center"
+        >
+          Join EduMinds
         </Typography>
-        <form onSubmit={handleSignup}>
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "#333", mb: 3 }}
+          align="center"
+        >
+          Create your account
+        </Typography>
+        <form onSubmit={handleSignup} style={{ width: "100%" }}>
           <Box mb={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Full Name
+            </Typography>
             <TextField
-              label="Full Name"
+              placeholder="Enter your full name"
               name="name"
               value={formData.name}
               onChange={handleChange}
               fullWidth
               required
+              size="small"
             />
           </Box>
           <Box mb={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Email
+            </Typography>
             <TextField
-              label="Email"
+              placeholder="Enter your email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               fullWidth
               required
+              size="small"
             />
           </Box>
           <Box mb={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Password
+            </Typography>
             <TextField
-              label="Password"
+              placeholder="Enter your password"
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
               fullWidth
               required
+              size="small"
             />
           </Box>
           <Box mb={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Role
+            </Typography>
             <TextField
               select
-              label="Role"
               name="role"
               value={formData.role}
               onChange={handleChange}
               fullWidth
+              size="small"
             >
               {roles.map((role) => (
                 <MenuItem key={role.value} value={role.value}>
@@ -99,18 +141,33 @@ const Signup = () => {
               ))}
             </TextField>
           </Box>
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{
+              py: 1.2,
+              fontWeight: 600,
+              fontSize: "1rem",
+              mt: 1,
+              mb: 1,
+              background: "#1597f2",
+              textTransform: "none",
+            }}
+            startIcon={<span className="material-icons">person_add</span>}
+          >
             Sign Up
           </Button>
         </form>
-        <Typography mt={2} align="center">
+        <Typography mt={2} align="center" sx={{ fontSize: 15 }}>
           Already have an account?{" "}
-          <Link to='/auth/login' className="underline text-blue-500 cursor-pointer">
-            <b>Login</b>
+          <Link to="/auth/login" style={{ color: "#1565d8", fontWeight: 600 }}>
+            Sign in
           </Link>
         </Typography>
       </Paper>
-    </Dialog>
+    </Box>
   );
 };
 

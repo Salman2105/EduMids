@@ -1,5 +1,54 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BuyButton from "../../components/BuyButton";
+import { useAuthStore } from "../../lib/auth";
+
+function EnrollButton({ course }) {
+  const navigate = useNavigate();
+
+  const isFree = (course.category && course.category.toLowerCase() === 'free') || Number(course.price) === 0;
+
+  const handleEnroll = async () => {
+    if (isFree) {
+      // Directly enroll the user (simulate API call)
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:5000/api/enrollments/${course._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) {
+          let errMsg = "Enrollment failed";
+          try {
+            const errData = await res.json();
+            errMsg = errData.message || JSON.stringify(errData) || errMsg;
+          } catch (e) {
+            // fallback if not JSON
+          }
+          throw new Error(errMsg);
+        }
+        // Optionally show a toast or redirect
+        navigate("/student/courses");
+      } catch (err) {
+        alert(err.message || "Could not enroll in course");
+      }
+    } else {
+      navigate(`/checkout/${course._id}`);
+    }
+  };
+
+  return (
+    <button
+      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      onClick={handleEnroll}
+    >
+      {isFree ? "Enroll Free" : "Enroll Now"}
+    </button>
+  );
+}
 
 export default function StudentAllCoursesCard() {
   const [courses, setCourses] = useState([]);
@@ -11,7 +60,10 @@ export default function StudentAllCoursesCard() {
       setLoading(true);
       setError("");
       try {
+        const user = localStorage.getItem("user");
+        console.log("User from localStorage:", user);
         const token = localStorage.getItem("token");
+        console.log("token from localStorage:", token);
         const res = await fetch("http://localhost:5000/api/courses", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -58,7 +110,7 @@ export default function StudentAllCoursesCard() {
               </span>
             </div>
             <div className="mt-auto flex justify-end">
-              <BuyButton course={course} />
+              <EnrollButton course={course} />
             </div>
           </div>
         </div>

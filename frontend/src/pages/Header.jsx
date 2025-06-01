@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../components/theme-toggle";
 import { useAuthStore } from "../lib/auth";
 import { cn } from "../lib/utils";
-// import "./styles/header.css"; // Assuming you have a CSS file for header styles
+import "./styles/Header.css"; 
 import { 
   Search, 
   Bell, 

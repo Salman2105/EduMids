@@ -12,7 +12,13 @@ import Footer from "./Footer";
 const LandingPage = () => {
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 to-white text-gray-800">
+      <div
+        className="min-h-screen w-full"
+        style={{
+          background: "hsl(var(--background))",
+          color: "hsl(var(--foreground))"
+        }}
+      >
         <Header />
         <Hero />
         <Std />

@@ -15,6 +15,7 @@ import ServicesPage from "./pages/ServicesPage";
 import CoursesPage from "./pages/CoursesPage"; // Assuming you have a Courses page
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import Checkout from "./pages/Checkout";
 
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -80,6 +81,7 @@ function App() {
             <Route path="/AboutPage" element={<AboutPage />} />
             <Route path="/ServicesPage" element={<ServicesPage />} />
             <Route path="/CoursesPage" element={<CoursesPage />} />
+            <Route path="/checkout/:courseId" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
 

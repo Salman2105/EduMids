@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Enrollment = require("../Models/Enrollment");
-const Course = require("../Models/course");
+const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware"); // Correct import
 const notifyUser = require("../utils/notifyUser");
 
@@ -40,17 +40,43 @@ router.post("/:courseId", checkRole(["student"]), async (req, res) => {
 
     res.status(201).json({ message: "Enrollment successful!", enrollment: newEnrollment });
   } catch (error) {
-    res.status(500).json({ message: "Error enrolling in course", error });
+    console.error("ENROLL ERROR:", error); // Add this line
+    res.status(500).json({ message: "Error enrolling in course", error: error.message });
   }
 });
 
 // 🟡 Get All Enrollments for a Student
-router.get("/", checkRole(["student"]), async (req, res) => {
+router.get("/enroll", checkRole(["student"]), async (req, res) => {
   try {
-    const enrollments = await Enrollment.find({ student: req.user.id }).populate("course", "title description");
-    res.json(enrollments);
+    // Find all enrollments for the student, populate course details
+    const enrollments = await Enrollment.find({ student: req.user.id })
+      .populate({ path: "course", select: "title description lessons" });
+
+    // Build the courses array for the frontend
+    const courses = enrollments.map((enrollment) => {
+      const course = enrollment.course;
+      return {
+        courseId: course._id,
+        title: course.title,
+        description: course.description,
+        enrolledAt: enrollment.createdAt,
+        progress: enrollment.progress || 0,
+        lessons: Array.isArray(course.lessons)
+          ? course.lessons.map((lesson) => ({
+              lessonId: lesson._id || lesson.id || lesson,
+              title: lesson.title || "Lesson",
+            }))
+          : [],
+        quizzes: [], // You can fill this if you want to fetch quizzes for the course
+      };
+    });
+
+    res.json({
+      user: { id: req.user.id, role: req.user.role },
+      courses,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching enrollments", error });
+    res.status(500).json({ message: "Error fetching enrollments", error: error.message });
   }
 });
 
