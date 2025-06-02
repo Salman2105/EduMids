@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -61,8 +60,8 @@ function CheckoutForm({ course, paying, setPaying, setError, setClientSecret, cl
         </div>
         {cardError && <div className="text-red-600 text-sm mt-2">{cardError}</div>}
       </div>
-      <Button className="w-full mt-4" type="submit" disabled={paying || !stripe || !elements}>
-        {paying ? 'Processing...' : `Pay $${course.price?.toFixed ? course.price.toFixed(2) : course.price || '0.00'}`}
+      <Button className="w-full mt-4 bg-green-300" type="submit" disabled={paying || !stripe || !elements}>
+        {paying ? 'Processing...' : `Pay PKR ${course.price?.toFixed ? course.price.toFixed(2) : course.price || '0.00'}`}
       </Button>
       {clientSecret && (
         <div className="text-xs text-gray-400 mt-2 text-center">Payment intent created.</div>
@@ -120,7 +119,7 @@ export default function Checkout() {
                   <div className="text-gray-600 mb-2">{course.description}</div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full capitalize">{course.category || 'General'}</span>
-                    <span className="text-green-700 font-semibold text-lg">${course.price?.toFixed ? course.price.toFixed(2) : course.price || '0.00'}</span>
+                    <span className="text-green-700 font-semibold text-lg">PKR {course.price?.toFixed ? course.price.toFixed(2) : course.price || '0.00'}</span>
                   </div>
                 </div>
                 <CheckoutForm course={course} paying={paying} setPaying={setPaying} setError={setError} setClientSecret={setClientSecret} clientSecret={clientSecret} navigate={navigate} />

@@ -61,8 +61,66 @@ router.post("/login", loginValidation, async (req, res) => {
 });
 
 // 🛡 Protected Route Example
-router.get("/profile", auth, (req, res) => {
-  res.json({ message: `Welcome ${req.user.id}!` });
+router.get("/profile", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ user });
+  } catch (error) {
+    console.error("Error fetching profile:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// 📝 Update Profile (name, email, password)
+router.put("/profile", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, email, password } = req.body;
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateFields.password = hashedPassword;
+    }
+    // Email conflict check: only if email is changed
+    if (email) {
+      const user = await User.findById(userId);
+      if (user.email !== email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true }
+    ).select("-password");
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// 🗑 Delete Account
+router.delete("/delete-profile", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting account:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 // Example: Protected Admin Route

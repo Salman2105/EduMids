@@ -16,7 +16,7 @@ import CoursesPage from "./pages/CoursesPage"; // Assuming you have a Courses pa
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Checkout from "./pages/Checkout";
-
+// import Setting from "./components/Setting"
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -27,7 +27,7 @@ import PaymentSummary from "./pages/admin/PaymentSummary";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminNotify from "./pages/admin/AdminNotify";
 import AdminQna from "./pages/admin/AdminQnaCard"; // Assuming you have a Q&A page for teachers
-
+import AdminSettingCard from "./pages/admin/AdminSettingCard"; // Assuming you have a settings page for admin
 
 // Teacher
 import TeacherDashboardSidebar from "./components/TeacherDashboardSidebar";
@@ -40,7 +40,8 @@ import TeacherCertificates from "./pages/teacher/TeacherCertificates";
 import TeacherStudent from "./pages/teacher/TeacherStudent"; 
 import TeacherQuiz from "./pages/teacher/TeacherQuiz"; 
 import TeacherNotify from "./pages/teacher/TeacherNotify"; 
-import TeacherQna from "./pages/teacher/TeacherQna"; // Assuming you have a Q&A page for teachers
+import TeacherQna from "./pages/teacher/TeacherQna"; 
+import TeacherSettingCard from "./pages/teacher/TeacherSettingCard"; 
 // Student
 import StudentDashboardSidebar from "./components/StudentDashboardSidebar";
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -52,7 +53,7 @@ import StudentProgress from "./pages/student/StudentProgress";
 // import StudentCalendar from "./pages/student/StudentCalendar";
 import StudentNotify from "./pages/student/StudentNotify"; 
 import StudentQna from "./pages/student/StudentQna"; // Assuming you have a Q&A page for teachers
-
+import StudentSettingCard from "./pages/student/StudentSettingCard";
 
 // Providers
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -153,7 +154,14 @@ function App() {
                   </LayoutWithSidebar>
                 }
               />
-              
+                <Route
+                path="/admin/settings"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminSettingCard />
+                  </LayoutWithSidebar>
+                }
+              />
             </Route>
 
             {/* Teacher Routes */}
@@ -239,6 +247,14 @@ function App() {
                   </LayoutWithSidebar>
                 }
               />
+               <Route
+                path="/teacher/settings"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherSettingCard />
+                  </LayoutWithSidebar>
+                }
+              />
             </Route>
             
 
@@ -313,6 +329,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
                   <StudentNotify />
+                  </LayoutWithSidebar>
+                }
+              />
+               <Route
+                path="/student/settings"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentSettingCard />
                   </LayoutWithSidebar>
                 }
               />

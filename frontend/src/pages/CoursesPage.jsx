@@ -88,7 +88,7 @@ export default function CoursesPage() {
                     {course.category || "General"}
                   </span>
                   <span className="text-green-700 font-semibold text-lg">
-                    $
+                    
                     PKR{course.price?.toFixed ? course.price.toFixed(2) : course.price || "0.00"}
                   </span>
                 </div>
