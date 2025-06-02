@@ -4,6 +4,7 @@ const Enrollment = require("../Models/Enrollment");
 const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware"); // Correct import
 const notifyUser = require("../utils/notifyUser");
+const Progress = require("../Models/Progress"); // Import Progress model
 
 // Middleware for auth & roles
 router.use(verifyToken);
@@ -55,7 +56,7 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
     const enrollments = await Enrollment.find({ student: user.id }).populate({
       path: "course",
       populate: [
-        { path: "lessons", select: "title _id" },
+        { path: "lessons", select: "title _id type duration contentURL" },
         { path: "quizzes", select: "title _id" }
       ]
     });
@@ -64,37 +65,50 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
     const QuizSubmission = require("../Models/quizSubmission");
     const quizSubmissions = await QuizSubmission.find({ student: user.id });
 
+    // Get all progress records for this student
+    const progresses = await Progress.find({ userId: user.id });
+    const progressMap = {};
+    progresses.forEach(p => {
+      progressMap[String(p.courseId)] = p.completedLessons.map(l => String(l));
+    });
+
     // Build the dashboard data
-    const courses = enrollments.map(enroll => {
-      const course = enroll.course;
-      // Lessons breakdown
-      const lessons = (course.lessons || []).map(lesson => ({
-        lessonId: lesson._id,
-        title: lesson.title,
-        status: "unknown" // Placeholder, update if you have lesson progress tracking
-      }));
-      // Quizzes breakdown
-      const quizzes = (course.quizzes || []).map(quiz => {
-        const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
+    const courses = enrollments
+      .filter(enroll => enroll.course) // Only include enrollments with a valid course
+      .map(enroll => {
+        const course = enroll.course;
+        // Lessons breakdown
+        const completedLessons = progressMap[String(course._id)] || [];
+        const lessons = (course.lessons || []).map(lesson => ({
+          lessonId: lesson._id,
+          title: lesson.title,
+          type: lesson.type,
+          duration: lesson.duration,
+          url: lesson.contentURL,
+          status: completedLessons.includes(String(lesson._id)) ? "completed" : "pending"
+        }));
+        // Quizzes breakdown
+        const quizzes = (course.quizzes || []).map(quiz => {
+          const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
+          return {
+            quizId: quiz._id,
+            title: quiz.title,
+            completed: !!submission,
+            score: submission ? submission.score : null
+          };
+        });
+        // Course progress (from enrollment)
         return {
-          quizId: quiz._id,
-          title: quiz.title,
-          completed: !!submission,
-          score: submission ? submission.score : null
+          courseId: course._id,
+          title: course.title,
+          description: course.description,
+          picture: course.picture || "", // Include picture
+          enrolledAt: enroll.createdAt,
+          progress: typeof enroll.progress === "number" ? enroll.progress : 0,
+          lessons,
+          quizzes
         };
       });
-      // Course progress (from enrollment)
-      return {
-        courseId: course._id,
-        title: course.title,
-        description: course.description,
-        picture: course.picture, // <-- Add this line to include course image
-        progress: typeof enroll.progress === "number" ? enroll.progress : 0,
-        enrolledAt: enroll.createdAt,
-        lessons,
-        quizzes
-      };
-    });
 
     res.status(200).json({
       user: {

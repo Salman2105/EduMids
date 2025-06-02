@@ -111,7 +111,7 @@ export default function CourseCard() {
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1 font-semibold">Price (USD)</label>
+            <label className="block mb-1 font-semibold">Price (pkr)</label>
             <input
               type="number"
               min="0"
@@ -170,7 +170,7 @@ export default function CourseCard() {
                 <p className="text-slate-600 text-sm mb-2 line-clamp-2">{createdCourse.description}</p>
                 {createdCourse.price && (
                   <div className="text-base font-semibold text-green-700 mb-2">
-                    ${parseFloat(createdCourse.price).toFixed(2)}
+                    PKR {parseFloat(createdCourse.price).toFixed(2)}
                   </div>
                 )}
                 {createdCourse.category && (

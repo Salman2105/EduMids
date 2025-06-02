@@ -222,7 +222,7 @@ export default function TeacherEnrollmentCrad() {
                   {course.category || "General"}
                 </span>
                 <span className="text-blue-700 font-semibold text-base">
-                  ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
+                  PKR{course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
                 </span>
               </div>
               {/* Enrolled Students */}

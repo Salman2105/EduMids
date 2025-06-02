@@ -1,116 +1,156 @@
-  import React from 'react'
- import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardHeader, CardContent, CardTitle } from "../../components/ui/card";
-import { Progress } from "../../components/ui/progress";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
-import { Play, FileText, Link2 } from "lucide-react";
-import ReactPlayer from "react-player";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-export default function StudentProgressCard() {
-  const [showPlayer, setShowPlayer] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(null);
+const StudentProgressCard = () => {
+  const [progresses, setProgresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [marking, setMarking] = useState(false);
 
-  // Fetch all progress for the logged-in student
-  const { data: progresses = [], isLoading } = useQuery({
-    queryKey: ["/api/progress/my-progress"],
-    queryFn: async () => {
-      const res = await fetch("/api/progress/my-progress");
-      if (!res.ok) throw new Error("Failed to fetch progress");
-      return res.json();
-    },
-  });
+  // Replace with your auth token logic
+  const token = localStorage.getItem("token");
+  console.log("Token:", token);
+  const user = localStorage.getItem("user");
+  console.log("User:", user);
 
-  if (isLoading) return <div className="p-8 text-center">Loading...</div>;
+  // Fetch all enrolled courses with progress
+  useEffect(() => {
+    const fetchProgress = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          "/api/progress/my-enrolled-progress",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = Array.isArray(res.data) ? res.data : res.data ? [res.data] : [];
+        setProgresses(data);
+        // Set default selected course
+        if (data.length && !selectedCourseId) setSelectedCourseId(data[0].courseId._id);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch progress");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProgress();
+    // eslint-disable-next-line
+  }, [token, marking]);
 
-  if (!progresses.length) return <div className="p-8 text-center">No enrolled courses found.</div>;
-
-  // Helper to sum total video time for a course
-  const getTotalVideoTime = (lessons) => {
-    const totalSeconds = lessons
-      .filter(l => l.type === "video")
-      .reduce((sum, l) => sum + (l.duration || 0), 0);
-    const min = Math.floor(totalSeconds / 60);
-    const sec = totalSeconds % 60;
-    return `${min}m ${sec}s`;
-  };
-
-  // Helper to get icon by lesson type
-  const getLessonIcon = (type) => {
-    if (type === "video") return <Play className="text-blue-600" />;
-    if (type === "pdf") return <FileText className="text-red-600" />;
-    if (type === "url") return <Link2 className="text-green-600" />;
-    return null;
-  };
-
-  // Handle lesson actions
-  const handleLessonAction = (lesson) => {
-    if (lesson.type === "video") {
-      setCurrentVideo(lesson.url);
-      setShowPlayer(true);
-    } else if (lesson.type === "pdf") {
-      window.open(lesson.url, "_blank");
-    } else if (lesson.type === "url") {
-      window.open(lesson.url, "_blank");
+  // Handler to mark lesson as completed
+  const handleCompleteLesson = async (courseId, lessonId) => {
+    setMarking(true);
+    try {
+      await axios.post(
+        "/api/progress/complete-lesson",
+        { courseId, lessonId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Refresh progress after marking
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to mark lesson as completed");
+    } finally {
+      setMarking(false);
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto py-8 space-y-8">
-      {progresses.map((progress) => (
-        <Card key={progress._id} className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>{progress.courseId?.title}</span>
-              <Badge>{progress.courseId?.category?.name}</Badge>
-            </CardTitle>
-            <div className="flex items-center space-x-4 mt-2">
-              <span className="text-sm text-gray-600">Instructor: {progress.courseId?.instructor?.firstName} {progress.courseId?.instructor?.lastName}</span>
-              <span className="text-sm text-gray-600">Total Video: {getTotalVideoTime(progress.courseId?.lessons || [])}</span>
-            </div>
-            <div className="mt-2">
-              <Progress value={progress.progressPercentage} className="h-2" />
-              <span className="text-xs text-gray-500">{progress.progressPercentage.toFixed(1)}% completed</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {(progress.courseId?.lessons || []).map((lesson, idx) => (
-                <div key={lesson._id || idx} className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                  <div>{getLessonIcon(lesson.type)}</div>
-                  <div className="flex-1">
-                    <div className="font-semibold">{lesson.title}</div>
-                    {lesson.type === "video" && (
-                      <span className="text-xs text-gray-500">{Math.floor((lesson.duration || 0) / 60)}:{String((lesson.duration || 0) % 60).padStart(2, '0')} min</span>
-                    )}
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => handleLessonAction(lesson)}>
-                    {lesson.type === "video" ? "Watch" : lesson.type === "pdf" ? "Download" : "Open"}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+  if (loading) return <div>Loading progress...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!progresses.length) return <div>No progress found.</div>;
 
-      {/* Video Player Modal */}
-      {showPlayer && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-xl w-full relative">
-            <button className="absolute top-2 right-2 text-gray-600" onClick={() => setShowPlayer(false)}>
-              ✕
-            </button>
-            <ReactPlayer
-              url={currentVideo}
-              controls
-              width="100%"
-              height="360px"
-            />
+  // Find selected course progress
+  const selectedProgress = progresses.find(
+    (p) => p.courseId._id === selectedCourseId
+  );
+  const course = selectedProgress?.courseId;
+  const completedLessons = Array.isArray(selectedProgress?.completedLessons)
+    ? selectedProgress.completedLessons.map(l => (l._id ? l._id : l))
+    : [];
+  const lessons = course?.lessons || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Course selection dropdown */}
+      <div className="mb-4">
+        <label className="font-semibold mr-2">Select Course:</label>
+        <select
+          value={selectedCourseId}
+          onChange={e => setSelectedCourseId(e.target.value)}
+          className="border rounded px-2 py-1"
+        >
+          {progresses.map((p) => (
+            <option key={p.courseId._id} value={p.courseId._id}>
+              {p.courseId.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Show selected course progress */}
+      {selectedProgress && (
+        <div className="border rounded-lg p-4 shadow-md bg-white">
+          <h2 className="text-xl font-bold mb-2">
+            {course?.title || "Untitled Course"}
+          </h2>
+          <div className="mb-1 text-gray-600">
+            Teacher: {course?.teacher?.firstName} {course?.teacher?.lastName}
           </div>
+          <div className="mb-1 text-gray-600">
+            Category: {course?.category?.name}
+          </div>
+          <div className="mb-2">
+            Progress: <span className="font-semibold">{typeof selectedProgress.progressPercentage === "number" ? selectedProgress.progressPercentage.toFixed(1) : "0.0"}%</span>
+            <div className="w-full bg-gray-200 rounded-full h-3 mt-1">
+              <div
+                className="bg-green-500 h-3 rounded-full"
+                style={{ width: `${selectedProgress.progressPercentage || 0}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className="mb-2">
+            Completed Lessons: {completedLessons.length} / {lessons.length || "?"}
+          </div>
+          {selectedProgress.progressPercentage === 100 && (
+            <div className="text-green-600 font-semibold mt-2">
+              🏁 Congratulations! You've completed this course.
+            </div>
+          )}
+
+          {/* Lessons list with completion action */}
+          <details className="mt-2" open>
+            <summary className="cursor-pointer text-blue-600">Lessons</summary>
+            <ul className="list-disc ml-6 mt-1">
+              {lessons.length === 0 && <li>No lessons in this course.</li>}
+              {lessons.map((lesson) => {
+                const lessonId = lesson._id ? lesson._id : lesson;
+                const isCompleted = completedLessons.includes(lessonId.toString());
+                return (
+                  <li key={lessonId} className="flex items-center gap-2">
+                    <span>
+                      {lesson.title || lesson.name || lessonId}
+                    </span>
+                    {isCompleted ? (
+                      <span className="text-green-600 ml-2">✓ Completed</span>
+                    ) : (
+                      <button
+                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                        disabled={marking}
+                        onClick={() => handleCompleteLesson(course._id, lessonId)}
+                      >
+                        Mark as Completed
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default StudentProgressCard;

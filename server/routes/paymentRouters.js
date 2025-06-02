@@ -1,8 +1,12 @@
 const express = require("express");
 const Stripe = require("stripe");
 require("dotenv").config();
+const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const notifyUser = require("../utils/notifyUser");
 const auth = require("../middleware/auth"); // Import the auth middleware
+const Payment = require("../Models/payment");
+const { Course } = require("../Models/course");
+const User = require("../Models/user");
 
 const router = express.Router();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -74,5 +78,22 @@ router.post("/create-payment-intent", auth, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// GET: Admin payment history (all payments with student and course details)
+// router.get("/admin-history", auth, async (req, res) => {
+//   try {
+//     if (!req.user || req.user.role !== "admin") {
+//       return res.status(403).json({ message: "Access denied. Admins only." });
+//     }
+//     // Populate student and course details
+//     const payments = await Payment.find()
+//       .populate("student", "name email")
+//       .populate("course", "title description price category");
+//     res.status(200).json(payments);
+//   } catch (error) {
+//     console.error("Error fetching payment history:", error.message);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 module.exports = router;

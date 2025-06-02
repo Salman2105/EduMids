@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Users,
   UserCog,
@@ -13,23 +13,40 @@ import {
   MessageSquare // <-- Added for Question/Answer
 } from 'lucide-react';
 
-const SidebarItem = ({ icon, label, active, href }) => (
-  <Link
-    to={href}
-    className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${
+const SidebarItem = ({ icon, label, active, href, onClick }) => (
+  <div
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
       active
         ? 'bg-white bg-opacity-10 text-black font-medium'
         : 'text-white text-opacity-70 hover:bg-white hover:bg-opacity-10 hover:text-black'
     }`}
   >
-    <span className="text-lg">{icon}</span>
-    <span>{label}</span>
-  </Link>
+    {href ? (
+      <Link to={href} className="flex items-center gap-2 w-full h-full">
+        <span className="text-lg">{icon}</span>
+        <span>{label}</span>
+      </Link>
+    ) : (
+      <>
+        <span className="text-lg">{icon}</span>
+        <span>{label}</span>
+      </>
+    )}
+  </div>
 );
 
 const AdminDashboardSidebar = () => {
   const location = useLocation();
   const pathname = location.pathname;
+  const navigate = useNavigate();
+
+  // Logout logic
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/"); // Redirect to landing/home page
+  };
 
   return (
     <div className="h-screen w-[250px] bg-blue-500 flex flex-col">
@@ -87,7 +104,7 @@ const AdminDashboardSidebar = () => {
         <SidebarItem
           icon={<LogOut size={18} />}
           label="Logout"
-          href="/logout"
+          onClick={handleLogout}
         />
       </div>
     </div>

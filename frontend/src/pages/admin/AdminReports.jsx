@@ -8,7 +8,7 @@ const AdminReports = () => {
   return (
   <>  
 
-  <div className="p-6 h-full">
+  <div className="p-6">
             <SearchBar />
      <AdminReportCard/>
     </div>

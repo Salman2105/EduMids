@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const Lesson = require("../Models/lesson");
-// const Course = require("../Models/course");
+const {Course} = require("../Models/course"); // <-- Uncommented to fix missing Course reference
 const User = require("../Models/user");
+const Payment = require("../Models/payment"); // <-- Added to fix missing Payment reference
 
 // ✅ Create a Course
 // router.post("/create-course", verifyToken, checkRole(["admin"]), async (req, res) => {
@@ -111,6 +112,94 @@ router.delete("/delete-user/:userId", verifyToken, checkRole(["admin"]), async (
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// GET: Admin payment history (all payments with student and course details)
+router.get("/admin-history", verifyToken, checkRole(["admin"]), async (req, res) => {
+  try {
+    // Populate student and course details
+    const payments = await Payment.find()
+      .populate("student", "name email")
+      .populate("course", "title description price category");
+    res.status(200).json(payments);
+  } catch (error) {
+    console.error("Error fetching payment history:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET: Admin report - all courses, teachers, enrollments, completions, and certificates
+router.get("/courses-report", verifyToken, checkRole(["admin"]), async (req, res) => {
+  try {
+    // Get all courses with teacher info
+    const courses = await Course.find().populate("createdBy", "name email role");
+    // Get all enrollments
+    const Enrollment = require("../Models/Enrollment");
+    const enrollments = await Enrollment.find().populate("student", "name email");
+    // Group enrollments by course
+    const enrollMap = {};
+    const completeMap = {};
+    const certMap = {};
+    enrollments.forEach(e => {
+      // Defensive: skip if enrollment or course/student is missing
+      if (!e || !e.course) return;
+      const courseId = String(e.course);
+      if (!enrollMap[courseId]) enrollMap[courseId] = [];
+      enrollMap[courseId].push(e);
+      // Completed if progress 100
+      if (e.progress === 100) {
+        if (!completeMap[courseId]) completeMap[courseId] = [];
+        completeMap[courseId].push(e);
+      }
+      // Certificate issued
+      if (e.certificateIssued) {
+        if (!certMap[courseId]) certMap[courseId] = [];
+        certMap[courseId].push(e);
+      }
+    });
+    // Build report
+    const report = courses.map(course => {
+      const courseId = String(course._id);
+      const enrolled = enrollMap[courseId] || [];
+      const completed = completeMap[courseId] || [];
+      const certified = certMap[courseId] || [];
+      return {
+        courseId: course._id,
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        price: course.price,
+        teacher: course.createdBy ? { name: course.createdBy.name, email: course.createdBy.email, role: course.createdBy.role } : null,
+        totalEnrolled: enrolled.length,
+        totalCompleted: completed.length,
+        totalCertified: certified.length,
+        enrolledStudents: enrolled.map(e => ({
+          studentId: e.student?._id || null,
+          name: e.student?.name || "Unknown",
+          email: e.student?.email || "Unknown",
+          progress: e.progress,
+          certificateIssued: e.certificateIssued,
+          certificateRevoked: e.certificateRevoked
+        })),
+        completedStudents: completed.map(e => ({
+          studentId: e.student?._id || null,
+          name: e.student?.name || "Unknown",
+          email: e.student?.email || "Unknown",
+          progress: e.progress
+        })),
+        certifiedStudents: certified.map(e => ({
+          studentId: e.student?._id || null,
+          name: e.student?.name || "Unknown",
+          email: e.student?.email || "Unknown",
+          progress: e.progress
+        }))
+      };
+    });
+    res.status(200).json({ report });
+  } catch (error) {
+    console.error("Error in /courses-report:", error); // Log the error for debugging
+    res.status(500).json({ message: "Server Error in courses-report", error: error.message });
   }
 });
 

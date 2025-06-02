@@ -1,6 +1,7 @@
 import React from 'react'
 import SearchBar from "../../components/SearchBar";
 import StudentProgressCard from "./StudentProgressCard";
+// import CourseDetails from "../CourseDetails"
 
 
 const StudentProgress = () => {
@@ -8,6 +9,7 @@ const StudentProgress = () => {
  <> <div className="p-6">
       <SearchBar />
       <StudentProgressCard />
+      {/* <CourseDetails /> */}
     </div>
     </> 
   )
