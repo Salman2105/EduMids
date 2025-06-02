@@ -1,7 +1,7 @@
 const Progress = require("../Models/Progress");
 const express = require("express");
 const router = express.Router();
-const Course = require("../Models/course"); // Import Progress Model
+const {Course,CourseProgress} = require("../Models/course"); // Import Progress Model
 const Lesson = require("../Models/lesson");
 const auth = require("../middleware/auth");
 const notifyUser = require("../utils/notifyUser");
@@ -56,6 +56,26 @@ router.get("/:courseId", auth, async (req, res) => {
   } catch (error) {
     console.error("Error fetching progress:", error.message);
     res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Get all progress for a student (with course and lesson details)
+router.get("/my-progress", auth, async (req, res) => {
+  try {
+    const progresses = await Progress.find({ userId: req.user.id })
+      .populate({
+        path: "courseId",
+        populate: [
+          { path: "teacher", select: "firstName lastName" },
+          { path: "category", select: "name" },
+          { path: "lessons" },
+        ],
+      })
+      .populate("completedLessons");
+    return res.status(200).json(progresses);
+  } catch (error) {
+    console.error("Error fetching all progress:", error.message);
+    return res.status(500).json({ message: "Server Error", error });
   }
 });
 

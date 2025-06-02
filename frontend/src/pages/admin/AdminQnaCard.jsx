@@ -109,12 +109,32 @@ export default function QnA() {
     }
   };
 
+  // Delete a question (admin)
+  const handleDeleteQuestion = async (questionId) => {
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/qna/${questionId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Question deleted!");
+        setQuestions((prev) => prev.filter((q) => q._id !== questionId));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error("Error deleting question.");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Q&A Section</h2>
+      <h2 className="text-2xl font-bold mb-4">Q&amp;A Section</h2>
 
       {/* Student Question Form */}
-      {isStudent && (
+      {/* {isStudent && (
         <form onSubmit={handleAskQuestion} className="mb-6 bg-white rounded shadow p-4">
           <h3 className="text-lg font-semibold mb-2">Ask a Question</h3>
           <select
@@ -143,7 +163,7 @@ export default function QnA() {
             Submit Question
           </button>
         </form>
-      )}
+      )} */}
 
       {/* Question List */}
       <div className="bg-white rounded shadow p-4">
@@ -156,12 +176,20 @@ export default function QnA() {
               <li key={q._id} className="border-b pb-4">
                 <p className="font-medium">{q.text}</p>
                 <p className="text-sm text-gray-500">Course: {q.course?.title || "N/A"}</p>
+                <div className="text-xs text-gray-600 mb-1">
+                  Asked by: {q.askedBy?.name} ({q.askedBy?.email}) | ID: {q.askedBy?._id}
+                </div>
                 <div className="mt-2">
                   <h4 className="text-sm font-semibold">Answers:</h4>
                   {q.answers?.length > 0 ? (
                     <ul className="list-disc ml-5 text-sm text-gray-700">
                       {q.answers.map((a, i) => (
-                        <li key={i}>{a.text}</li>
+                        <li key={i}>
+                          {a.text}
+                          <div className="text-xs text-gray-600">
+                            Answered by: {a.answeredBy?.name} ({a.answeredBy?.email}) | ID: {a.answeredBy?._id}
+                          </div>
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -169,8 +197,8 @@ export default function QnA() {
                   )}
                 </div>
 
-                {/* Teacher Answer Box */}
-                {isTeacher && (
+                {/* Admin Answer Box and Delete Button */}
+                {(isTeacher || user?.role === "admin") && (
                   <div className="mt-2">
                     <textarea
                       className="w-full border p-2 text-sm rounded"
@@ -183,12 +211,20 @@ export default function QnA() {
                         }))
                       }
                     />
-                    <button
-                      onClick={() => handleAnswer(q._id)}
-                      className="mt-1 bg-green-600 text-white text-sm px-3 py-1 rounded"
-                    >
-                      Submit Answer
-                    </button>
+                    <div className="flex gap-2 mt-1">
+                      <button
+                        onClick={() => handleAnswer(q._id)}
+                        className="bg-green-600 text-white text-sm px-3 py-1 rounded"
+                      >
+                        Submit Answer
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQuestion(q._id)}
+                        className="bg-red-600 text-white text-sm px-3 py-1 rounded"
+                      >
+                        Delete Question
+                      </button>
+                    </div>
                   </div>
                 )}
               </li>

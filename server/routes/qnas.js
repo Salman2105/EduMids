@@ -22,7 +22,10 @@ router.post("/ask", verifyToken, checkRole(["student"]), async (req, res) => {
     });
     await question.save();
     // Populate for frontend consistency
-    await question.populate("askedBy course");
+    await question.populate([
+      { path: "askedBy", select: "name email _id" },
+      { path: "course" }
+    ]);
     res.status(201).json({ message: "Question posted", question });
   } catch (err) {
     res.status(500).json({ message: "Error posting question", error: err.message });
@@ -43,28 +46,70 @@ router.post("/answer/:questionId", verifyToken, checkRole(["teacher"]), async (r
     question.status = "answered";
     await question.save();
     // Populate answers for frontend
-    await question.populate("askedBy course answers.answeredBy");
+    await question.populate([
+      { path: "askedBy", select: "name email _id" },
+      { path: "course" },
+      { path: "answers.answeredBy", select: "name email _id" }
+    ]);
     res.status(200).json({ message: "Answered", question });
   } catch (err) {
     res.status(500).json({ message: "Error answering question", error: err.message });
   }
 });
 
-// ADMIN: Get all questions with filters
+// ADMIN/TEACHER/STUDENT: Get all questions with filters
 router.get("/all", verifyToken, checkRole(["admin", "teacher", "student"]), async (req, res) => {
   try {
-    const questions = await Question.find().populate("askedBy course answers.answeredBy").sort({ createdAt: -1 });
+    const questions = await Question.find()
+      .populate([
+        { path: "askedBy", select: "name email _id" },
+        { path: "course" },
+        { path: "answers.answeredBy", select: "name email _id" }
+      ])
+      .sort({ createdAt: -1 });
     res.status(200).json(questions);
   } catch (err) {
     res.status(500).json({ message: "Error fetching questions", error: err.message });
   }
 });
 
-// ADMIN: Soft delete a question
-router.delete("/:id", verifyToken, checkRole(["admin"]), async (req, res) => {
+// STUDENT: Edit their own question
+router.put("/edit/:id", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
-    await Question.findByIdAndUpdate(req.params.id, { deleted: true });
-    res.status(200).json({ message: "Question soft deleted" });
+    const { text } = req.body;
+    const question = await Question.findById(req.params.id);
+    if (!question) return res.status(404).json({ message: "Question not found" });
+    if (question.askedBy.toString() !== req.user.id)
+      return res.status(403).json({ message: "You can only edit your own question" });
+    question.text = text;
+    await question.save();
+    await question.populate([
+      { path: "askedBy", select: "name email _id" },
+      { path: "course" },
+      { path: "answers.answeredBy", select: "name email _id" }
+    ]);
+    res.status(200).json({ message: "Question updated", question });
+  } catch (err) {
+    res.status(500).json({ message: "Error editing question", error: err.message });
+  }
+});
+
+// STUDENT/ADMIN: Soft delete a question (student can delete their own)
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const question = await Question.findById(req.params.id);
+    if (!question) return res.status(404).json({ message: "Question not found" });
+
+    // Allow admin or student who asked the question
+    if (
+      req.user.role === "admin" ||
+      (req.user.role === "student" && question.askedBy.toString() === req.user.id)
+    ) {
+      await Question.findByIdAndUpdate(req.params.id, { deleted: true });
+      return res.status(200).json({ message: "Question soft deleted" });
+    } else {
+      return res.status(403).json({ message: "Not authorized to delete this question" });
+    }
   } catch (err) {
     res.status(500).json({ message: "Error deleting", error: err.message });
   }

@@ -41,7 +41,8 @@ router.post("/create", verifyToken, checkRole(["teacher"]), quizValidation, asyn
 // ✅ Get Quizzes for a Course
 router.get("/course/:courseId", verifyToken, async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ course: req.params.courseId });
+    // Populate questions for each quiz
+    const quizzes = await Quiz.find({ course: req.params.courseId }).lean();
     res.status(200).json(quizzes);
   } catch (error) {
     console.error("Error fetching quizzes:", error.message);
@@ -129,20 +130,32 @@ router.get("/my-submissions", verifyToken, async (req, res) => {
 router.get("/student/all", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
     const Enrollment = require("../Models/Enrollment");
-    const enrollments = await Enrollment.find({ student: req.user.id }).populate({
-      path: "course",
-      populate: { path: "quizzes", select: "title _id createdAt" }
-    });
-    const quizzes = enrollments.flatMap(enroll =>
-      (enroll.course.quizzes || []).map(quiz => ({
-        quizId: quiz._id,
-        title: quiz.title,
-        courseId: enroll.course._id,
-        courseTitle: enroll.course.title,
-        createdAt: quiz.createdAt
-      }))
-    );
-    res.status(200).json({ quizzes });
+    // Find all enrollments for the logged-in student
+    const enrollments = await Enrollment.find({ student: req.user.id }).populate("course");
+    const courseIds = enrollments.map(e => e.course._id);
+
+    // Fetch all quizzes for these courses
+    const quizzes = await Quiz.find({ course: { $in: courseIds } }).populate("course");
+
+    // Fetch submissions to mark completed quizzes and get scores
+    const QuizSubmission = require("../Models/quizSubmission");
+    const submissions = await QuizSubmission.find({ student: req.user.id });
+    const submissionMap = {};
+    submissions.forEach(sub => { submissionMap[String(sub.quiz)] = sub; });
+
+    // Build quiz list with score for completed quizzes
+    const quizList = quizzes.map(q => ({
+      quizId: q._id,
+      title: q.title,
+      courseId: q.course._id,
+      courseTitle: q.course.title,
+      createdAt: q.createdAt,
+      completed: !!submissionMap[String(q._id)],
+      score: submissionMap[String(q._id)] ? submissionMap[String(q._id)].score : null,
+      submittedAt: submissionMap[String(q._id)] ? submissionMap[String(q._id)].createdAt : null
+    }));
+
+    res.status(200).json({ quizzes: quizList });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }

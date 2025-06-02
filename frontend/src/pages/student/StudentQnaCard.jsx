@@ -7,6 +7,8 @@ export default function QnA() {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [answerInputs, setAnswerInputs] = useState({});
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+  const [editQuestionText, setEditQuestionText] = useState("");
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user")); // includes role, id, etc.
@@ -116,6 +118,59 @@ export default function QnA() {
     }
   };
 
+  // Edit a question (student)
+  const handleEditQuestion = (q) => {
+    setEditingQuestionId(q._id);
+    setEditQuestionText(q.text);
+  };
+
+  const handleSaveEdit = async (questionId) => {
+    if (!editQuestionText.trim()) return toast.error("Question cannot be empty.");
+    try {
+      const res = await fetch(`http://localhost:5000/api/qna/edit/${questionId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: editQuestionText }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Question updated!");
+        setQuestions((prev) =>
+          prev.map((q) => (q._id === questionId ? data.question : q))
+        );
+        setEditingQuestionId(null);
+        setEditQuestionText("");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error("Error updating question.");
+    }
+  };
+
+  // Delete a question (student)
+  const handleDeleteQuestion = async (questionId) => {
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/qna/${questionId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Question deleted!");
+        setQuestions((prev) => prev.filter((q) => q._id !== questionId));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error("Error deleting question.");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Q&A Section</h2>
@@ -159,47 +214,101 @@ export default function QnA() {
           <p>No questions found.</p>
         ) : (
           <ul className="space-y-4">
-            {questions.map((q) => (
-              <li key={q._id} className="border-b pb-4">
-                <p className="font-medium">{q.text}</p>
-                <p className="text-sm text-gray-500">Course: {q.course?.title || "N/A"}</p>
-                <div className="mt-2">
-                  <h4 className="text-sm font-semibold">Answers:</h4>
-                  {q.answers?.length > 0 ? (
-                    <ul className="list-disc ml-5 text-sm text-gray-700">
-                      {q.answers.map((a, i) => (
-                        <li key={i}>{a.text}</li>
-                      ))}
-                    </ul>
+            {questions.map((q) => {
+              const isOwnQuestion = isStudent && q.askedBy?._id === user?._id;
+              return (
+                <li key={q._id} className="border-b pb-4">
+                  {/* Edit mode */}
+                  {editingQuestionId === q._id ? (
+                    <div>
+                      <textarea
+                        className="w-full border p-2 mb-2 rounded"
+                        value={editQuestionText}
+                        onChange={e => setEditQuestionText(e.target.value)}
+                      />
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          className="bg-green-600 text-white px-3 py-1 rounded"
+                          onClick={() => handleSaveEdit(q._id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="bg-gray-400 text-white px-3 py-1 rounded"
+                          onClick={() => { setEditingQuestionId(null); setEditQuestionText(""); }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-xs text-gray-400">No answers yet.</p>
+                    <>
+                      <p className="font-medium">{q.text}</p>
+                      <p className="text-sm text-gray-500">Course: {q.course?.title || "N/A"}</p>
+                      <div className="text-xs text-gray-600 mb-1">
+                        Asked by: {q.askedBy?.name} ({q.askedBy?.email}) | ID: {q.askedBy?._id}
+                      </div>
+                      {/* Edit/Delete buttons for own questions */}
+                      {isOwnQuestion && (
+                        <div className="flex gap-2 mb-2">
+                          <button
+                            className="bg-yellow-500 text-white text-xs px-2 py-1 rounded"
+                            onClick={() => handleEditQuestion(q)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="bg-red-600 text-white text-xs px-2 py-1 rounded"
+                            onClick={() => handleDeleteQuestion(q._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
-                </div>
-
-                {/* Teacher Answer Box */}
-                {isTeacher && (
                   <div className="mt-2">
-                    <textarea
-                      className="w-full border p-2 text-sm rounded"
-                      placeholder="Write your answer..."
-                      value={answerInputs[q._id] || ""}
-                      onChange={(e) =>
-                        setAnswerInputs((prev) => ({
-                          ...prev,
-                          [q._id]: e.target.value,
-                        }))
-                      }
-                    />
-                    <button
-                      onClick={() => handleAnswer(q._id)}
-                      className="mt-1 bg-green-600 text-white text-sm px-3 py-1 rounded"
-                    >
-                      Submit Answer
-                    </button>
+                    <h4 className="text-sm font-semibold">Answers:</h4>
+                    {q.answers?.length > 0 ? (
+                      <ul className="list-disc ml-5 text-sm text-gray-700">
+                        {q.answers.map((a, i) => (
+                          <li key={i}>
+                            {a.text}
+                            <div className="text-xs text-gray-600">
+                              Answered by: {a.answeredBy?.name} ({a.answeredBy?.email}) | ID: {a.answeredBy?._id}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-400">No answers yet.</p>
+                    )}
                   </div>
-                )}
-              </li>
-            ))}
+                  {/* Teacher Answer Box */}
+                  {isTeacher && (
+                    <div className="mt-2">
+                      <textarea
+                        className="w-full border p-2 text-sm rounded"
+                        placeholder="Write your answer..."
+                        value={answerInputs[q._id] || ""}
+                        onChange={(e) =>
+                          setAnswerInputs((prev) => ({
+                            ...prev,
+                            [q._id]: e.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        onClick={() => handleAnswer(q._id)}
+                        className="mt-1 bg-green-600 text-white text-sm px-3 py-1 rounded"
+                      >
+                        Submit Answer
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

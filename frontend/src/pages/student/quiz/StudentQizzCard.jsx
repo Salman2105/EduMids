@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 
-const API = "http://localhost:5000/api/quiz/student/dashboard";
-const QUIZ_API = "http://localhost:5000/api/quiz";
+const API = "http://localhost:5000/api/quizzes/student/all";
+const QUIZ_API = "http://localhost:5000/api/quizzes";
+const RESULTS_API = "http://localhost:5000/api/quizzes/student/results";
+const DASHBOARD_API = "http://localhost:5000/api/quizzes/student/dashboard";
 
 const QuizList = ({ quizCards, startQuiz, submitting }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -38,7 +40,9 @@ const QuizResults = ({ quizCards }) => {
                 <div className="font-semibold">{res.title}</div>
                 <div className="text-sm text-gray-500">Submitted: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : "N/A"}</div>
               </div>
-              <div className="font-bold text-blue-700 text-lg">Score: {res.score}</div>
+              <div className="font-bold text-blue-700 text-lg">
+                Score: {typeof res.score === "number" ? res.score : "N/A"}
+              </div>
             </div>
           ))}
         </div>
@@ -96,6 +100,12 @@ const StudentQuizzCard = () => {
   const [quizData, setQuizData] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [showResults, setShowResults] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [allResults, setAllResults] = useState([]);
+  const [dashboardCards, setDashboardCards] = useState([]);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -104,7 +114,18 @@ const StudentQuizzCard = () => {
       try {
         const res = await fetch(API, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        setQuizCards(data.quizCards || []);
+        setQuizCards(data.quizzes || []);
+        // Extract unique courses from quizzes
+        const uniqueCourses = Array.from(
+          new Map(
+            (data.quizzes || []).map(q => [q.courseId, { courseId: q.courseId, courseTitle: q.courseTitle }])
+          ).values()
+        );
+        setCourses(uniqueCourses);
+        // Auto-select first course if available
+        if (uniqueCourses.length && !selectedCourse) {
+          setSelectedCourse(uniqueCourses[0].courseId);
+        }
       } catch (err) {
         setError("Failed to load quizzes.");
       } finally {
@@ -112,6 +133,7 @@ const StudentQuizzCard = () => {
       }
     };
     fetchDashboard();
+    // eslint-disable-next-line
   }, [token]);
 
   const startQuiz = async (quizId) => {
@@ -121,12 +143,22 @@ const StudentQuizzCard = () => {
     setSubmitting(false);
     setError(null);
     try {
-      const res = await fetch(`${QUIZ_API}/course/${quizCards.find(q => q.quizId === quizId).courseId}`, {
+      const courseId = quizCards.find(q => q.quizId === quizId)?.courseId;
+      if (!courseId) {
+        setError("Course not found for this quiz.");
+        setActiveQuiz(null);
+        return;
+      }
+      const res = await fetch(`${QUIZ_API}/course/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quizzes = await res.json();
       const quiz = quizzes.find(q => q._id === quizId);
-      if (!quiz) throw new Error("Quiz not found");
+      if (!quiz) {
+        setError("Quiz not found.");
+        setActiveQuiz(null);
+        return;
+      }
       setQuizData(quiz);
 
       const progressRes = await fetch(`${QUIZ_API}/progress/${quizId}`, {
@@ -191,7 +223,7 @@ const StudentQuizzCard = () => {
       setAnswers([]);
       const dashRes = await fetch(API, { headers: { Authorization: `Bearer ${token}` } });
       const dashData = await dashRes.json();
-      setQuizCards(dashData.quizCards || []);
+      setQuizCards(dashData.quizzes || []);
     } catch (err) {
       setError("Failed to submit quiz.");
     } finally {
@@ -199,24 +231,155 @@ const StudentQuizzCard = () => {
     }
   };
 
+  const fetchAllResults = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(RESULTS_API, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setAllResults(data.results || []);
+      setShowResults(true);
+      setShowDashboard(false);
+    } catch (err) {
+      setError("Failed to load all quiz results.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDashboard = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(DASHBOARD_API, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setDashboardCards(data.quizCards || []);
+      setShowDashboard(true);
+      setShowResults(false);
+    } catch (err) {
+      setError("Failed to load dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter quizzes by selected course
+  const filteredQuizCards = selectedCourse
+    ? quizCards.filter(q => q.courseId === selectedCourse)
+    : quizCards;
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
-      <QuizList quizCards={quizCards} startQuiz={startQuiz} submitting={submitting} />
-      {activeQuiz && quizData && (
-        <QuizForm
-          quizData={quizData}
-          answers={answers}
-          handleAnswer={handleAnswer}
-          saveProgress={saveProgress}
-          submitQuiz={submitQuiz}
-          submitting={submitting}
-        />
+      {/* Course Search/Select */}
+      <div className="mb-4">
+        <label className="font-semibold mr-2">Select Course:</label>
+        <select
+          className="border rounded px-2 py-1"
+          value={selectedCourse}
+          onChange={e => setSelectedCourse(e.target.value)}
+        >
+          {courses.map(course => (
+            <option key={course.courseId} value={course.courseId}>
+              {course.courseTitle}
+            </option>
+          ))}
+        </select>
+      </div>
+      {/* Buttons for extra student routes */}
+      <div className="mb-4 flex gap-2">
+        <button
+          className="px-3 py-1 bg-purple-500 text-white rounded"
+          onClick={fetchAllResults}
+        >
+          Show All Quiz Results
+        </button>
+        <button
+          className="px-3 py-1 bg-indigo-500 text-white rounded"
+          onClick={fetchDashboard}
+        >
+          Show Unified Dashboard
+        </button>
+        <button
+          className="px-3 py-1 bg-gray-400 text-white rounded"
+          onClick={() => { setShowResults(false); setShowDashboard(false); }}
+        >
+          Hide Extra Views
+        </button>
+      </div>
+      {/* Show extra views if toggled */}
+      {showResults && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-2">All Quiz Results</h2>
+          {allResults.length === 0 ? (
+            <div className="text-gray-500">No quiz results found.</div>
+          ) : (
+            <div className="space-y-2">
+              {allResults.map(res => (
+                <div key={res.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className="font-semibold">{res.quizTitle}</div>
+                    <div className="text-sm text-gray-500">Submitted: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : "N/A"}</div>
+                  </div>
+                  <div className="font-bold text-blue-700 text-lg">
+                    Score: {typeof res.score === "number" ? res.score : "N/A"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
-      <QuizResults quizCards={quizCards} />
+      {showDashboard && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-2">Unified Quiz Dashboard</h2>
+          {dashboardCards.length === 0 ? (
+            <div className="text-gray-500">No quizzes found in dashboard.</div>
+          ) : (
+            <div className="space-y-2">
+              {dashboardCards.map(card => (
+                <div key={card.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className="font-semibold">{card.title}</div>
+                    <div className="text-sm text-gray-500">Course: {card.courseTitle}</div>
+                    <div className="text-xs text-gray-400">Created: {new Date(card.createdAt).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    {card.completed ? (
+                      <span className="font-bold text-green-700">Completed</span>
+                    ) : (
+                      <span className="font-bold text-red-700">Not Completed</span>
+                    )}
+                  </div>
+                  <div className="font-bold text-blue-700 text-lg">
+                    Score: {typeof card.score === "number" ? card.score : "N/A"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {/* Main quiz list/results */}
+      {!showResults && !showDashboard && (
+        <>
+          <QuizList quizCards={filteredQuizCards} startQuiz={startQuiz} submitting={submitting} />
+          {activeQuiz && quizData && (
+            <QuizForm
+              quizData={quizData}
+              answers={answers}
+              handleAnswer={handleAnswer}
+              saveProgress={saveProgress}
+              submitQuiz={submitQuiz}
+              submitting={submitting}
+            />
+          )}
+          <QuizResults quizCards={filteredQuizCards} />
+        </>
+      )}
     </div>
   );
 };
