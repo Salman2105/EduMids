@@ -1,14 +1,14 @@
 const Progress = require("../Models/Progress");
 const express = require("express");
 const router = express.Router();
-const Course = require("../Models/course"); // Import Progress Model
+const {Course,CourseProgress }= require("../Models/course"); // Import Progress Model
 const Lesson = require("../Models/lesson");
-const auth = require("../middleware/auth");
+const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const notifyUser = require("../utils/notifyUser");
 const Enrollment = require("../Models/Enrollment"); // Import Enrollment Model
 
 // ✅ Mark a Lesson as Completed
-router.post("/complete-lesson", auth, async (req, res) => {
+router.post("/complete-lesson", verifyToken, checkRole(["student"]), async (req, res) => {
   const { courseId, lessonId } = req.body;
 
   try {
@@ -50,25 +50,8 @@ router.post("/complete-lesson", auth, async (req, res) => {
   }
 });
 
-// ✅ Get Student Progress for a Course
-router.get("/:courseId", auth, async (req, res) => {
-  try {
-    const progress = await Progress.findOne({
-      userId: req.user.id,
-      courseId: req.params.courseId,
-    }).populate("completedLessons");
-
-    if (!progress) return res.status(404).json({ message: "No progress found" });
-
-    res.status(200).json(progress);
-  } catch (error) {
-    console.error("Error fetching progress:", error.message);
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
-
 // ✅ Get all progress for a student (with course and lesson details)
-router.get("/my-progress", auth, async (req, res) => {
+router.get("/my-progress", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
     const progresses = await Progress.find({ userId: req.user.id })
       .populate({
@@ -88,13 +71,13 @@ router.get("/my-progress", auth, async (req, res) => {
 });
 
 // ✅ Get all enrolled courses with progress for a student
-router.get("/my-enrolled-progress", auth, async (req, res) => {
+router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
     // Find all enrollments for the student
     const enrollments = await Enrollment.find({ student: req.user.id }).populate({
       path: "course",
       populate: [
-        { path: "teacher", select: "firstName lastName" },
+        { path: "createdBy", select: "firstName lastName" },
         { path: "category", select: "name" },
         { path: "lessons" },
       ],
@@ -110,21 +93,44 @@ router.get("/my-enrolled-progress", auth, async (req, res) => {
     });
 
     // Build result: for each enrollment, attach progress if exists
-    const result = enrollments.map((enrollment) => {
-      const course = enrollment.course;
-      const progress = progressMap[course._id.toString()];
-      return {
-        courseId: course,
-        progressPercentage: progress ? progress.progressPercentage : 0,
-        completedLessons: progress ? progress.completedLessons : [],
-        _id: progress ? progress._id : null,
-      };
-    });
+    const result = enrollments
+      .filter((enrollment) => enrollment.course && enrollment.course._id) // filter out if course is missing
+      .map((enrollment) => {
+        const course = enrollment.course;
+        const progress = progressMap[course._id.toString()];
+        return {
+          courseId: course, // always populated
+          progressPercentage: progress ? progress.progressPercentage : 0,
+          completedLessons: progress ? progress.completedLessons : [],
+          _id: progress ? progress._id : null,
+        };
+      });
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Error fetching enrolled courses with progress:", error.message);
-    return res.status(500).json({ message: "Server Error", error });
+    console.error("Error fetching enrolled courses with progress:", error);
+    return res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+// Place this route AFTER all other /:param routes to avoid collision
+// ✅ Get Student Progress for a Course
+router.get("/:courseId", verifyToken, checkRole(["student"]), async (req, res, next) => {
+  const mongoose = require("mongoose");
+  // If the param is not a valid ObjectId, skip to next route
+  if (!mongoose.Types.ObjectId.isValid(req.params.courseId)) return next();
+  try {
+    const progress = await Progress.findOne({
+      userId: req.user.id,
+      courseId: req.params.courseId,
+    }).populate("completedLessons");
+
+    if (!progress) return res.status(404).json({ message: "No progress found" });
+
+    res.status(200).json(progress);
+  } catch (error) {
+    console.error("Error fetching progress:", error.message);
+    res.status(500).json({ message: "Server Error", error });
   }
 });
 

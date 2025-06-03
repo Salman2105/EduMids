@@ -20,7 +20,7 @@ const StudentProgressCard = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          "/api/progress/my-enrolled-progress",
+          "http://localhost:5000/api/progress/my-enrolled-progress",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -44,7 +44,7 @@ const StudentProgressCard = () => {
     setMarking(true);
     try {
       await axios.post(
-        "/api/progress/complete-lesson",
+        "http://localhost:5000/api/progress/complete-lesson",
         { courseId, lessonId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -62,11 +62,11 @@ const StudentProgressCard = () => {
 
   // Find selected course progress
   const selectedProgress = progresses.find(
-    (p) => p.courseId._id === selectedCourseId
+    (p) => p.courseId && p.courseId._id === selectedCourseId
   );
   const course = selectedProgress?.courseId;
   const completedLessons = Array.isArray(selectedProgress?.completedLessons)
-    ? selectedProgress.completedLessons.map(l => (l._id ? l._id : l))
+    ? selectedProgress.completedLessons.map(l => (l && l._id ? l._id : l))
     : [];
   const lessons = course?.lessons || [];
 
@@ -80,7 +80,7 @@ const StudentProgressCard = () => {
           onChange={e => setSelectedCourseId(e.target.value)}
           className="border rounded px-2 py-1"
         >
-          {progresses.map((p) => (
+          {progresses.filter(p => p.courseId && p.courseId._id).map((p) => (
             <option key={p.courseId._id} value={p.courseId._id}>
               {p.courseId.title}
             </option>
@@ -95,7 +95,7 @@ const StudentProgressCard = () => {
             {course?.title || "Untitled Course"}
           </h2>
           <div className="mb-1 text-gray-600">
-            Teacher: {course?.teacher?.firstName} {course?.teacher?.lastName}
+            Teacher: {course?.createdBy?.firstName} {course?.createdBy?.lastName}
           </div>
           <div className="mb-1 text-gray-600">
             Category: {course?.category?.name}

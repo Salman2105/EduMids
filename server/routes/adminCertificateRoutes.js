@@ -73,37 +73,37 @@ router.get("/revoked-certificates", verifyToken, checkRole(["admin"]), async (re
     }
   });
   
-  //
+  // ✅ Reissue a Revoked Certificate (Admin Only)
   router.post("/reissue-certificate/:enrollmentId", verifyToken, checkRole(["admin"]), async (req, res) => {
     try {
       const { enrollmentId } = req.params;
       const adminId = req.user.id; // Get the admin who reissued the certificate
-  
+
       // Find the enrollment record
-      const enrollment = await Enrollment.findById(enrollmentId).populate("student", "email name");
+      const enrollment = await Enrollment.findById(enrollmentId).populate("student", "email name").populate("course", "title");
       if (!enrollment) {
         return res.status(404).json({ message: "Enrollment not found" });
       }
-  
+
       // Check if the certificate was revoked
       if (!enrollment.certificateRevoked) {
         return res.status(400).json({ message: "Certificate was not revoked, cannot re-issue." });
       }
-  
+
       // Re-Issue the Certificate
       enrollment.certificateRevoked = false;
       enrollment.certificateIssued = true;
+      if (!enrollment.reissuedCertificates) enrollment.reissuedCertificates = [];
       enrollment.reissuedCertificates.push({ reissuedAt: new Date(), adminId }); // ✅ Log history
       await enrollment.save();
-  
+
       // Send email notification
       const emailSubject = "Certificate Re-Issued - EduMids";
-      const emailText = `Dear ${enrollment.student.name},\n\nYour certificate for the course "${enrollment.course.title}" has been successfully re-issued. You can now download it from your dashboard.\n\nBest Regards,\nEduMids Team`;
-  
+      const emailText = `Dear ${enrollment.student.name},\n\nYour certificate for the course \"${enrollment.course.title}\" has been successfully re-issued. You can now download it from your dashboard.\n\nBest Regards,\nEduMids Team`;
+
       await sendEmail(enrollment.student.email, emailSubject, emailText);
-  
+
       res.status(200).json({ message: "Certificate re-issued successfully.", reissueHistory: enrollment.reissuedCertificates });
-  
     } catch (error) {
       res.status(500).json({ message: "Server Error", error });
     }
@@ -132,6 +132,38 @@ router.get("/revoked-certificates", verifyToken, checkRole(["admin"]), async (re
     }
   });
   
-  
+  // ✅ Get All Revoked & Reissued Certificates (For Admins)
+router.get("/revoked-reissued-certificates", verifyToken, checkRole(["admin"]), async (req, res) => {
+  try {
+    // Find all enrollments that were revoked and then reissued at least once
+    const revokedReissued = await Enrollment.find({
+      certificateRevoked: false, // currently not revoked
+      certificateIssued: true,   // currently issued
+      reissuedCertificates: { $exists: true, $not: { $size: 0 } }
+    })
+      .populate("student", "name email")
+      .populate("course", "title")
+      .lean();
 
+    // Add last reissue date and admin info for display
+    const result = revokedReissued.map(enrollment => {
+      const lastReissue = enrollment.reissuedCertificates && enrollment.reissuedCertificates.length > 0
+        ? enrollment.reissuedCertificates[enrollment.reissuedCertificates.length - 1]
+        : null;
+      return {
+        _id: enrollment._id,
+        student: enrollment.student,
+        course: enrollment.course,
+        lastReissuedAt: lastReissue ? lastReissue.reissuedAt : null,
+        lastReissuedBy: lastReissue ? lastReissue.adminId : null,
+        reissueHistory: enrollment.reissuedCertificates || [],
+        updatedAt: enrollment.updatedAt,
+      };
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+  
 module.exports = router;

@@ -13,6 +13,9 @@ export default function AdminCertificateCard() {
   const [showHistory, setShowHistory] = useState(""); // enrollmentId
   const [studentSearch, setStudentSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
+  const [revokedReissuedCertificates, setRevokedReissuedCertificates] = useState([]);
+  const [revokedReissuedLoading, setRevokedReissuedLoading] = useState(true);
+  const [revokedReissuedError, setRevokedReissuedError] = useState("");
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -59,6 +62,29 @@ export default function AdminCertificateCard() {
       setRevokedLoading(false);
     };
     fetchRevoked();
+  }, [refresh]);
+
+  useEffect(() => {
+    const fetchRevokedReissued = async () => {
+      setRevokedReissuedLoading(true);
+      setRevokedReissuedError("");
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/admin/certificates/revoked-reissued-certificates", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setRevokedReissuedCertificates(data || []);
+        } else {
+          setRevokedReissuedError(data.message || "Failed to fetch revoked & reissued certificates.");
+        }
+      } catch (err) {
+        setRevokedReissuedError("Error fetching revoked & reissued certificates.");
+      }
+      setRevokedReissuedLoading(false);
+    };
+    fetchRevokedReissued();
   }, [refresh]);
 
   // Revoke certificate
@@ -146,6 +172,13 @@ export default function AdminCertificateCard() {
 
   // Filtered revoked certificates
   const filteredRevokedCertificates = revokedCertificates.filter(cert => {
+    const studentMatch = cert.student?.name?.toLowerCase().includes(studentSearch.toLowerCase());
+    const courseMatch = cert.course?.title?.toLowerCase().includes(courseSearch.toLowerCase());
+    return (!studentSearch || studentMatch) && (!courseSearch || courseMatch);
+  });
+
+  // Filtered revoked & reissued certificates
+  const filteredRevokedReissuedCertificates = revokedReissuedCertificates.filter(cert => {
     const studentMatch = cert.student?.name?.toLowerCase().includes(studentSearch.toLowerCase());
     const courseMatch = cert.course?.title?.toLowerCase().includes(courseSearch.toLowerCase());
     return (!studentSearch || studentMatch) && (!courseSearch || courseMatch);
@@ -253,7 +286,74 @@ export default function AdminCertificateCard() {
                   <td className="px-4 py-2">{cert.course?.title}</td>
                   <td className="px-4 py-2">{cert.updatedAt ? new Date(cert.updatedAt).toLocaleDateString() : "-"}</td>
                   <td className="px-4 py-2">{cert._id}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 flex gap-2">
+                    <button
+                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs"
+                      onClick={() => handleReissue(cert._id)}
+                    >
+                      Re-Issue
+                    </button>
+                    <button
+                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs"
+                      onClick={() => handleViewReissueHistory(cert._id)}
+                    >
+                      {historyLoading === cert._id ? "Loading..." : showHistory === cert._id ? "Hide History" : "View Reissue History"}
+                    </button>
+                  </td>
+                </tr>
+                {showHistory === cert._id && (
+                  <tr>
+                    <td colSpan={6} className="bg-gray-50 px-4 py-2">
+                      <strong>Reissue History:</strong>
+                      {history[cert._id] && history[cert._id].length > 0 ? (
+                        <ul className="list-disc ml-6">
+                          {history[cert._id].map((item, i) => (
+                            <li key={i}>
+                              {item.reissuedAt ? new Date(item.reissuedAt).toLocaleString() : "-"} by {item.adminId?.name || "Unknown Admin"} ({item.adminId?.email || "-"})
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="ml-2">No reissue history found.</span>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Revoked & Reissued Certificates Section */}
+      <h2 className="text-2xl font-bold mt-12 mb-6">Revoked & Reissued Certificates</h2>
+      {revokedReissuedLoading && <p>Loading revoked & reissued certificates...</p>}
+      {revokedReissuedError && <p className="text-red-600">{revokedReissuedError}</p>}
+      {!revokedReissuedLoading && revokedReissuedCertificates.length === 0 && !revokedReissuedError && (
+        <p>No revoked & reissued certificates found.</p>
+      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-4 py-2">Student Name</th>
+              <th className="px-4 py-2">Student Email</th>
+              <th className="px-4 py-2">Course</th>
+              <th className="px-4 py-2">Last Reissued At</th>
+              <th className="px-4 py-2">Enrollment ID</th>
+              <th className="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRevokedReissuedCertificates.map((cert) => (
+              <React.Fragment key={cert._id}>
+                <tr className="bg-white even:bg-gray-50">
+                  <td className="px-4 py-2 font-semibold">{cert.student?.name}</td>
+                  <td className="px-4 py-2">{cert.student?.email}</td>
+                  <td className="px-4 py-2">{cert.course?.title}</td>
+                  <td className="px-4 py-2">{cert.lastReissuedAt ? new Date(cert.lastReissuedAt).toLocaleString() : "-"}</td>
+                  <td className="px-4 py-2">{cert._id}</td>
+                  <td className="px-4 py-2 flex gap-2">
                     <button
                       className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs"
                       onClick={() => handleViewReissueHistory(cert._id)}

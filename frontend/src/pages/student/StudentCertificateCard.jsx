@@ -26,6 +26,36 @@ export default function StudentCertificateCard() {
     fetchCertificates();
   }, []);
 
+  // Download certificate with auth token
+  const handleDownload = async (courseId, courseName) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/certificates/certificate/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        // Try to parse error message from backend
+        let errorMsg = "Failed to download certificate";
+        try {
+          const errData = await res.json();
+          if (errData && errData.message) errorMsg = errData.message;
+        } catch {}
+        throw new Error(errorMsg);
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Certificate-${courseName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message || "Failed to download certificate");
+    }
+  };
+
   if (loading) return <div className="p-4">Loading certificates...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!certificates.length)
@@ -44,14 +74,12 @@ export default function StudentCertificateCard() {
             <div className="text-gray-500 text-sm mb-2">Date Earned: {new Date(cert.dateEarned).toLocaleDateString()}</div>
             <div className="text-xs text-gray-400 mb-2">Certificate ID: {cert.certificateId}</div>
           </div>
-          <a
-            href={`http://localhost:5000/api/certificates/certificate/${cert.courseId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => handleDownload(cert.courseId, cert.courseName)}
             className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center text-sm font-medium"
           >
             Download PDF
-          </a>
+          </button>
         </div>
       ))}
     </div>

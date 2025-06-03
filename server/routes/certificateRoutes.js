@@ -59,9 +59,17 @@ router.get("/certificate/:courseId", auth, async (req, res) => {
 
     const course = await Course.findById(courseId);
 
+    // Get the student's name from the user model
+    const User = require("../Models/user");
+    const student = await User.findById(req.user.id);
+    const studentName = student ? student.name : req.user.name || "Student";
+
+    // Use the date when the certificate was issued (enrollment.updatedAt)
+    const dateEarned = enrollment.updatedAt ? new Date(enrollment.updatedAt).toLocaleDateString() : new Date().toLocaleDateString();
+
     // Generate PDF Certificate
     const doc = new PDFDocument();
-    const filename = `Certificate-${req.user.name}-${course.title}.pdf`;
+    const filename = `Certificate-${studentName}-${course.title}.pdf`;
 
     res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
     res.setHeader("Content-Type", "application/pdf");
@@ -72,14 +80,14 @@ router.get("/certificate/:courseId", auth, async (req, res) => {
     doc.moveDown();
 
     doc.fontSize(20).text(`This is to certify that`, { align: "center" });
-    doc.fontSize(22).text(`${req.user.name}`, { align: "center", underline: true });
+    doc.fontSize(22).text(`${studentName}`, { align: "center", underline: true });
     doc.moveDown();
 
     doc.fontSize(18).text(`has successfully completed the course`, { align: "center" });
-    doc.fontSize(22).text(`"${course.title}"`, { align: "center", underline: true });
+    doc.fontSize(22).text(`\"${course.title}\"`, { align: "center", underline: true });
     doc.moveDown();
 
-    doc.fontSize(14).text(`Date: ${new Date().toLocaleDateString()}`, { align: "right" });
+    doc.fontSize(14).text(`Date: ${dateEarned}`, { align: "right" });
 
     doc.end();
   } catch (error) {
@@ -101,7 +109,7 @@ router.get("/my-certificates", auth, async (req, res) => {
       certificateId: enrollment._id,
       courseName: enrollment.course?.title || "Unknown Course",
       organization: enrollment.course?.organization || "EduMids",
-      dateEarned: enrollment.updatedAt || enrollment.createdAt,
+      dateEarned: enrollment.certificateIssued && enrollment.updatedAt ? enrollment.updatedAt : enrollment.createdAt,
       courseId: enrollment.course?._id
     }));
 

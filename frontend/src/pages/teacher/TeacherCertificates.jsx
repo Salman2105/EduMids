@@ -6,7 +6,7 @@ import CertificateCard from "./CertificateCard";
 
 const StudentCertificates = () => {
   return (
-   <> <div className="p-6 h-full">
+   <> <div className="p-6 ">
        <SearchBar />
       <h2 className="text-xl font-bold">My Certificates</h2>
       <p>This page lists all the certificates issued by you</p>
