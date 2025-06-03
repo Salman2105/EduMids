@@ -18,6 +18,8 @@ export default function QnA() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        // Only fetch courses for students and teachers, not admin
+        if (user?.role === "admin") return;
         const url = isStudent
           ? "http://localhost:5000/api/student/enrolled-courses"
           : "http://localhost:5000/api/teacher/my-courses";
@@ -31,7 +33,7 @@ export default function QnA() {
       }
     };
     fetchCourses();
-  }, [isStudent, token]);
+  }, [isStudent, token, user]);
 
   // Fetch Q&A data
   useEffect(() => {
@@ -134,7 +136,7 @@ export default function QnA() {
       <h2 className="text-2xl font-bold mb-4">Q&amp;A Section</h2>
 
       {/* Student Question Form */}
-      {/* {isStudent && (
+      {isStudent && (
         <form onSubmit={handleAskQuestion} className="mb-6 bg-white rounded shadow p-4">
           <h3 className="text-lg font-semibold mb-2">Ask a Question</h3>
           <select
@@ -163,7 +165,7 @@ export default function QnA() {
             Submit Question
           </button>
         </form>
-      )} */}
+      )}
 
       {/* Question List */}
       <div className="bg-white rounded shadow p-4">

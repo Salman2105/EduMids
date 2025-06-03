@@ -8,6 +8,7 @@ const auth = require("../middleware/auth");
 const { registerValidation, loginValidation } = require("../validators/authValidator");
 const { validationResult } = require("express-validator");
 const notifyUser = require("../utils/notifyUser");
+const sendEmail = require("../utils/sendEmail");
 
 // 📝 Register a New User
 router.post("/register", registerValidation, async (req, res) => {
@@ -30,7 +31,20 @@ router.post("/register", registerValidation, async (req, res) => {
     // Notify the user
     await notifyUser(user._id, "🎉 Welcome to EduMids! Start exploring courses now.");
 
-    res.status(201).json({ message: "User registered successfully!", user });
+    // Send welcome email
+    await sendEmail(
+      user.email,
+      "Welcome to EduMids!",
+      `Hi ${user.name},\n\nWelcome to EduMids! Start exploring courses now.\n\nBest regards,\nEduMids Team`
+    );
+
+    // Generate JWT token (same as login)
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.status(201).json({
+      message: "User registered successfully!",
+      token,
+      user: { id: user._id, name: user.name, role: user.role }
+    });
   } catch (error) {
     console.error("Error registering user:", error.message);
     res.status(500).json({ message: "Server error", error });
@@ -51,6 +65,13 @@ router.post("/login", loginValidation, async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
     await notifyUser(user._id, "👋 Welcome back to your  Dashboard.");
+
+    // Send login notification email
+    await sendEmail(
+      user.email,
+      "EduMids Login Notification",
+      `Hi ${user.name},\n\nYou have successfully logged in to your EduMids account.\n\nIf this wasn't you, please contact support immediately.\n\nBest regards,\nEduMids Team`
+    );
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.status(200).json({ token, user: { id: user._id, name: user.name, role: user.role } });
@@ -116,6 +137,14 @@ router.delete("/delete-profile", auth, async (req, res) => {
     const userId = req.user.id;
     const deletedUser = await User.findByIdAndDelete(userId);
     if (!deletedUser) return res.status(404).json({ message: "User not found" });
+
+    // Send account deletion email
+    await sendEmail(
+      deletedUser.email,
+      "EduMids Account Deleted",
+      `Hi ${deletedUser.name},\n\nYour EduMids account has been deleted. We're sorry to see you go!\n\nIf this was a mistake, please contact our support.\n\nBest regards,\nEduMids Team`
+    );
+
     res.json({ message: "Account deleted successfully" });
   } catch (error) {
     console.error("Error deleting account:", error.message);
