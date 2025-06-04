@@ -28,7 +28,7 @@ router.get("/admin-dashboard", verifyToken, checkRole(["admin"]), async (req, re
     ]);
 
     // Notify the admin
-    await notifyUser(req.user.id, `👋 Welcome back to the Admin Panel.`);
+    await notifyUser(req.user.id, `👋 Welcome back to the Admin Dasnboard.`);
 
     // Send response
     res.status(200).json({

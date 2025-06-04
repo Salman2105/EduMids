@@ -16,6 +16,7 @@ import CoursesPage from "./pages/CoursesPage"; // Assuming you have a Courses pa
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Checkout from "./pages/Checkout";
+import ForgotPassword from "./pages/auth/forgotPassword"; // Uncomment if you have a forgot password page
 // import Setting from "./components/Setting"
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -85,6 +86,8 @@ function App() {
             <Route path="/checkout/:courseId" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+
 
 
             {/* Admin Routes */}

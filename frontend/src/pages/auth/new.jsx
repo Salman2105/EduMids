@@ -3,12 +3,12 @@ import { Link } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/form";
+import { Input } from "../../components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
 
 // Define the form schema
 const forgotPasswordSchema = z.object({
@@ -31,21 +31,28 @@ export default function ForgotPassword() {
   // Handle form submission
   const onSubmit = async (values) => {
     setIsLoading(true);
-    
-    // In a real implementation, this would make an API call to send a password reset link
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Call backend API
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: values.email }),
+        }
+      );
+      const data = await response.json();
+
       setIsSubmitted(true);
-      
+
       toast({
         title: "Reset link sent",
-        description: "If an account exists with that email, you will receive a password reset link shortly.",
+        description: data.message || "If an account exists with that email, you will receive a password reset link shortly.",
       });
     } catch (error) {
       console.error("Password reset error:", error);
-      
+
       toast({
         title: "Something went wrong",
         description: "We couldn't process your request. Please try again later.",

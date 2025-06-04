@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -15,17 +15,57 @@ import {
   MessageSquare, 
   Send
 } from 'lucide-react';
+import { sendContactMessage } from '../services/contactService';
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const formRef = useRef();
+  // Add state for location
+  const [location, setLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        setLocationError('Unable to retrieve your location.');
+      }
+    );
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would send the form data to the server
-    toast({
-      title: "Message sent!",
-      description: "We've received your message and will respond soon.",
-    });
+    const form = formRef.current;
+    const data = {
+      firstName: form.firstName.value,
+      lastName: form.lastName.value,
+      email: form.email.value,
+      subject: form.subject.value,
+      message: form.message.value,
+    };
+    try {
+      await sendContactMessage(data);
+      toast({
+        title: 'Message sent!',
+        description: "We've received your message and will respond soon.",
+      });
+      form.reset();
+    } catch (err) {
+      toast({
+        title: 'Failed to send message',
+        description: err?.response?.data?.error || 'Please try again later.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -66,7 +106,7 @@ export default function ContactPage() {
                 href="mailto:info@eduminds.com" 
                 className="text-primary hover:underline font-medium"
               >
-                info@eduminds.com
+               edumideduinfo@gmail.com
               </a>
             </CardContent>
           </Card>
@@ -114,7 +154,7 @@ export default function ContactPage() {
               Fill out the form and our team will get back to you within 24 hours.
             </p>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="firstName" className="text-sm font-medium">
@@ -122,6 +162,7 @@ export default function ContactPage() {
                   </label>
                   <Input 
                     id="firstName" 
+                    name="firstName"
                     placeholder="Your first name" 
                     required
                   />
@@ -132,6 +173,7 @@ export default function ContactPage() {
                   </label>
                   <Input 
                     id="lastName" 
+                    name="lastName"
                     placeholder="Your last name" 
                     required
                   />
@@ -144,6 +186,7 @@ export default function ContactPage() {
                 </label>
                 <Input 
                   id="email" 
+                  name="email"
                   type="email" 
                   placeholder="Your email address" 
                   required 
@@ -156,6 +199,7 @@ export default function ContactPage() {
                 </label>
                 <Input 
                   id="subject" 
+                  name="subject"
                   placeholder="What is this regarding?" 
                   required 
                 />
@@ -167,13 +211,14 @@ export default function ContactPage() {
                 </label>
                 <Textarea 
                   id="message" 
+                  name="message"
                   placeholder="How can we help you?" 
                   rows={5} 
                   required 
                 />
               </div>
               
-              <Button type="submit" className="w-full sm:w-auto">
+              <Button type="submit" className="w-full sm:w-auto bg-blue-400 text-white hover:bg-primary/90 transition-colors flex items-center justify-center">
                 <Send className="mr-2 h-4 w-4" />
                 Send Message
               </Button>
@@ -186,7 +231,7 @@ export default function ContactPage() {
               <div>
                 <h3 className="text-xl font-semibold mb-2">How do I enroll in a course?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  To enroll in a course, create an account or log in, browse our course catalog, and click the "Enroll" button on the course page. You'll be guided through the payment process if it's a paid course.
+                  To enroll in a course, create an account or log in, browse our course catalog, and click the "Enroll Now" button on the course page. You'll be guided through the payment process if it's a paid course.
                 </p>
               </div>
               
@@ -200,7 +245,7 @@ export default function ContactPage() {
               <div>
                 <h3 className="text-xl font-semibold mb-2">How do I become an instructor?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  To become an instructor, visit your account settings and click on "Become an Instructor." You'll need to complete an application process and meet our quality standards before you can publish courses.
+                  To become an instructor, visit your account contact page and Type on "Become an Instructor." You'll need to complete an application process and meet our quality standards before you can publish courses.
                 </p>
               </div>
               
@@ -226,16 +271,26 @@ export default function ContactPage() {
 
         {/* Map Section */}
         <div className="rounded-xl overflow-hidden h-96 mb-12">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d201064.44358631046!2d-122.57106444999999!3d37.7577627!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1655207420297!5m2!1sen!2sus" 
-            width="100%" 
-            height="100%" 
-            style={{ border: 0 }} 
-            allowFullScreen 
-            loading="lazy" 
-            referrerPolicy="no-referrer-when-downgrade"
-            title="EduMinds HQ Location"
-          ></iframe>
+          {location ? (
+            <iframe
+              src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Your Current Location"
+            ></iframe>
+          ) : locationError ? (
+            <div className="flex items-center justify-center h-full text-red-500">
+              {locationError}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              Loading your location...
+            </div>
+          )}
         </div>
         <Cta />
 

@@ -195,6 +195,25 @@ const Login = () => {
               required
               size="small"
             />
+            {isLogin && (
+              <Box mt={1}>
+                <Button
+                  component={Link}
+                  to="/auth/forgot-password"
+                  variant="text"
+                  sx={{
+                    color: "#1565d8",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    fontSize: 14,
+                    p: 0,
+                    minWidth: 0,
+                  }}
+                >
+                  Forgot password?
+                </Button>
+              </Box>
+            )}
           </Box>
           {!isLogin && (
             <Box mb={2}>

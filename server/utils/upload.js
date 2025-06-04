@@ -1,29 +1,19 @@
 const multer = require("multer");
-const path = require("path");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("./cloudinary");
 
- // Configure storage for uploaded files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Ensure the "uploads" directory exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// Configure Cloudinary storage for uploaded files
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: "edumids",
+      resource_type: file.mimetype.startsWith("video/") ? "video" : "auto", // handles video, image, pdf
+      format: file.originalname.split(".").pop(), // preserve extension
+    };
   },
 });
 
-// File filter to allow only specific file types
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["application/pdf", "video/mp4", "image/jpeg", "image/png"];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid file type. Only PDF, MP4, JPEG, and PNG are allowed."));
-  }
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-});
+const upload = multer({ storage });
 
 module.exports = upload;

@@ -9,6 +9,7 @@ const { registerValidation, loginValidation } = require("../validators/authValid
 const { validationResult } = require("express-validator");
 const notifyUser = require("../utils/notifyUser");
 const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 // 📝 Register a New User
 router.post("/register", registerValidation, async (req, res) => {
@@ -64,7 +65,7 @@ router.post("/login", loginValidation, async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    await notifyUser(user._id, "👋 Welcome back to your  Dashboard.");
+    await notifyUser(user._id, "👋 Welcome back to your Dashboard.");
 
     // Send login notification email
     await sendEmail(
@@ -148,6 +149,44 @@ router.delete("/delete-profile", auth, async (req, res) => {
     res.json({ message: "Account deleted successfully" });
   } catch (error) {
     console.error("Error deleting account:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// 📨 Forgot Password - Send Reset Link
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email)
+    return res.status(400).json({ message: "Email is required" });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Respond with success even if user not found (to prevent email enumeration)
+      return res.json({ message: "If an account exists with that email, you will receive a password reset link shortly." });
+    }
+
+    // Generate a reset token and expiry (1 hour)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+
+    await user.save();
+
+    // Construct reset link (adjust frontend URL as needed)
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    // Send email
+    await sendEmail(
+      user.email,
+      "EduMids Password Reset",
+      `Hi ${user.name},\n\nYou requested a password reset. Click the link below to reset your password:\n\n${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nEduMids Team`
+    );
+
+    res.json({ message: "If an account exists with that email, you will receive a password reset link shortly." });
+  } catch (error) {
+    console.error("Forgot password error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });

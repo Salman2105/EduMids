@@ -4,19 +4,7 @@ const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const { createCourseValidation } = require("../validators/courseValidator");
 const { validationResult } = require("express-validator");
-const multer = require("multer");
-const path = require("path");
-
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/courses/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-const upload = multer({ storage });
+const upload = require("../utils/upload");
 
 // 🟡 Get All Courses (For Students) - PUBLIC
 router.get("/", async (req, res) => {

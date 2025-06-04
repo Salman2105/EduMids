@@ -8,6 +8,7 @@ const { Course } = require("../Models/course");
 const { issueCertificateValidation } = require("../validators/certificateValidator");
 const { validationResult } = require("express-validator");
 const notifyUser = require("../utils/notifyUser");
+const sendEmail = require("../utils/sendEmail"); // Make sure this path is correct
 
 // ✅ Issue Certificate for Completed Course (Teacher can issue to any student)
 router.post("/issue", auth, issueCertificateValidation, async (req, res) => {
@@ -38,6 +39,17 @@ router.post("/issue", auth, issueCertificateValidation, async (req, res) => {
 
     // Notify the student
     await notifyUser(studentId, `🎉 Your certificate for the course "${course.title}" is now available.`);
+
+    // Send email to the student
+    const User = require("../Models/user");
+    const student = await User.findById(studentId);
+    if (student && student.email) {
+      await sendEmail({
+        to: student.email,
+        subject: `Certificate Issued for "${course.title}"`,
+        text: `Congratulations ${student.name || "Student"}!\n\nYour certificate for the course "${course.title}" is now available in your EduMids account.\n\nBest regards,\nEduMids Team`
+      });
+    }
 
     res.status(200).json({ message: "Certificate issued successfully!" });
   } catch (error) {

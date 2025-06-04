@@ -3,8 +3,8 @@ import React from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-// TODO: Replace with your real Stripe public key (from .env or config)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_12345');
+// Use the correct environment variable for Vite
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function StripeProvider({ children }) {
   return <Elements stripe={stripePromise}>{children}</Elements>;
