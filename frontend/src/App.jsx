@@ -17,6 +17,15 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Checkout from "./pages/Checkout";
 import ForgotPassword from "./pages/auth/forgotPassword"; // Uncomment if you have a forgot password page
+import Blog from "./pages/Blog"; 
+import FAQ from "./pages/FAQ"; // Assuming you have a FAQ page
+import TermsOfService from "./pages/TermsOfService"; 
+import Privacy from "./pages/privacy"; 
+import Cookie from "./pages/cookie";
+import Refund from "./pages/Refund"; 
+import Resources from "./pages/Resources";
+import Community from "./pages/Community"; 
+import Instructors from "./pages/instructors"; // Assuming you have an Instructors page
 // import Setting from "./components/Setting"
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -87,6 +96,17 @@ function App() {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/Blog" element={<Blog />} />
+            <Route path="/FAQ" element={<FAQ />} />
+            <Route path="/TermsOfService" element={<TermsOfService />} />
+            <Route path="/Privacy" element={<Privacy />} />
+            <Route path="/Cookie" element={<Cookie />} />
+            <Route path="/Refund" element={<Refund />} />
+            <Route path="/Resources" element={<Resources />} />
+            <Route path="/Community" element={<Community />} />
+            <Route path="/Instructors" element={<Instructors />} />
+
+
 
 
 

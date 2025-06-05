@@ -31,7 +31,8 @@ export default function Feature() {
     fetchCourses();
   }, []);
 
-  const freeCourses = courses.filter(course => (course.price === 20.00 || course.price === "20.00"));
+  // Filter courses with category 'best sell'
+  const bestSellCourses = courses.filter(course => course.category && course.category.toLowerCase() === "best seller");
 
   return (
     <section
@@ -59,10 +60,10 @@ export default function Feature() {
         {error && <div className="text-red-500">{error}</div>}
         {!loading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {freeCourses.length === 0 ? (
-              <div>No free courses available at the moment.</div>
+            {bestSellCourses.length === 0 ? (
+              <div>No 'Best Sell' courses available at the moment.</div>
             ) : (
-              freeCourses.map((course, idx) => (
+              bestSellCourses.map((course, idx) => (
                 <motion.div
                   key={course._id}
                   className="border rounded-xl shadow bg-white flex flex-col max-w-xs w-full mx-auto h-full hover:shadow-lg transition-transform duration-300 hover:scale-105"
@@ -86,7 +87,7 @@ export default function Feature() {
                         {course.category || "fantasy"}
                       </span>
                       <span className="text-green-700 font-semibold text-lg">
-                       Best sell
+                        Best sell
                       </span>
                     </div>
                     <div className="mt-auto flex justify-end">

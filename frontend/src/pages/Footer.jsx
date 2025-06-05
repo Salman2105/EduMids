@@ -52,30 +52,30 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Explore</h3>
             <ul className="space-y-2">
-              <li><Link to="/courses" className="text-gray-400 hover:text-white transition">Courses</Link></li>
-              <li><Link to="/instructors" className="text-gray-400 hover:text-white transition">Instructors</Link></li>
+              <li><Link to="/CoursesPage" className="text-gray-400 hover:text-white transition">Courses</Link></li>
+              <li><Link to="/Instructors" className="text-gray-400 hover:text-white transition">Instructors</Link></li>
               <li><Link to="/resources" className="text-gray-400 hover:text-white transition">Resources</Link></li>
-              <li><Link to="/forum" className="text-gray-400 hover:text-white transition">Community</Link></li>
+              <li><Link to="/Community" className="text-gray-400 hover:text-white transition">Community</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Information</h3>
             <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-400 hover:text-white transition">About Us</Link></li>
-              <li><Link to="/blog" className="text-gray-400 hover:text-white transition">Blog</Link></li>
-              <li><Link to="/faq" className="text-gray-400 hover:text-white transition">FAQ</Link></li>
-              <li><Link to="/contact" className="text-gray-400 hover:text-white transition">Contact</Link></li>
+              <li><Link to="/AboutPage" className="text-gray-400 hover:text-white transition">About Us</Link></li>
+              <li><Link to="/Blog" className="text-gray-400 hover:text-white transition">Blog</Link></li>
+              <li><Link to="/FAQ" className="text-gray-400 hover:text-white transition">FAQ</Link></li>
+              <li><Link to="/Contact" className="text-gray-400 hover:text-white transition">Contact</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
-              <li><Link to="/terms" className="text-gray-400 hover:text-white transition">Terms of Service</Link></li>
+              <li><Link to="/TermsOfService" className="text-gray-400 hover:text-white transition">Terms of Service</Link></li>
               <li><Link to="/privacy" className="text-gray-400 hover:text-white transition">Privacy Policy</Link></li>
-              <li><Link to="/cookie" className="text-gray-400 hover:text-white transition">Cookie Policy</Link></li>
-              <li><Link to="/refund" className="text-gray-400 hover:text-white transition">Refund Policy</Link></li>
+              <li><Link to="/Cookie" className="text-gray-400 hover:text-white transition">Cookie Policy</Link></li>
+              <li><Link to="/Refund" className="text-gray-400 hover:text-white transition">Refund Policy</Link></li>
             </ul>
           </div>
         </div>
