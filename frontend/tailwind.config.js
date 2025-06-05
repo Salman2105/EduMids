@@ -7,7 +7,18 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // You can add customizations here if needed
+      colors: {
+        primary: {
+          DEFAULT: 'hsl(165, 65%, 35%)', // main
+          light: 'hsl(165, 65%, 45%)',
+          foreground: '#fff',
+        },
+        secondary: {
+          DEFAULT: '#f59e42', // Example: orange, you can change this
+          light: '#ffd8b0',
+          foreground: '#fff',
+        },
+      },
     },
   },
   plugins: [

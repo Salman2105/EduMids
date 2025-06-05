@@ -10,7 +10,7 @@ export default function StudentCertificateCard() {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/certificates/my-certificates", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -29,10 +29,12 @@ export default function StudentCertificateCard() {
   // Download certificate with auth token
   const handleDownload = async (courseId, courseName) => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/certificates/certificate/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = localStorage.getItem("token"); // always get fresh token
+      const res = await fetch(`http://localhost:5000/api/certificates/certificate/${courseId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) {
         // Try to parse error message from backend
         let errorMsg = "Failed to download certificate";

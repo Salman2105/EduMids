@@ -11,7 +11,7 @@ export default function StudentCard() {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/admin/users", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -35,7 +35,7 @@ export default function StudentCard() {
   const handleDelete = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // always get fresh token
       const res = await fetch(
         `http://localhost:5000/api/admin/delete-user/${userId}`,
         {

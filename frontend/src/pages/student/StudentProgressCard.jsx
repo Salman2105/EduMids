@@ -19,6 +19,7 @@ const StudentProgressCard = () => {
     const fetchProgress = async () => {
       setLoading(true);
       try {
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await axios.get(
           "http://localhost:5000/api/progress/my-enrolled-progress",
           {
@@ -43,6 +44,7 @@ const StudentProgressCard = () => {
   const handleCompleteLesson = async (courseId, lessonId) => {
     setMarking(true);
     try {
+      const token = localStorage.getItem("token"); // always get fresh token
       await axios.post(
         "http://localhost:5000/api/progress/complete-lesson",
         { courseId, lessonId },

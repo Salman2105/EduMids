@@ -46,6 +46,7 @@ export default function QnA() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/qna/all", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -66,6 +67,7 @@ export default function QnA() {
     }
 
     try {
+      const token = localStorage.getItem("token"); // always get fresh token
       const res = await fetch("http://localhost:5000/api/qna/ask", {
         method: "POST",
         headers: {
@@ -84,7 +86,7 @@ export default function QnA() {
         toast.error(data.message);
       }
     } catch (err) {
-      toast.error("Error posting question.");
+      toast.error("Failed to submit question");
     }
   };
 

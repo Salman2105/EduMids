@@ -87,16 +87,16 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
           url: lesson.contentURL,
           status: completedLessons.includes(String(lesson._id)) ? "completed" : "pending"
         }));
-        // Quizzes breakdown
-        const quizzes = (course.quizzes || []).map(quiz => {
+        // Quizzes breakdown (show all quizzes, mark submitted if student has submission)
+        const quizzes = Array.isArray(course.quizzes) ? course.quizzes.map(quiz => {
           const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
           return {
             quizId: quiz._id,
             title: quiz.title,
-            completed: !!submission,
+            submitted: !!submission,
             score: submission ? submission.score : null
           };
-        });
+        }) : [];
         // Course progress (from enrollment)
         return {
           courseId: course._id,
@@ -106,7 +106,7 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
           enrolledAt: enroll.createdAt,
           progress: typeof enroll.progress === "number" ? enroll.progress : 0,
           lessons,
-          quizzes
+          quizzes // always an array
         };
       });
 
@@ -174,6 +174,48 @@ router.delete("/:courseId", checkRole(["student"]), async (req, res) => {
     res.json({ message: "Unenrolled successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error unenrolling", error });
+  }
+});
+
+// 🟡 Get All Quizzes for All Courses for a Student
+router.get("/all-quizzes", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    // Get all courses
+    const courses = await Course.find({}).populate({
+      path: "quizzes",
+      select: "title _id createdAt"
+    });
+
+    // Get all quiz submissions for this student
+    const QuizSubmission = require("../Models/quizSubmission");
+    const quizSubmissions = await QuizSubmission.find({ student: req.user.id });
+    const submissionMap = {};
+    quizSubmissions.forEach(sub => {
+      submissionMap[String(sub.quiz)] = sub;
+    });
+
+    // Build quizzes array
+    let quizzes = [];
+    courses.forEach(course => {
+      (course.quizzes || []).forEach(quiz => {
+        const submission = submissionMap[String(quiz._id)];
+        quizzes.push({
+          quizId: String(quiz._id),
+          title: quiz.title,
+          courseId: String(course._id), // Ensure courseId is a string
+          courseTitle: course.title,
+          createdAt: quiz.createdAt,
+          completed: !!submission,
+          score: submission ? submission.score : null,
+          submittedAt: submission ? submission.createdAt : null
+        });
+      });
+    });
+
+    res.json({ quizzes });
+  } catch (error) {
+    console.error("Error fetching all quizzes for student:", error.message);
+    res.status(500).json({ message: "Server Error", error });
   }
 });
 

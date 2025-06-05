@@ -67,7 +67,7 @@ export default function Category() {
                 <motion.div
                   key={category}
                   className="relative border rounded-xl shadow bg-white flex flex-col max-w-xs w-full mx-auto h-full hover:shadow-lg transition-transform duration-300 hover:scale-105 overflow-hidden"
-                  style={{ minHeight: "420px", transitionProperty: "box-shadow, transform" }}
+                  style={{ minHeight: "350px", transitionProperty: "box-shadow, transform" }}
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.15, duration: 0.7, ease: "easeOut" }}

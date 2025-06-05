@@ -10,7 +10,7 @@ const AdminpaymentCard = () => {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/admin/admin-history", {
           headers: { Authorization: `Bearer ${token}` },
         });

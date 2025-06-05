@@ -60,10 +60,7 @@ export default function StudentAllCoursesCard() {
       setLoading(true);
       setError("");
       try {
-        const user = localStorage.getItem("user");
-        console.log("User from localStorage:", user);
-        const token = localStorage.getItem("token");
-        console.log("token from localStorage:", token);
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/courses", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });

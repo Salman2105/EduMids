@@ -13,7 +13,7 @@ export default function ServicesPage() {
   const services = [
     {
       title: 'Online Courses',
-      description: 'Access our library of over 500 professionally created courses covering a wide range of subjects, from coding to business to creative arts.',
+      description: 'Access our library of over 10 professionally created courses covering a wide range of subjects, from coding to business to creative arts.',
       features: [
         'Video lectures with downloadable resources',
         'Interactive quizzes and assignments',

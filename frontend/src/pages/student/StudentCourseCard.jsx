@@ -5,12 +5,13 @@ const StudentCourseCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [unenrolling, setUnenrolling] = useState({});
+  const [allQuizzes, setAllQuizzes] = useState([]);
 
   const fetchData = async () => {
     try {
       const user = localStorage.getItem("user");
       console.log("User from localStorage:", user);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // always get fresh token
       console.log("token from localStorage:", token);
       const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
         headers: { Authorization: `Bearer ${token}` },
@@ -27,16 +28,33 @@ const StudentCourseCard = () => {
 
   useEffect(() => {
     fetchData();
+    // Fetch all quizzes for all courses using /quizzes/student/all
+    const fetchAllQuizzes = async () => {
+      try {
+        const token = localStorage.getItem("token"); // always get fresh token
+        const res = await fetch("http://localhost:5000/api/quizzes/student/all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch all quizzes");
+        const data = await res.json();
+        setAllQuizzes(data.quizzes || []);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAllQuizzes();
   }, []);
 
   const handleUnenroll = async (courseId) => {
     setUnenrolling((prev) => ({ ...prev, [courseId]: true }));
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/enrollments/${courseId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = localStorage.getItem("token"); // always get fresh token
+      const res = await fetch(`http://localhost:5000/api/enrollments/${courseId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to unenroll from course");
       await fetchData();
     } catch (err) {
@@ -105,22 +123,33 @@ const StudentCourseCard = () => {
             </div>
             {/* Quizzes */}
             <div>
-              <div className="font-semibold mb-2">Quizzes</div>
-              {(course.quizzes && course.quizzes.length > 0) ? (
-                <ul className="space-y-1">
-                  {course.quizzes.map((quiz) => (
-                    <li key={quiz.quizId} className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${quiz.completed ? "bg-green-500" : "bg-gray-400"}`}></span>
-                      <span>{quiz.title}</span>
-                      {quiz.completed && quiz.score !== null && (
-                        <span className="ml-2 text-xs text-blue-600">Score: {quiz.score}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-gray-400 text-sm">No quizzes available.</div>
-              )}
+              <div className="font-semibold mb-2">
+                {/* Count quizzes for this course from allQuizzes */}
+                Quizzes ({allQuizzes.filter(q => String(q.courseId) === String(course.courseId)).length})
+              </div>
+              {(() => {
+                // Find all quizzes for this course from allQuizzes
+                const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
+                if (quizzesForCourse.length > 0) {
+                  return (
+                    <ul className="space-y-1">
+                      {quizzesForCourse.map((quiz) => (
+                        <li key={quiz.quizId} className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${quiz.completed ? "bg-green-500" : "bg-gray-400"}`}></span>
+                          <span>{quiz.title}</span>
+                          {quiz.completed ? (
+                            <span className="ml-2 text-xs text-green-600">Submitted{quiz.score !== null ? ` (Score: ${quiz.score})` : ""}</span>
+                          ) : (
+                            <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                } else {
+                  return <div className="text-gray-400 text-sm">No quizzes available.</div>;
+                }
+              })()}
             </div>
             <button
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"

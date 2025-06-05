@@ -12,7 +12,7 @@ export default function NotifyCard() {
     const fetchNotifications = async () => {
       setLoading(true);
       setError("");
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // always get fresh token
       if (!token) {
         navigate("/login");
         return;

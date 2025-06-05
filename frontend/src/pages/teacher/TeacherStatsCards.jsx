@@ -8,7 +8,7 @@ const TeacherStatsCards = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token"); // always get fresh token
         const res = await fetch("http://localhost:5000/api/teacher/dashboard/teacher-dashboard", {
           headers: {
             Authorization: `Bearer ${token}`,
