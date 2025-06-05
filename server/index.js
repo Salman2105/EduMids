@@ -24,7 +24,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const certificateRoutes = require("./routes/certificateRoutes"); // Add this line
 const QnaRoutes = require("./routes/qnas"); // Import Q&A routes
 const contactRoutes = require("./routes/contactRoutes"); // Import contact routes
-
+const impactRoutes = require("./routes/impact"); // Import impact routes
 
 dotenv.config(); // Load environment variables
 
@@ -60,6 +60,7 @@ app.use(errorHandler);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/qna", QnaRoutes); // Use Q&A routes
 app.use("/api/contact", contactRoutes); // Use contact routes
+app.use("/api/impact", impactRoutes); // Use impact routes at correct path
 
 
 // In your main server file (index.js or server.js)

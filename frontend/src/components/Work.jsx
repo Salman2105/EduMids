@@ -35,9 +35,9 @@ export default function Work() {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-primary">3</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Select a Plan</h3>
+              <h3 className="text-lg font-semibold mb-2">Buy a Course</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Choose from our flexible pricing plans - from monthly subscription to one-time purchases.
+                Buy a Course of your interest and begin to learnig - from monthly subscription to one-time purchases.
               </p>
             </div>
             
