@@ -185,20 +185,20 @@ export default function AdminCertificateCard() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">Issued Certificates</h2>
+    <div className="max-w-5xl mx-auto mt-8 p-4 sm:p-6 bg-white rounded shadow-lg w-full">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Issued Certificates</h2>
       {/* Search/Filter UI */}
-      <div className="flex gap-4 mb-4">
+      <div className="w-full max-w-3xl mx-auto flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
         <input
           type="text"
-          className="border px-3 py-1 rounded w-60"
+          className="border px-3 py-2 rounded w-full sm:w-60 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           placeholder="Search by student name"
           value={studentSearch}
           onChange={e => setStudentSearch(e.target.value)}
         />
         <input
           type="text"
-          className="border px-3 py-1 rounded w-60"
+          className="border px-3 py-2 rounded w-full sm:w-60 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           placeholder="Search by course title"
           value={courseSearch}
           onChange={e => setCourseSearch(e.target.value)}
@@ -209,43 +209,38 @@ export default function AdminCertificateCard() {
       {!loading && filteredCertificates.length === 0 && !error && (
         <p>No certificates issued yet.</p>
       )}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+
+      {/* Responsive Table/Card for Issued Certificates */}
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+        <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-4 py-2">Student Name</th>
-              <th className="px-4 py-2">Student Email</th>
-              <th className="px-4 py-2">Course</th>
-              <th className="px-4 py-2">Date Completed</th>
-              <th className="px-4 py-2">Enrollment ID</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Email</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Course</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Date Completed</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Enrollment ID</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredCertificates.map((cert, idx) => (
-              <tr key={idx} className="bg-white even:bg-gray-50">
+              <tr key={idx} className="bg-white even:bg-gray-50 hover:bg-blue-50 transition">
                 <td className="px-4 py-2 font-semibold">{cert.studentName}</td>
                 <td className="px-4 py-2">{cert.studentEmail}</td>
                 <td className="px-4 py-2">{cert.courseTitle}</td>
                 <td className="px-4 py-2">{cert.dateCompleted ? new Date(cert.dateCompleted).toLocaleDateString() : "-"}</td>
                 <td className="px-4 py-2">{cert.enrollmentId || "-"}</td>
-                <td className="px-4 py-2 flex gap-2">
+                <td className="px-4 py-2 flex gap-2 flex-wrap">
                   <button
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs focus:outline-none focus:ring-2 focus:ring-red-300 transition"
                     onClick={() => handleRevoke(cert.enrollmentId)}
                     disabled={!cert.enrollmentId}
                   >
                     Revoke
                   </button>
                   <button
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs"
-                    onClick={() => handleReissue(cert.enrollmentId)}
-                    disabled={!cert.enrollmentId}
-                  >
-                    Re-Issue
-                  </button>
-                  <button
-                    className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs"
+                    className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
                     onClick={() => handleViewHistory(cert.enrollmentId)}
                     disabled={!cert.enrollmentId}
                   >
@@ -256,45 +251,77 @@ export default function AdminCertificateCard() {
             ))}
           </tbody>
         </table>
+        {/* Mobile Card Layout */}
+        <div className="md:hidden flex flex-col gap-4 p-2">
+          {filteredCertificates.map((cert, idx) => (
+            <div key={idx} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-base">{cert.studentName}</span>
+                <span className="text-xs text-gray-500">{cert.courseTitle}</span>
+              </div>
+              <div className="text-xs text-gray-600">{cert.studentEmail}</div>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+                <span>Date: {cert.dateCompleted ? new Date(cert.dateCompleted).toLocaleDateString() : "-"}</span>
+                <span>ID: {cert.enrollmentId || "-"}</span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs w-full focus:outline-none focus:ring-2 focus:ring-red-300 transition"
+                  onClick={() => handleRevoke(cert.enrollmentId)}
+                  disabled={!cert.enrollmentId}
+                >
+                  Revoke
+                </button>
+                <button
+                  className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs w-full focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
+                  onClick={() => handleViewHistory(cert.enrollmentId)}
+                  disabled={!cert.enrollmentId}
+                >
+                  View History
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Revoked Certificates Section */}
-      <h2 className="text-2xl font-bold mt-12 mb-6">Revoked Certificates</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold mt-12 mb-6 text-gray-800">Revoked Certificates</h2>
       {revokedLoading && <p>Loading revoked certificates...</p>}
       {revokedError && <p className="text-red-600">{revokedError}</p>}
       {!revokedLoading && filteredRevokedCertificates.length === 0 && !revokedError && (
         <p>No revoked certificates found.</p>
       )}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+        <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-4 py-2">Student Name</th>
-              <th className="px-4 py-2">Student Email</th>
-              <th className="px-4 py-2">Course</th>
-              <th className="px-4 py-2">Date Revoked</th>
-              <th className="px-4 py-2">Enrollment ID</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Email</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Course</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Date Revoked</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Enrollment ID</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRevokedCertificates.map((cert, idx) => (
               <React.Fragment key={cert._id}>
-                <tr className="bg-white even:bg-gray-50">
+                <tr className="bg-white even:bg-gray-50 hover:bg-blue-50 transition">
                   <td className="px-4 py-2 font-semibold">{cert.student?.name}</td>
                   <td className="px-4 py-2">{cert.student?.email}</td>
                   <td className="px-4 py-2">{cert.course?.title}</td>
                   <td className="px-4 py-2">{cert.updatedAt ? new Date(cert.updatedAt).toLocaleDateString() : "-"}</td>
                   <td className="px-4 py-2">{cert._id}</td>
-                  <td className="px-4 py-2 flex gap-2">
+                  <td className="px-4 py-2 flex gap-2 flex-wrap">
                     <button
-                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs"
+                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs focus:outline-none focus:ring-2 focus:ring-green-300 transition"
                       onClick={() => handleReissue(cert._id)}
                     >
                       Re-Issue
                     </button>
                     <button
-                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs"
+                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
                       onClick={() => handleViewReissueHistory(cert._id)}
                     >
                       {historyLoading === cert._id ? "Loading..." : showHistory === cert._id ? "Hide History" : "View Reissue History"}
@@ -323,39 +350,85 @@ export default function AdminCertificateCard() {
             ))}
           </tbody>
         </table>
+        {/* Mobile Card Layout */}
+        <div className="md:hidden flex flex-col gap-4 p-2">
+          {filteredRevokedCertificates.map((cert, idx) => (
+            <div key={cert._id} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-base">{cert.student?.name}</span>
+                <span className="text-xs text-gray-500">{cert.course?.title}</span>
+              </div>
+              <div className="text-xs text-gray-600">{cert.student?.email}</div>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+                <span>Revoked: {cert.updatedAt ? new Date(cert.updatedAt).toLocaleDateString() : "-"}</span>
+                <span>ID: {cert._id}</span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs w-full focus:outline-none focus:ring-2 focus:ring-green-300 transition"
+                  onClick={() => handleReissue(cert._id)}
+                >
+                  Re-Issue
+                </button>
+                <button
+                  className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs w-full focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
+                  onClick={() => handleViewReissueHistory(cert._id)}
+                >
+                  {historyLoading === cert._id ? "Loading..." : showHistory === cert._id ? "Hide History" : "View Reissue History"}
+                </button>
+              </div>
+              {showHistory === cert._id && (
+                <div className="bg-gray-50 px-2 py-2 rounded mt-2 text-xs">
+                  <strong>Reissue History:</strong>
+                  {history[cert._id] && history[cert._id].length > 0 ? (
+                    <ul className="list-disc ml-6">
+                      {history[cert._id].map((item, i) => (
+                        <li key={i}>
+                          {item.reissuedAt ? new Date(item.reissuedAt).toLocaleString() : "-"} by {item.adminId?.name || "Unknown Admin"} ({item.adminId?.email || "-"})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="ml-2">No reissue history found.</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Revoked & Reissued Certificates Section */}
-      <h2 className="text-2xl font-bold mt-12 mb-6">Revoked & Reissued Certificates</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold mt-12 mb-6 text-gray-800">Revoked & Reissued Certificates</h2>
       {revokedReissuedLoading && <p>Loading revoked & reissued certificates...</p>}
       {revokedReissuedError && <p className="text-red-600">{revokedReissuedError}</p>}
       {!revokedReissuedLoading && revokedReissuedCertificates.length === 0 && !revokedReissuedError && (
         <p>No revoked & reissued certificates found.</p>
       )}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+        <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-4 py-2">Student Name</th>
-              <th className="px-4 py-2">Student Email</th>
-              <th className="px-4 py-2">Course</th>
-              <th className="px-4 py-2">Last Reissued At</th>
-              <th className="px-4 py-2">Enrollment ID</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Name</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Student Email</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Course</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Last Reissued At</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Enrollment ID</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRevokedReissuedCertificates.map((cert) => (
               <React.Fragment key={cert._id}>
-                <tr className="bg-white even:bg-gray-50">
+                <tr className="bg-white even:bg-gray-50 hover:bg-blue-50 transition">
                   <td className="px-4 py-2 font-semibold">{cert.student?.name}</td>
                   <td className="px-4 py-2">{cert.student?.email}</td>
                   <td className="px-4 py-2">{cert.course?.title}</td>
                   <td className="px-4 py-2">{cert.lastReissuedAt ? new Date(cert.lastReissuedAt).toLocaleString() : "-"}</td>
                   <td className="px-4 py-2">{cert._id}</td>
-                  <td className="px-4 py-2 flex gap-2">
+                  <td className="px-4 py-2 flex gap-2 flex-wrap">
                     <button
-                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs"
+                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
                       onClick={() => handleViewReissueHistory(cert._id)}
                     >
                       {historyLoading === cert._id ? "Loading..." : showHistory === cert._id ? "Hide History" : "View Reissue History"}
@@ -384,6 +457,46 @@ export default function AdminCertificateCard() {
             ))}
           </tbody>
         </table>
+        {/* Mobile Card Layout */}
+        <div className="md:hidden flex flex-col gap-4 p-2">
+          {filteredRevokedReissuedCertificates.map((cert) => (
+            <div key={cert._id} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-base">{cert.student?.name}</span>
+                <span className="text-xs text-gray-500">{cert.course?.title}</span>
+              </div>
+              <div className="text-xs text-gray-600">{cert.student?.email}</div>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+                <span>Last Reissued: {cert.lastReissuedAt ? new Date(cert.lastReissuedAt).toLocaleString() : "-"}</span>
+                <span>ID: {cert._id}</span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-xs w-full focus:outline-none focus:ring-2 focus:ring-gray-300 transition"
+                  onClick={() => handleViewReissueHistory(cert._id)}
+                >
+                  {historyLoading === cert._id ? "Loading..." : showHistory === cert._id ? "Hide History" : "View Reissue History"}
+                </button>
+              </div>
+              {showHistory === cert._id && (
+                <div className="bg-gray-50 px-2 py-2 rounded mt-2 text-xs">
+                  <strong>Reissue History:</strong>
+                  {history[cert._id] && history[cert._id].length > 0 ? (
+                    <ul className="list-disc ml-6">
+                      {history[cert._id].map((item, i) => (
+                        <li key={i}>
+                          {item.reissuedAt ? new Date(item.reissuedAt).toLocaleString() : "-"} by {item.adminId?.name || "Unknown Admin"} ({item.adminId?.email || "-"})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="ml-2">No reissue history found.</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

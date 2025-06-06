@@ -110,12 +110,19 @@ const StudentCourseCard = () => {
               <div className="font-semibold mb-2">Lessons</div>
               {(course.lessons && course.lessons.length > 0) ? (
                 <ul className="space-y-1">
-                  {course.lessons.map((lesson) => (
-                    <li key={lesson.lessonId} className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                      <span>{lesson.title}</span>
-                    </li>
-                  ))}
+                  {course.lessons.map((lesson) => {
+                    // Check if lesson is completed (assuming course.completedLessons is an array of lesson IDs)
+                    const isCompleted = Array.isArray(course.completedLessons) && (course.completedLessons.includes(lesson.lessonId) || course.completedLessons.includes(lesson._id));
+                    return (
+                      <li key={lesson.lessonId || lesson._id} className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${isCompleted ? "bg-green-500" : "bg-gray-400"}`}></span>
+                        <span className={isCompleted ? "text-green-700 font-semibold" : undefined}>{lesson.title}</span>
+                        {isCompleted && (
+                          <span className="ml-2 text-xs text-green-600">Completed</span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="text-gray-400 text-sm">No lessons available.</div>

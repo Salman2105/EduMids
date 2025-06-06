@@ -10,7 +10,8 @@ import {
   Settings,
   LogOut,
   Home,
-  MessageSquare // <-- Added for Question/Answer
+  MessageSquare, // <-- Added for Question/Answer
+  Download // <-- Added for Downloads
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, href, onClick }) => (
@@ -80,6 +81,12 @@ const AdminDashboardSidebar = () => {
           label="Certificates"
           active={pathname === '/admin/certificates'}
           href="/admin/certificates"
+        />
+        <SidebarItem
+          icon={<Download size={18} />} // <-- Downloads icon
+          label="Downloads"
+          active={pathname === '/admin/downloads'}
+          href="/admin/DownloadPage"
         />
         <SidebarItem
           icon={<CreditCard size={18} />}

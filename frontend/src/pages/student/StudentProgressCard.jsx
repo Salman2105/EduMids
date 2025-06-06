@@ -58,6 +58,32 @@ const StudentProgressCard = () => {
     }
   };
 
+  // Download handler for protected lessons
+  const handleDownloadLesson = async (lessonId, displayName, resourceType) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.message || "Download failed");
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = displayName + (resourceType === "PDF" ? ".pdf" : resourceType === "VIDEO" ? ".mp4" : "");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Download failed");
+    }
+  };
+
   if (loading) return <div>Loading progress...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!progresses.length) return <div>No progress found.</div>;
@@ -122,28 +148,74 @@ const StudentProgressCard = () => {
 
           {/* Lessons list with completion action */}
           <details className="mt-2" open>
-            <summary className="cursor-pointer text-blue-600">Lessons</summary>
-            <ul className="list-disc ml-6 mt-1">
-              {lessons.length === 0 && <li>No lessons in this course.</li>}
+            <summary className="cursor-pointer text-blue-600 font-semibold text-lg select-none">Lessons</summary>
+            <ul className="list-none ml-0 mt-3 flex flex-col gap-4 w-full">
+              {lessons.length === 0 && <li className="text-gray-500">No lessons in this course.</li>}
               {lessons.map((lesson) => {
                 const lessonId = lesson._id ? lesson._id : lesson;
                 const isCompleted = completedLessons.includes(lessonId.toString());
+                let resourceType = lesson.contentType ? lesson.contentType.toUpperCase() : "UNKNOWN";
+                let resourceUrl = lesson.contentURL || null;
+                let displayName = lesson.title || lesson.name || lessonId;
+                // Download link logic
+                const isDownloadable = resourceType === "PDF" || resourceType === "VIDEO";
+                const downloadUrl = resourceUrl && !resourceUrl.startsWith("http") ? `http://localhost:5000/${resourceUrl}` : resourceUrl;
                 return (
-                  <li key={lessonId} className="flex items-center gap-2">
-                    <span>
-                      {lesson.title || lesson.name || lessonId}
-                    </span>
-                    {isCompleted ? (
-                      <span className="text-green-600 ml-2">✓ Completed</span>
-                    ) : (
-                      <button
-                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs"
-                        disabled={marking}
-                        onClick={() => handleCompleteLesson(course._id, lessonId)}
-                      >
-                        Mark as Completed
-                      </button>
-                    )}
+                  <li key={lessonId} className="bg-gray-50 rounded-lg shadow p-4 flex flex-col gap-2 border hover:shadow-lg transition-all w-full">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-base text-gray-800 truncate max-w-xs" title={displayName}>{displayName}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded ${resourceType === "VIDEO" ? "bg-blue-100 text-blue-700" : resourceType === "PDF" ? "bg-red-100 text-red-700" : resourceType === "LINK" ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>{resourceType}</span>
+                      {resourceType === "VIDEO" && resourceUrl && (
+                        <video
+                          src={downloadUrl}
+                          controls
+                          className="w-full max-w-xs h-32 rounded mt-2 border"
+                          preload="metadata"
+                        />
+                      )}
+                      {resourceType === "PDF" && resourceUrl && (
+                        <a
+                          href={downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-blue-600 text-xs ml-1 font-semibold"
+                        >
+                          View PDF
+                        </a>
+                      )}
+                      {resourceType === "LINK" && resourceUrl && (
+                        <a
+                          href={resourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-green-600 text-xs ml-1 font-semibold"
+                        >
+                          Open Link
+                        </a>
+                      )}
+                      {isDownloadable && resourceUrl && (
+                        <button
+                          onClick={() => handleDownloadLesson(lessonId, displayName, resourceType)}
+                          className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition"
+                          title={`Download ${resourceType}`}
+                        >
+                          Download
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      {isCompleted ? (
+                        <span className="text-green-600 font-semibold flex items-center gap-1">✓ Completed</span>
+                      ) : (
+                        <button
+                          className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition"
+                          disabled={marking}
+                          onClick={() => handleCompleteLesson(course._id, lessonId)}
+                        >
+                          Mark as Completed
+                        </button>
+                      )}
+                    </div>
                   </li>
                 );
               })}

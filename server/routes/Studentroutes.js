@@ -77,7 +77,7 @@ router.get("/enrolled-courses", verifyToken, checkRole(["student"]), async (req,
   try {
     const enrollments = await Enrollment.find({ student: req.user.id }).populate({
       path: "course",
-      populate: { path: "lessons", select: "title _id" }
+      populate: { path: "lessons", select: "title _id contentType contentURL" }
     });
 
     // Map to only include course _id, title, description, and lessons
@@ -89,7 +89,9 @@ router.get("/enrolled-courses", verifyToken, checkRole(["student"]), async (req,
         description: e.course.description,
         lessons: (e.course.lessons || []).map(lesson => ({
           _id: lesson._id,
-          title: lesson.title
+          title: lesson.title,
+          contentType: lesson.contentType,
+          contentURL: lesson.contentURL
         }))
       }));
 

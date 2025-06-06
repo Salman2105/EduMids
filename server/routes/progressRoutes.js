@@ -79,7 +79,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
       populate: [
         { path: "createdBy", select: "firstName lastName" },
         { path: "category", select: "name" },
-        { path: "lessons" },
+        { path: "lessons", model: "Lesson" }, // Ensure full lesson docs are populated
       ],
     });
 
@@ -99,7 +99,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
         const course = enrollment.course;
         const progress = progressMap[course._id.toString()];
         return {
-          courseId: course, // always populated
+          courseId: course, // always populated (with full lessons)
           progressPercentage: progress ? progress.progressPercentage : 0,
           completedLessons: progress ? progress.completedLessons : [],
           _id: progress ? progress._id : null,
@@ -131,6 +131,34 @@ router.get("/:courseId", verifyToken, checkRole(["student"]), async (req, res, n
   } catch (error) {
     console.error("Error fetching progress:", error.message);
     res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Download a lesson file (student access)
+router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
+  try {
+    const lessonId = req.params.lessonId;
+    const lesson = await require("../Models/lesson").findById(lessonId);
+    if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    // Only allow download for video/pdf
+    if (!lesson.contentType || !["video", "pdf"].includes(lesson.contentType)) {
+      return res.status(400).json({ message: "This lesson type cannot be downloaded." });
+    }
+    if (!lesson.contentURL) {
+      return res.status(404).json({ message: "No file found for this lesson." });
+    }
+    // Build file path
+    const path = require("path");
+    const filePath = lesson.contentURL.startsWith("uploads/") ? path.join(__dirname, "..", lesson.contentURL) : path.join(__dirname, "..", "uploads", lesson.contentURL);
+    res.download(filePath, path.basename(filePath), (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).json({ message: "Error downloading file." });
+      }
+    });
+  } catch (error) {
+    console.error("Error in download-lesson:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 

@@ -25,7 +25,8 @@ import Cookie from "./pages/cookie";
 import Refund from "./pages/Refund"; 
 import Resources from "./pages/Resources";
 import Community from "./pages/Community"; 
-import Instructors from "./pages/instructors"; // Assuming you have an Instructors page
+import Instructors from "./pages/instructors"; 
+// import DownloadPage from "./pages/DownloadPage"; // Assuming you have a download page
 // import Setting from "./components/Setting"
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
@@ -38,6 +39,7 @@ import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminNotify from "./pages/admin/AdminNotify";
 import AdminQna from "./pages/admin/AdminQnaCard"; // Assuming you have a Q&A page for teachers
 import AdminSettingCard from "./pages/admin/AdminSettingCard"; // Assuming you have a settings page for admin
+import AdminDownloadPage from "./pages/admin/AdminDownloadPage"; // Assuming you have a download page
 
 // Teacher
 import TeacherDashboardSidebar from "./components/TeacherDashboardSidebar";
@@ -64,6 +66,7 @@ import StudentProgress from "./pages/student/StudentProgress";
 import StudentNotify from "./pages/student/StudentNotify"; 
 import StudentQna from "./pages/student/StudentQna"; // Assuming you have a Q&A page for teachers
 import StudentSettingCard from "./pages/student/StudentSettingCard";
+import DownloadPage from "./pages/DownloadPage"; // Assuming you have a download page
 
 // Providers
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -105,11 +108,7 @@ function App() {
             <Route path="/Resources" element={<Resources />} />
             <Route path="/Community" element={<Community />} />
             <Route path="/Instructors" element={<Instructors />} />
-
-
-
-
-
+            {/* <Route path="/DownloadPage" element={<DownloadPage />} /> */}
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
               <Route
@@ -174,6 +173,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
                     <AdminQna />
+                  </LayoutWithSidebar>
+                }
+              />
+                  <Route
+                path="/admin/DownloadPage"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminDownloadPage />
                   </LayoutWithSidebar>
                 }
               />
@@ -352,6 +359,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
                   <StudentNotify />
+                  </LayoutWithSidebar>
+                }
+              />
+                <Route
+                path="/student/DownloadPage"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <DownloadPage/>
                   </LayoutWithSidebar>
                 }
               />

@@ -9,7 +9,8 @@ import {
   // Calendar,
   Settings,
   LogOut,
-  MessageSquare // <-- Added for Question/Answer
+  MessageSquare, // <-- Added for Question/Answer
+  Download // <-- Added for Downloads
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, href, onClick }) => (
@@ -92,7 +93,13 @@ const StudentDashboardSidebar = () => {
           active={pathname === '/student/certificates'}
           href="/student/certificates"
         />
-         <SidebarItem
+        <SidebarItem
+          icon={<Download size={18} />} // <-- Downloads icon
+          label="Downloads"
+          active={pathname === '/student/downloads'}
+          href="/student/DownloadPage"
+        />
+        <SidebarItem
           icon={<MessageSquare size={18} />} // <-- Question Answer icon
           label="QnAs"
           active={pathname === '/student/questions'}
