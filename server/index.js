@@ -26,6 +26,8 @@ const QnaRoutes = require("./routes/qnas"); // Import Q&A routes
 const contactRoutes = require("./routes/contactRoutes"); // Import contact routes
 const impactRoutes = require("./routes/impact"); // Import impact routes
 const downloadRoutes = require("./routes/download"); // Import download routes
+const assignmentRoutes = require("./routes/assignmentRoutes"); // Import assignment routes
+const submissionRoutes = require("./routes/submissionRoutes"); // Import submission routes
 
 dotenv.config(); // Load environment variables
 
@@ -63,6 +65,8 @@ app.use("/api/qna", QnaRoutes); // Use Q&A routes
 app.use("/api/contact", contactRoutes); // Use contact routes
 app.use("/api/impact", impactRoutes); // Use impact routes at correct path
 app.use("/api/download", downloadRoutes); // Use download routes
+app.use("/api/assignments", assignmentRoutes); // Use assignment routes
+app.use("/api/submissions", submissionRoutes); // Use submission routes
 
 
 // In your main server file (index.js or server.js)

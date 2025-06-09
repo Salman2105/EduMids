@@ -11,7 +11,8 @@ export default function QnA() {
   const [editQuestionText, setEditQuestionText] = useState("");
 
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user")); // includes role, id, etc.
+  const userStr = localStorage.getItem("user");
+const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
 
   const isStudent = user?.role === "student";
   const isTeacher = user?.role === "teacher";

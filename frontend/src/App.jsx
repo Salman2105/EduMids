@@ -54,6 +54,8 @@ import TeacherQuiz from "./pages/teacher/TeacherQuiz";
 import TeacherNotify from "./pages/teacher/TeacherNotify"; 
 import TeacherQna from "./pages/teacher/TeacherQna"; 
 import TeacherSettingCard from "./pages/teacher/TeacherSettingCard"; 
+import TeacherGradeSubmissions from "./pages/teacher/TeacherGradeSubmissions"; // Assuming you have a page for grading submissions
+
 // Student
 import StudentDashboardSidebar from "./components/StudentDashboardSidebar";
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -66,8 +68,8 @@ import StudentProgress from "./pages/student/StudentProgress";
 import StudentNotify from "./pages/student/StudentNotify"; 
 import StudentQna from "./pages/student/StudentQna"; // Assuming you have a Q&A page for teachers
 import StudentSettingCard from "./pages/student/StudentSettingCard";
-import DownloadPage from "./pages/DownloadPage"; // Assuming you have a download page
-
+import DownloadPage from "./pages/DownloadPage";
+import StudentAssignmentSubmit from "./pages/student/StudentAssignmentSubmit"; // Assuming you have a page for assignment submission
 // Providers
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -108,6 +110,10 @@ function App() {
             <Route path="/Resources" element={<Resources />} />
             <Route path="/Community" element={<Community />} />
             <Route path="/Instructors" element={<Instructors />} />
+            <Route path="/TeacherGradeSubmissions" element={<TeacherGradeSubmissions />} /> 
+            <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} /> 
+
+            {/* TeacherGradeSubmissions */}
             {/* <Route path="/DownloadPage" element={<DownloadPage />} /> */}
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

@@ -35,8 +35,7 @@ export default function TeacherNotify() {
   // Mark notification as read
   const markAsRead = async (id) => {
     try {
-          const token = JSON.parse(localStorage.getItem("token"));
-      // const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
         method: "PATCH",
         headers: {
