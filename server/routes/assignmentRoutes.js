@@ -5,6 +5,7 @@ const auth = require("../middleware/auth");
 const upload = require("../utils/upload");
 const notifyUser = require("../utils/notifyUser");
 const Assignment = require("../Models/Assignment.js");
+// const {Course} = require("../Models/course");
 const jwt = require("jsonwebtoken");
 const User = require("../Models/user.js");
 const router = express.Router();
@@ -37,21 +38,47 @@ const checkRole = (roles) => (req, res, next) => {
 
 // @route   POST /api/assignments
 // @desc    Teacher creates a new assignment
-router.post("/", verifyToken, checkRole(["teacher"]), async (req, res) => {
+router.post("/create", verifyToken, checkRole(["teacher"]), async (req, res) => {
   try {
     const { title, description, course, deadline, totalMarks, attachmentUrl } = req.body;
+    // Validate required fields
+    if (!title || !course || !deadline || !totalMarks) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    // Check if course exists
+    const foundCourse = await Course.findById(course);
+    if (!foundCourse) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    // Check if teacher is assigned to this course
+    if (foundCourse.teacher && foundCourse.teacher.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You are not assigned to this course" });
+    }
+
+    // Parse deadline to Date if it's a string
+    let parsedDeadline = deadline;
+    if (typeof deadline === "string") {
+      parsedDeadline = new Date(deadline);
+      if (isNaN(parsedDeadline)) {
+        return res.status(400).json({ success: false, message: "Invalid deadline format" });
+      }
+    }
+
     const assignment = await Assignment.create({
       title,
       description,
       course,
-      deadline,
+      deadline: parsedDeadline,
       totalMarks,
       attachmentUrl,
       createdBy: req.user.id,
     });
     res.status(201).json({ success: true, assignment });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error creating assignment", error });
+    console.error("Assignment creation error:", error); // Add this line for debugging
+    res.status(500).json({ success: false, message: "Error creating assignment", error: error.message });
   }
 });
 
@@ -64,6 +91,18 @@ router.get("/course/:courseId", verifyToken, checkRole(["teacher"]), async (req,
     res.json({ success: true, assignments });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to fetch assignments", error });
+  }
+});
+
+// @route   GET /api/assignments/my
+// @desc    Get all assignments created by the logged-in teacher
+router.get("/my", verifyToken, checkRole(["teacher"]), async (req, res) => {
+  try {
+    const assignments = await Assignment.find({ createdBy: req.user.id }).populate("course", "title");
+    res.json({ success: true, assignments });
+  } catch (error) {
+    console.error("Error in /api/assignments/my:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch your assignments", error });
   }
 });
 

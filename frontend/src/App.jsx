@@ -110,7 +110,7 @@ function App() {
             <Route path="/Resources" element={<Resources />} />
             <Route path="/Community" element={<Community />} />
             <Route path="/Instructors" element={<Instructors />} />
-            <Route path="/TeacherGradeSubmissions" element={<TeacherGradeSubmissions />} /> 
+            {/* <Route path="/teacher/TeacherGradeSubmissions" element={<TeacherGradeSubmissions />} />  */}
             <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} /> 
 
             {/* TeacherGradeSubmissions */}
@@ -264,6 +264,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
                     <TeacherQuiz />
+                  </LayoutWithSidebar>
+                }
+              />
+              <Route
+                path="/teacher/TeacherGradeSubmissions"
+                element={
+                  <LayoutWithSidebar Sidebar={TeacherDashboardSidebar}>
+                    <TeacherGradeSubmissions />
                   </LayoutWithSidebar>
                 }
               />
