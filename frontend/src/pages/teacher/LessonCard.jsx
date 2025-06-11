@@ -215,39 +215,42 @@ export default function LessonCard() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <div className="mt-2 max-h-32 overflow-y-auto border rounded bg-white">
-          <div>
-            {filteredCourses.map((course) => (
-              <div
-                key={course._id}
-                className={`px-3 py-2 cursor-pointer hover:bg-blue-100 ${
-                  selectedCourse && selectedCourse._id === course._id
-                    ? "bg-blue-200 font-bold"
-                    : ""
-                }`}
-                onClick={() => setSelectedCourse(course)}
-              >
-                <div className="font-semibold">{course.title}</div>
-                {/* Category and Price */}
-                <div className="flex items-center justify-between mb-1">
-                  <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full capitalize">
-                    {course.category || "General"}
-                  </span>
-                  <span className="text-blue-700 font-semibold text-xs">
+        <div className="mt-2 max-h-48 overflow-y-auto border rounded bg-white">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-2 py-1 text-left font-semibold">Title</th>
+                <th className="px-2 py-1 text-left font-semibold">Category</th>
+                <th className="px-2 py-1 text-left font-semibold">Price</th>
+                <th className="px-2 py-1 text-left font-semibold">Select</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCourses.map((course) => (
+                <tr
+                  key={course._id}
+                  className={`hover:bg-blue-100 cursor-pointer ${selectedCourse && selectedCourse._id === course._id ? "bg-blue-200 font-bold" : ""}`}
+                >
+                  <td className="px-2 py-1">
+                    <div className="font-semibold">{course.title}</div>
+                    <div className="text-xs text-slate-600">{course.description}</div>
+                  </td>
+                  <td className="px-2 py-1 capitalize">{course.category || "General"}</td>
+                  <td className="px-2 py-1 text-blue-700 font-semibold">
                     ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
-                  </span>
-                </div>
-                {course.picture && (
-                  <img
-                    src={`http://localhost:5000/${course.picture}`}
-                    alt={course.title}
-                    className="w-32 h-20 object-cover rounded mb-2"
-                  />
-                )}
-                <div className="text-xs text-slate-600">{course.description}</div>
-              </div>
-            ))}
-          </div>
+                  </td>
+                  <td className="px-2 py-1">
+                    <button
+                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                      onClick={() => setSelectedCourse(course)}
+                    >
+                      Select
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -315,11 +318,12 @@ export default function LessonCard() {
 
       <h3 className="text-xl font-bold mb-4 mt-8">All Courses & Lessons</h3>
       {courses.length === 0 && <p>No courses found.</p>}
-      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6 " style={{animationDelay: '0.1s'}}>
+      <div className="grid grid-cols-1 gap-6">
         {courses.map((course, idx) => (
           <div
             key={course._id}
-            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden max-w-md"
+            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden w-full"
+            style={{ width: "100%" }}
           >
             {course.picture && (
               <img
@@ -349,7 +353,7 @@ export default function LessonCard() {
                 <h4 className="font-bold text-sm mb-1">Lessons:</h4>
                 {lessons[course._id] && lessons[course._id].length > 0 ? (
                   <ul className="list-disc pl-4 text-xs">
-                    {lessons[course._id].slice(0, 2).map((lesson) => (
+                    {lessons[course._id].map((lesson) => (
                       <li key={lesson._id} className="mb-2">
                         <span className="font-semibold">{lesson.title}</span>
                         {" - "}
@@ -384,7 +388,6 @@ export default function LessonCard() {
                         <button
                           className="ml-2 text-blue-600 underline"
                           onClick={() => {
-                            // Example: prompt for new title, you can make a modal for better UX
                             const newTitle = prompt("Enter new lesson title:", lesson.title);
                             if (newTitle && newTitle !== lesson.title) {
                               handleUpdateLesson(lesson._id, { title: newTitle });
@@ -401,9 +404,6 @@ export default function LessonCard() {
                         </button>
                       </li>
                     ))}
-                    {lessons[course._id].length > 2 && (
-                      <li>and {lessons[course._id].length - 2} more...</li>
-                    )}
                   </ul>
                 ) : (
                   <p className="text-slate-500 text-xs">No lessons added yet.</p>

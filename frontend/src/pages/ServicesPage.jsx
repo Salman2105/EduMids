@@ -72,7 +72,7 @@ export default function ServicesPage() {
                 </div>
                 <div className="mt-6">
                   <Button asChild className="w-full">
-                    <Link to="/Checkout">
+                    <Link to="/CoursesPage">
                       <span>Learn More</span>
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>

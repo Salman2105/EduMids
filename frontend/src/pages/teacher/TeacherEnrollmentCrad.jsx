@@ -74,6 +74,98 @@ export default function TeacherEnrollmentCrad() {
     return picture.startsWith("/") ? picture : `/${picture}`;
   };
 
+  // Download enrollments report as CSV
+  const handleDownloadCSV = () => {
+    if (!courses.length) return;
+    const csvRows = [];
+    csvRows.push([
+      'Course Title', 'Course ID', 'Category', 'Price', 'Total Enrolled', 'Student Name', 'Student Email'
+    ].join(','));
+    courses.forEach(course => {
+      const students = enrollments[course._id] || [];
+      if (students.length === 0) {
+        csvRows.push([
+          '"' + (course.title || '') + '"',
+          course._id,
+          '"' + (course.category || '') + '"',
+          course.price != null ? course.price : '',
+          0,
+          '',
+          ''
+        ].join(','));
+      } else {
+        students.forEach(enroll => {
+          csvRows.push([
+            '"' + (course.title || '') + '"',
+            course._id,
+            '"' + (course.category || '') + '"',
+            course.price != null ? course.price : '',
+            students.length,
+            '"' + (enroll.student.name || '') + '"',
+            '"' + (enroll.student.email || '') + '"'
+          ].join(','));
+        });
+      }
+    });
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `teacher_enrollments_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Download enrollments report as PDF
+  const handleDownloadPDF = async () => {
+    if (!courses.length) return;
+    const jsPDF = (await import('jspdf')).default;
+    const autoTable = (await import('jspdf-autotable')).default;
+    const doc = new jsPDF();
+    doc.text('Teacher Enrollments Report', 14, 16);
+    const tableColumn = [
+      'Course Title', 'Course ID', 'Category', 'Price', 'Total Enrolled', 'Student Name', 'Student Email'
+    ];
+    const tableRows = [];
+    courses.forEach(course => {
+      const students = enrollments[course._id] || [];
+      if (students.length === 0) {
+        tableRows.push([
+          course.title || '',
+          course._id,
+          course.category || '',
+          course.price != null ? course.price : '',
+          0,
+          '',
+          ''
+        ]);
+      } else {
+        students.forEach(enroll => {
+          tableRows.push([
+            course.title || '',
+            course._id,
+            course.category || '',
+            course.price != null ? course.price : '',
+            students.length,
+            enroll.student.name || '',
+            enroll.student.email || ''
+          ]);
+        });
+      }
+    });
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 22,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+    doc.save(`teacher_enrollments_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -81,6 +173,22 @@ export default function TeacherEnrollmentCrad() {
       <h2 className="text-2xl font-bold mb-6">
         Student Enrollments in Your Courses
       </h2>
+
+      {/* Download Buttons */}
+      <div className="mb-8 flex gap-2">
+        <button
+          className="px-3 py-1 rounded border bg-green-600 text-white"
+          onClick={handleDownloadCSV}
+        >
+          Download CSV
+        </button>
+        <button
+          className="px-3 py-1 rounded border bg-red-600 text-white"
+          onClick={handleDownloadPDF}
+        >
+          Download PDF
+        </button>
+      </div>
 
       {/* Search Bar */}
       <form

@@ -1,20 +1,48 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
-const StudentAssignmentSubmit = ({ assignmentId }) => {
+const StudentAssignmentSubmit = () => {
+  const { assignmentId } = useParams();
   const [assignment, setAssignment] = useState(null);
   const [file, setFile] = useState(null);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [message, setMessage] = useState("");
+  const [allAssignments, setAllAssignments] = useState([]);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [fileInputs, setFileInputs] = useState({}); // Track file per assignment in list
 
   const token = localStorage.getItem("token");
 
+  // Fetch all assignments if no assignmentId in URL
   useEffect(() => {
-    if (!assignmentId) return;
+    if (assignmentId) return;
+    setLoading(true);
+    axios
+      .get("http://localhost:5000/api/submissions/student/assignments", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        if (res.data && res.data.success) {
+          setAllAssignments(res.data.assignmentsByCourse || []);
+        } else {
+          setMessage("Failed to load assignments.");
+        }
+      })
+      .catch(() => setMessage("Failed to load assignments."))
+      .finally(() => setLoading(false));
+  }, [assignmentId, token]);
+
+  // Fetch single assignment if assignmentId is present (from URL or selection)
+  useEffect(() => {
+    const id = assignmentId || selectedAssignmentId;
+    if (!id) return;
+    setLoading(true);
     const fetchAssignment = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/assignments/${assignmentId}`,
+          `http://localhost:5000/api/assignments/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAssignment(data.assignment);
@@ -22,6 +50,7 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
         setMessage("Failed to load assignment. Please login again.");
         setAssignment(null);
       }
+      setLoading(false);
     };
 
     const checkSubmission = async () => {
@@ -32,14 +61,15 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
         );
         if (data && Array.isArray(data.submissions)) {
           const submitted = data.submissions.find(
-            (s) => s.assignment && s.assignment._id === assignmentId
+            (s) => s.assignment && s.assignment._id === id
           );
           if (submitted) {
             setAlreadySubmitted(true);
             setMessage("You have already submitted this assignment.");
+          } else {
+            setAlreadySubmitted(false);
+            setMessage("");
           }
-        } else {
-          console.warn("No submissions array in response", data);
         }
       } catch (err) {
         setMessage("Failed to check submission. Please login again.");
@@ -49,21 +79,25 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
 
     fetchAssignment();
     checkSubmission();
-  }, [assignmentId, token]);
+    // eslint-disable-next-line
+  }, [assignmentId, selectedAssignmentId, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) return alert("Please upload a file.");
     if (!token) return alert("You must be logged in to submit.");
+    const id = assignmentId || selectedAssignmentId;
 
     // upload file to Cloudinary
     const formData = new FormData();
     formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "your_upload_preset"
-    );
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "your_cloud_name";
+    formData.append("upload_preset", "upload");
+    const cloudName = "dctpna06w";
+    const uploadPreset = "upload";
+    if (!cloudName || !uploadPreset) {
+      alert("Cloudinary credentials are not set. Please contact admin.");
+      return;
+    }
     const cloudRes = await axios.post(
       `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
       formData
@@ -74,7 +108,7 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
     await axios.post(
       "http://localhost:5000/api/submissions",
       {
-        assignment: assignmentId,
+        assignment: id,
         submittedFileUrl: fileUrl,
       },
       { headers: { Authorization: `Bearer ${token}` } }
@@ -84,7 +118,137 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
     setMessage("Assignment submitted successfully!");
   };
 
-  if (!assignmentId) return <p>Invalid assignment. Please try again.</p>;
+  // Helper for deadline reminder
+  const getDeadlineReminder = (deadline) => {
+    if (!deadline) return null;
+    const now = new Date();
+    const due = new Date(deadline);
+    const diffMs = due - now;
+    if (diffMs < 0) {
+      return <span className="text-red-600 font-semibold">Deadline passed!</span>;
+    }
+    if (diffMs < 24 * 60 * 60 * 1000) {
+      return <span className="text-orange-600 font-semibold">Due soon!</span>;
+    }
+    return null;
+  };
+
+  // If no assignmentId and no assignment selected, show all assignments
+  if (!assignmentId && !selectedAssignmentId) {
+    if (loading) return <p>Loading assignments...</p>;
+    if (message) return <p className="text-red-600">{message}</p>;
+    if (!allAssignments.length) return <p>No assignments found.</p>;
+    return (
+      <div className="p-4 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Your Assignments</h2>
+        {allAssignments.map((course) => (
+          <div key={course.courseId} className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">{course.courseTitle}</h3>
+            <div className="space-y-2">
+              {course.assignments.map((a) => (
+                <div key={a._id} className="border rounded p-3 flex flex-col md:flex-row md:items-center md:justify-between bg-white">
+                  <div>
+                    <div className="font-semibold">{a.title}</div>
+                    <div className="text-sm text-gray-600">{a.description}</div>
+                    <div className="text-xs text-gray-500">
+                      Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"}
+                      {" "}
+                      {getDeadlineReminder(a.deadline)}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 mt-2 md:mt-0">
+                    {a.submitted ? (
+                      <span className="text-green-600 font-semibold">Submitted</span>
+                    ) : (
+                      <>
+                        <input
+                          type="file"
+                          onChange={e =>
+                            setFileInputs(inputs => ({
+                              ...inputs,
+                              [a._id]: e.target.files[0]
+                            }))
+                          }
+                          className="mb-2"
+                        />
+                        <button
+                          className="bg-blue-600 text-white px-3 py-1 rounded"
+                          onClick={async () => {
+                            const file = fileInputs[a._id];
+                            if (!file) return alert("Please upload a file.");
+                            if (!token) return alert("You must be logged in to submit.");
+                            // upload file to Cloudinary
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            formData.append("upload_preset", "upload");
+                            const cloudName = "dctpna06w";
+                            const uploadPreset = "upload";
+                            if (!cloudName || !uploadPreset) {
+                              alert("Cloudinary credentials are not set. Please contact admin.");
+                              return;
+                            }
+                            let fileUrl = "";
+                            try {
+                              const cloudRes = await axios.post(
+                                `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+                                formData
+                              );
+                              fileUrl = cloudRes.data.secure_url;
+                            } catch {
+                              alert("File upload failed.");
+                              return;
+                            }
+                            // submit to backend
+                            try {
+                              await axios.post(
+                                "http://localhost:5000/api/submissions",
+                                {
+                                  assignment: a._id,
+                                  submittedFileUrl: fileUrl,
+                                },
+                                { headers: { Authorization: `Bearer ${token}` } }
+                              );
+                              // Refresh assignments after submission
+                              setAllAssignments(assignments =>
+                                assignments.map(courseObj => ({
+                                  ...courseObj,
+                                  assignments: courseObj.assignments.map(ass =>
+                                    ass._id === a._id
+                                      ? { ...ass, submitted: true }
+                                      : ass
+                                  )
+                                }))
+                              );
+                              setFileInputs(inputs => ({ ...inputs, [a._id]: undefined }));
+                              alert("Assignment submitted successfully!");
+                            } catch {
+                              alert("Submission failed.");
+                            }
+                          }}
+                        >
+                          Submit
+                        </button>
+                      </>
+                    )}
+                    {a.marksObtained !== null && (
+                      <span className="text-sm text-blue-700">Marks: {a.marksObtained}</span>
+                    )}
+                    {a.feedback && (
+                      <span className="text-xs text-gray-500">Feedback: {a.feedback}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // If loading single assignment
+  if (loading) return <p>Loading assignment...</p>;
+  if (!assignmentId && !selectedAssignmentId) return <p>Invalid assignment. Please try again.</p>;
   if (!assignment) return <p>Loading assignment...</p>;
 
   return (
@@ -93,6 +257,8 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
       <p className="mb-2">{assignment.description}</p>
       <p className="mb-4 text-sm text-gray-600">
         Deadline: {new Date(assignment.deadline).toLocaleString()}
+        {" "}
+        {getDeadlineReminder(assignment.deadline)}
       </p>
 
       {alreadySubmitted ? (
@@ -114,6 +280,20 @@ const StudentAssignmentSubmit = ({ assignmentId }) => {
       )}
       {message && !alreadySubmitted && (
         <p className="text-red-600 font-semibold mt-2">{message}</p>
+      )}
+      {/* Back button to go to all assignments */}
+      {!assignmentId && (
+        <button
+          className="mt-4 text-blue-600 underline"
+          onClick={() => {
+            setSelectedAssignmentId(null);
+            setAssignment(null);
+            setAlreadySubmitted(false);
+            setMessage("");
+          }}
+        >
+          Back to All Assignments
+        </button>
       )}
     </div>
   );

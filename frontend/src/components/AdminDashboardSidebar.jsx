@@ -11,7 +11,8 @@ import {
   LogOut,
   Home,
   MessageSquare, // <-- Added for Question/Answer
-  Download // <-- Added for Downloads
+  Download, // <-- Added for Downloads
+  Briefcase // <-- Added for Management
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, href, onClick }) => (
@@ -100,6 +101,12 @@ const AdminDashboardSidebar = () => {
           active={pathname === '/admin/questions'}
           href="/admin/questions"
         /> 
+        <SidebarItem
+          icon={<Briefcase size={18} />} // <-- Management icon
+          label="Management"
+          active={pathname === '/admin/management'}
+          href="/admin/management"
+        />
       </div>
       <div className="mt-auto px-2 mb-6">
         <SidebarItem

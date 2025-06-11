@@ -113,31 +113,35 @@ export default function QuizCard() {
           <button
             className={`px-4 py-2 rounded font-semibold transition ${showAssignmentPage ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
             onClick={() => setShowAssignmentPage(true)}
-            disabled={!selectedCourse}
           >
             Assignments
           </button>
         </div>
       </div>
-      <div className="mb-6">
-        <label className="block mb-1 font-semibold">Select Course</label>
-        <select
-          className="border px-3 py-2 rounded w-full max-w-xs"
-          value={selectedCourse}
-          onChange={(e) => {
-            setSelectedCourse(e.target.value);
-          }}
-          required
-        >
-          <option value="">-- Select a course --</option>
-          {courses.map((c) => (
-            <option key={c._id} value={c._id}>{c.title}</option>
-          ))}
-        </select>
-      </div>
+      {/* Only show course select when NOT on assignments page */}
+      {!showAssignmentPage && (
+        <div className="mb-6">
+          <label className="block mb-1 font-semibold">Select Course</label>
+          <select
+            className="border px-3 py-2 rounded w-full max-w-xs"
+            value={selectedCourse}
+            onChange={(e) => {
+              setSelectedCourse(e.target.value);
+            }}
+            required
+          >
+            <option value="">-- Select a course --</option>
+            {courses.map((c) => (
+              <option key={c._id} value={c._id}>{c.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {showAssignmentPage ? (
-        selectedCourse && (
+        selectedCourse ? (
           <TeacherGradeSubmissions courseId={selectedCourse} />
+        ) : (
+          <div className="text-gray-500 text-center py-8">Please select a course to manage assignments.</div>
         )
       ) : (
         <>

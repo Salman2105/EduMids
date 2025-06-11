@@ -6,6 +6,7 @@ const StudentCourseCard = () => {
   const [error, setError] = useState(null);
   const [unenrolling, setUnenrolling] = useState({});
   const [allQuizzes, setAllQuizzes] = useState([]);
+  const [allAssignments, setAllAssignments] = useState({});
 
   const fetchData = async () => {
     try {
@@ -43,6 +44,27 @@ const StudentCourseCard = () => {
       }
     };
     fetchAllQuizzes();
+
+    // Fetch all assignments for all courses
+    const fetchAllAssignments = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/submissions/student/assignments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch all assignments");
+        const data = await res.json();
+         // Transform assignmentsByCourse array to object keyed by courseId
+        const assignmentsObj = {};
+        (data.assignmentsByCourse || []).forEach(courseBlock => {
+          assignmentsObj[courseBlock.courseId] = courseBlock.assignments;
+        });
+        setAllAssignments(assignmentsObj);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAllAssignments();
   }, []);
 
   const handleUnenroll = async (courseId) => {
@@ -157,6 +179,38 @@ const StudentCourseCard = () => {
                   return <div className="text-gray-400 text-sm">No quizzes available.</div>;
                 }
               })()}
+            </div>
+            {/* Assignments */}
+            <div className="mt-4">
+              <div className="font-semibold mb-2">
+                Assignments ({Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId].length : 0})
+              </div>
+              {Array.isArray(allAssignments[course.courseId]) && allAssignments[course.courseId].length > 0 ? (
+                <ul className="space-y-1">
+                  {allAssignments[course.courseId].map((assignment) => (
+                    <li key={assignment._id} className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${assignment.submitted ? "bg-green-500" : "bg-gray-400"}`}></span>
+                      <span>{assignment.title}</span>
+                      {assignment.submitted ? (
+                        <span className="ml-2 text-xs text-green-600">Submitted{assignment.marksObtained !== null ? ` (Marks: ${assignment.marksObtained})` : ""}</span>
+                      ) : (
+                        <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
+                      )}
+                      {/* Add submit button for not submitted assignments */}
+                      {!assignment.submitted && (
+                        <button
+                          className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                          onClick={() => window.location.href = `/student/StudentAssignmentSubmit/${assignment._id}`}
+                        >
+                          Submit
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-gray-400 text-sm">No assignments available.</div>
+              )}
             </div>
             <button
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"

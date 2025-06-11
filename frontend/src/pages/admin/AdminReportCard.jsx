@@ -5,6 +5,8 @@ export default function AdminReportCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("none"); // none, high-enrollment, high-certificate
+  // New: Store lessons, quizzes, assignments by courseId
+  const [courseDetails, setCourseDetails] = useState({});
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -36,6 +38,112 @@ export default function AdminReportCard() {
     fetchReport();
   }, []);
 
+  // Fetch lessons, quizzes, assignments for each course in report
+  useEffect(() => {
+    const fetchDetails = async () => {
+      const token = localStorage.getItem("token");
+      const details = {};
+      for (const course of report) {
+        const courseId = course.courseId || course._id;
+        // Fetch lessons
+        let lessons = [];
+        try {
+          const res = await fetch(`http://localhost:5000/api/lessons/course/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          lessons = Array.isArray(data.lessons) ? data.lessons : [];
+        } catch {}
+        // Fetch quizzes
+        let quizzes = [];
+        try {
+          const res = await fetch(`http://localhost:5000/api/quizzes/course/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          quizzes = Array.isArray(data) ? data : [];
+        } catch {}
+        // Fetch assignments
+        let assignments = [];
+        try {
+          const res = await fetch(`http://localhost:5000/api/assignments/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          assignments = Array.isArray(data.assignments) ? data.assignments : [];
+        } catch {}
+        details[courseId] = { lessons, quizzes, assignments };
+      }
+      setCourseDetails(details);
+    };
+    if (report.length > 0) fetchDetails();
+  }, [report]);
+
+  // Download report as CSV
+  const handleDownloadCSV = () => {
+    if (!report.length) return;
+    // Flatten report for CSV
+    const csvRows = [];
+    // Header
+    csvRows.push([
+      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified'
+    ].join(','));
+    // Data
+    report.forEach(course => {
+      csvRows.push([
+        '"' + (course.title || '') + '"',
+        '"' + (course.category || '') + '"',
+        course.price != null ? course.price : '',
+        '"' + (course.teacher?.name || '') + '"',
+        '"' + (course.teacher?.email || '') + '"',
+        course.totalEnrolled ?? 0,
+        course.totalCompleted ?? 0,
+        course.totalCertified ?? 0
+      ].join(','));
+    });
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `admin_report_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Download report as PDF
+  const handleDownloadPDF = async () => {
+    if (!report.length) return;
+    // Dynamically import jsPDF and autoTable
+    const jsPDF = (await import('jspdf')).default;
+    const autoTable = (await import('jspdf-autotable')).default;
+    const doc = new jsPDF();
+    doc.text('Admin Courses & Users Report', 14, 16);
+    const tableColumn = [
+      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified'
+    ];
+    const tableRows = report.map(course => [
+      course.title || '',
+      course.category || '',
+      course.price != null ? course.price : '',
+      course.teacher?.name || '',
+      course.teacher?.email || '',
+      course.totalEnrolled ?? 0,
+      course.totalCompleted ?? 0,
+      course.totalCertified ?? 0
+    ]);
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 22,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [34, 197, 94] },
+    });
+    doc.save(`admin_report_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   // Derived sorted report
   const getFilteredReport = () => {
     if (filter === "high-enrollment") {
@@ -53,6 +161,18 @@ export default function AdminReportCard() {
     <div className="max-w-7xl mx-auto mt-8 p-6 bg-white rounded shadow">
       <h2 className="text-2xl font-bold mb-6">Courses & Users Report</h2>
       <div className="mb-4 flex gap-2">
+        <button
+          className="px-3 py-1 rounded border bg-green-600 text-white"
+          onClick={handleDownloadCSV}
+        >
+          Download CSV
+        </button>
+        <button
+          className="px-3 py-1 rounded border bg-red-600 text-white"
+          onClick={handleDownloadPDF}
+        >
+          Download PDF
+        </button>
         <button
           className={`px-3 py-1 rounded border ${filter === "none" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
           onClick={() => setFilter("none")}
@@ -91,63 +211,108 @@ export default function AdminReportCard() {
               </tr>
             </thead>
             <tbody>
-              {filteredReport.map((course) => (
-                <React.Fragment key={course.courseId}>
-                  <tr className="bg-white even:bg-gray-50">
-                    <td className="px-4 py-2 font-semibold">{course.title || "-"}</td>
-                    <td className="px-4 py-2">{course.category || "-"}</td>
-                    <td className="px-4 py-2">{course.price != null ? `$${course.price}` : "-"}</td>
-                    <td className="px-4 py-2">
-                      {course.teacher ? (
-                        <>
-                          <div>{course.teacher.name || "-"}</div>
-                          <div className="text-xs text-gray-500">{course.teacher.email || "-"}</div>
-                        </>
-                      ) : "-"
-                      }
-                    </td>
-                    <td className="px-4 py-2">{course.totalEnrolled ?? 0}</td>
-                    <td className="px-4 py-2">{course.totalCompleted ?? 0}</td>
-                    <td className="px-4 py-2">{course.totalCertified ?? 0}</td>
-                    <td className="px-4 py-2">
-                      <details>
-                        <summary className="cursor-pointer text-blue-600">View</summary>
-                        <div className="mt-2">
-                          <strong>Enrolled Students:</strong>
-                          <ul className="list-disc ml-6">
-                            {(course.enrolledStudents?.length ?? 0) === 0 && <li>None</li>}
-                            {(course.enrolledStudents || []).map((s, idx) => (
-                              <li key={s.studentId || idx}>
-                                {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
-                                {s.certificateIssued && <span className="ml-2 text-green-600">[Certificate Issued]</span>}
-                                {s.certificateRevoked && <span className="ml-2 text-red-600">[Revoked]</span>}
-                              </li>
-                            ))}
-                          </ul>
-                          <strong className="block mt-2">Completed Students:</strong>
-                          <ul className="list-disc ml-6">
-                            {(course.completedStudents?.length ?? 0) === 0 && <li>None</li>}
-                            {(course.completedStudents || []).map((s, idx) => (
-                              <li key={s.studentId || idx}>
-                                {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
-                              </li>
-                            ))}
-                          </ul>
-                          <strong className="block mt-2">Certified Students:</strong>
-                          <ul className="list-disc ml-6">
-                            {(course.certifiedStudents?.length ?? 0) === 0 && <li>None</li>}
-                            {(course.certifiedStudents || []).map((s, idx) => (
-                              <li key={s.studentId || idx}>
-                                {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
-                              </li>
-                            ))}
-                          </ul>
+              {filteredReport.map((course) => {
+                const courseId = course.courseId || course._id;
+                const details = courseDetails[courseId] || {};
+                return (
+                  <React.Fragment key={courseId}>
+                    <tr className="bg-white even:bg-gray-50">
+                      <td className="px-4 py-2 font-semibold">
+                        {course.title || "-"}
+                        {/* Lessons, Quizzes, Assignments */}
+                        <div className="mt-2 text-xs text-gray-700">
+                          <div>
+                            <span className="font-semibold">Lessons:</span>
+                            {details.lessons && details.lessons.length > 0 ? (
+                              <ul className="list-disc ml-4">
+                                {details.lessons.map((l) => (
+                                  <li key={l._id || l.lessonId}>{l.title}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="ml-2 text-gray-400">None</span>
+                            )}
+                          </div>
+                          <div className="mt-1">
+                            <span className="font-semibold">Quizzes:</span>
+                            {details.quizzes && details.quizzes.length > 0 ? (
+                              <ul className="list-disc ml-4">
+                                {details.quizzes.map((q) => (
+                                  <li key={q._id || q.quizId}>{q.title}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="ml-2 text-gray-400">None</span>
+                            )}
+                          </div>
+                          <div className="mt-1">
+                            <span className="font-semibold">Assignments:</span>
+                            {details.assignments && details.assignments.length > 0 ? (
+                              <ul className="list-disc ml-4">
+                                {details.assignments.map((a) => (
+                                  <li key={a._id}>{a.title}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="ml-2 text-gray-400">None</span>
+                            )}
+                          </div>
                         </div>
-                      </details>
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
+                      </td>
+                      <td className="px-4 py-2">{course.category || "-"}</td>
+                      <td className="px-4 py-2">{course.price != null ? `$${course.price}` : "-"}</td>
+                      <td className="px-4 py-2">
+                        {course.teacher ? (
+                          <>
+                            <div>{course.teacher.name || "-"}</div>
+                            <div className="text-xs text-gray-500">{course.teacher.email || "-"}</div>
+                          </>
+                        ) : "-"
+                        }
+                      </td>
+                      <td className="px-4 py-2">{course.totalEnrolled ?? 0}</td>
+                      <td className="px-4 py-2">{course.totalCompleted ?? 0}</td>
+                      <td className="px-4 py-2">{course.totalCertified ?? 0}</td>
+                      <td className="px-4 py-2">
+                        <details>
+                          <summary className="cursor-pointer text-blue-600">View</summary>
+                          <div className="mt-2">
+                            <strong>Enrolled Students:</strong>
+                            <ul className="list-disc ml-6">
+                              {(course.enrolledStudents?.length ?? 0) === 0 && <li>None</li>}
+                              {(course.enrolledStudents || []).map((s, idx) => (
+                                <li key={s.studentId || idx}>
+                                  {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
+                                  {s.certificateIssued && <span className="ml-2 text-green-600">[Certificate Issued]</span>}
+                                  {s.certificateRevoked && <span className="ml-2 text-red-600">[Revoked]</span>}
+                                </li>
+                              ))}
+                            </ul>
+                            <strong className="block mt-2">Completed Students:</strong>
+                            <ul className="list-disc ml-6">
+                              {(course.completedStudents?.length ?? 0) === 0 && <li>None</li>}
+                              {(course.completedStudents || []).map((s, idx) => (
+                                <li key={s.studentId || idx}>
+                                  {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
+                                </li>
+                              ))}
+                            </ul>
+                            <strong className="block mt-2">Certified Students:</strong>
+                            <ul className="list-disc ml-6">
+                              {(course.certifiedStudents?.length ?? 0) === 0 && <li>None</li>}
+                              {(course.certifiedStudents || []).map((s, idx) => (
+                                <li key={s.studentId || idx}>
+                                  {s.name || "Unknown"} ({s.email || "Unknown"}) - Progress: {s.progress ?? 0}%
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </details>
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>

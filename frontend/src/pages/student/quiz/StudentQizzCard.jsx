@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import StudentAssignmentSubmit from "../StudentAssignmentSubmit";
 
 const API = "http://localhost:5000/api/quizzes/student/all";
 const QUIZ_API = "http://localhost:5000/api/quizzes";
@@ -106,7 +108,13 @@ const StudentQuizzCard = () => {
   const [showDashboard, setShowDashboard] = useState(false);
   const [allResults, setAllResults] = useState([]);
   const [dashboardCards, setDashboardCards] = useState([]);
+  const [showAssignmentPage, setShowAssignmentPage] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("token");
+
+  // Determine if we are on the assignments page for toggle highlight
+  const isAssignments = location.pathname.toLowerCase().includes("assignment");
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -268,116 +276,156 @@ const StudentQuizzCard = () => {
     ? quizCards.filter(q => q.courseId === selectedCourse)
     : quizCards;
 
+  // Save progress on tab close or reload
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (activeQuiz && quizData && answers.length > 0) {
+        // Save progress synchronously (best effort)
+        navigator.sendBeacon &&
+          navigator.sendBeacon(
+            `${QUIZ_API}/save-progress/${activeQuiz}`,
+            new Blob(
+              [JSON.stringify({ answers })],
+              { type: "application/json" }
+            )
+          );
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [activeQuiz, quizData, answers]);
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
-      {/* Course Search/Select */}
-      <div className="mb-4">
-        <label className="font-semibold mr-2">Select Course:</label>
-        <select
-          className="border rounded px-2 py-1"
-          value={selectedCourse}
-          onChange={e => setSelectedCourse(e.target.value)}
-        >
-          {courses.map(course => (
-            <option key={course.courseId} value={course.courseId}>
-              {course.courseTitle}
-            </option>
-          ))}
-        </select>
-      </div>
-      {/* Buttons for extra student routes */}
       <div className="mb-4 flex gap-2">
         <button
-          className="px-3 py-1 bg-purple-500 text-white rounded"
-          onClick={fetchAllResults}
+          className={`px-4 py-2 rounded font-semibold transition ${!showAssignmentPage ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+          onClick={() => setShowAssignmentPage(false)}
         >
-          Show All Quiz Results
+          Quizzes
         </button>
         <button
-          className="px-3 py-1 bg-indigo-500 text-white rounded"
-          onClick={fetchDashboard}
+          className={`px-4 py-2 rounded font-semibold transition ${showAssignmentPage ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+          onClick={() => setShowAssignmentPage(true)}
         >
-          Show Unified Dashboard
-        </button>
-        <button
-          className="px-3 py-1 bg-gray-400 text-white rounded"
-          onClick={() => { setShowResults(false); setShowDashboard(false); }}
-        >
-          Hide Extra Views
+          Assignments
         </button>
       </div>
-      {/* Show extra views if toggled */}
-      {showResults && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">All Quiz Results</h2>
-          {allResults.length === 0 ? (
-            <div className="text-gray-500">No quiz results found.</div>
-          ) : (
-            <div className="space-y-2">
-              {allResults.map(res => (
-                <div key={res.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="font-semibold">{res.quizTitle}</div>
-                    <div className="text-sm text-gray-500">Submitted: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : "N/A"}</div>
-                  </div>
-                  <div className="font-bold text-blue-700 text-lg">
-                    Score: {typeof res.score === "number" ? res.score : "N/A"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-      {showDashboard && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">Unified Quiz Dashboard</h2>
-          {dashboardCards.length === 0 ? (
-            <div className="text-gray-500">No quizzes found in dashboard.</div>
-          ) : (
-            <div className="space-y-2">
-              {dashboardCards.map(card => (
-                <div key={card.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="font-semibold">{card.title}</div>
-                    <div className="text-sm text-gray-500">Course: {card.courseTitle}</div>
-                    <div className="text-xs text-gray-400">Created: {new Date(card.createdAt).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    {card.completed ? (
-                      <span className="font-bold text-green-700">Completed</span>
-                    ) : (
-                      <span className="font-bold text-red-700">Not Completed</span>
-                    )}
-                  </div>
-                  <div className="font-bold text-blue-700 text-lg">
-                    Score: {typeof card.score === "number" ? card.score : "N/A"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-      {/* Main quiz list/results */}
-      {!showResults && !showDashboard && (
+      {showAssignmentPage ? (
+        // Render assignment submission page, pass assignmentId if you have it, or let the component handle selection
+        <StudentAssignmentSubmit />
+      ) : (
         <>
-          <QuizList quizCards={filteredQuizCards} startQuiz={startQuiz} submitting={submitting} />
-          {activeQuiz && quizData && (
-            <QuizForm
-              quizData={quizData}
-              answers={answers}
-              handleAnswer={handleAnswer}
-              saveProgress={saveProgress}
-              submitQuiz={submitQuiz}
-              submitting={submitting}
-            />
+          <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
+          {/* Course Search/Select */}
+          <div className="mb-4">
+            <label className="font-semibold mr-2">Select Course:</label>
+            <select
+              className="border rounded px-2 py-1"
+              value={selectedCourse}
+              onChange={e => setSelectedCourse(e.target.value)}
+            >
+              {courses.map(course => (
+                <option key={course.courseId} value={course.courseId}>
+                  {course.courseTitle}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* Buttons for extra student routes */}
+          <div className="mb-4 flex gap-2">
+            <button
+              className="px-3 py-1 bg-purple-500 text-white rounded"
+              onClick={fetchAllResults}
+            >
+              Show All Quiz Results
+            </button>
+            <button
+              className="px-3 py-1 bg-indigo-500 text-white rounded"
+              onClick={fetchDashboard}
+            >
+              Show Unified Dashboard
+            </button>
+            <button
+              className="px-3 py-1 bg-gray-400 text-white rounded"
+              onClick={() => { setShowResults(false); setShowDashboard(false); }}
+            >
+              Hide Extra Views
+            </button>
+          </div>
+          {/* Show extra views if toggled */}
+          {showResults && (
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-2">All Quiz Results</h2>
+              {allResults.length === 0 ? (
+                <div className="text-gray-500">No quiz results found.</div>
+              ) : (
+                <div className="space-y-2">
+                  {allResults.map(res => (
+                    <div key={res.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <div className="font-semibold">{res.quizTitle}</div>
+                        <div className="text-sm text-gray-500">Submitted: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : "N/A"}</div>
+                      </div>
+                      <div className="font-bold text-blue-700 text-lg">
+                        Score: {typeof res.score === "number" ? res.score : "N/A"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-          <QuizResults quizCards={filteredQuizCards} />
+          {showDashboard && (
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-2">Unified Quiz Dashboard</h2>
+              {dashboardCards.length === 0 ? (
+                <div className="text-gray-500">No quizzes found in dashboard.</div>
+              ) : (
+                <div className="space-y-2">
+                  {dashboardCards.map(card => (
+                    <div key={card.quizId} className="bg-white rounded shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <div className="font-semibold">{card.title}</div>
+                        <div className="text-sm text-gray-500">Course: {card.courseTitle}</div>
+                        <div className="text-xs text-gray-400">Created: {new Date(card.createdAt).toLocaleString()}</div>
+                      </div>
+                      <div>
+                        {card.completed ? (
+                          <span className="font-bold text-green-700">Completed</span>
+                        ) : (
+                          <span className="font-bold text-red-700">Not Completed</span>
+                        )}
+                      </div>
+                      <div className="font-bold text-blue-700 text-lg">
+                        Score: {typeof card.score === "number" ? card.score : "N/A"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {/* Main quiz list/results */}
+          {!showResults && !showDashboard && (
+            <>
+              <QuizList quizCards={filteredQuizCards} startQuiz={startQuiz} submitting={submitting} />
+              {activeQuiz && quizData && (
+                <QuizForm
+                  quizData={quizData}
+                  answers={answers}
+                  handleAnswer={handleAnswer}
+                  saveProgress={saveProgress}
+                  submitQuiz={submitQuiz}
+                  submitting={submitting}
+                />
+              )}
+              <QuizResults quizCards={filteredQuizCards} />
+            </>
+          )}
         </>
       )}
     </div>

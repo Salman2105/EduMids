@@ -40,7 +40,7 @@ import AdminNotify from "./pages/admin/AdminNotify";
 import AdminQna from "./pages/admin/AdminQnaCard"; // Assuming you have a Q&A page for teachers
 import AdminSettingCard from "./pages/admin/AdminSettingCard"; // Assuming you have a settings page for admin
 import AdminDownloadPage from "./pages/admin/AdminDownloadPage"; // Assuming you have a download page
-
+import AdminManagement from "./pages/admin/AdminManagement"; // Assuming you have a management page
 // Teacher
 import TeacherDashboardSidebar from "./components/TeacherDashboardSidebar";
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -111,7 +111,7 @@ function App() {
             <Route path="/Community" element={<Community />} />
             <Route path="/Instructors" element={<Instructors />} />
             {/* <Route path="/teacher/TeacherGradeSubmissions" element={<TeacherGradeSubmissions />} />  */}
-            <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} /> 
+            {/* <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} />  */}
 
             {/* TeacherGradeSubmissions */}
             {/* <Route path="/DownloadPage" element={<DownloadPage />} /> */}
@@ -187,6 +187,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
                     <AdminDownloadPage />
+                  </LayoutWithSidebar>
+                }
+              />
+                <Route
+                path="/admin/management"
+                element={
+                  <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
+                    <AdminManagement />
                   </LayoutWithSidebar>
                 }
               />
@@ -341,6 +349,14 @@ function App() {
                 element={
                   <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
                     <StudentQuizzes />
+                  </LayoutWithSidebar>
+                }
+              />
+                  <Route               
+                  path="/student/StudentAssignmentSubmit"
+                element={
+                  <LayoutWithSidebar Sidebar={StudentDashboardSidebar}>
+                    <StudentAssignmentSubmit />
                   </LayoutWithSidebar>
                 }
               />

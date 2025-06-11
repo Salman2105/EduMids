@@ -7,6 +7,16 @@ const DownloadPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Add state for certificates
+  const [certificates, setCertificates] = useState([]);
+  const [certLoading, setCertLoading] = useState(true);
+  const [certError, setCertError] = useState(null);
+
+  // Add state for course/quiz/assignment data
+  const [courses, setCourses] = useState([]);
+  const [allQuizzes, setAllQuizzes] = useState([]);
+  const [allAssignments, setAllAssignments] = useState({});
+
   // Fetch lessons (downloadable files)
   useEffect(() => {
     const fetchLessons = async () => {
@@ -52,6 +62,86 @@ const DownloadPage = () => {
     fetchHistory();
   }, []);
 
+  // Fetch all courses (for progress, etc)
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch dashboard data");
+        const result = await res.json();
+        setCourses(result.courses || []);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  // Fetch all quizzes for all courses
+  useEffect(() => {
+    const fetchAllQuizzes = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/quizzes/student/all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch all quizzes");
+        const data = await res.json();
+        setAllQuizzes(data.quizzes || []);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAllQuizzes();
+  }, []);
+
+  // Fetch all assignments for all courses
+  useEffect(() => {
+    const fetchAllAssignments = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/submissions/student/assignments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch all assignments");
+        const data = await res.json();
+        const assignmentsObj = {};
+        (data.assignmentsByCourse || []).forEach(courseBlock => {
+          assignmentsObj[courseBlock.courseId] = courseBlock.assignments;
+        });
+        setAllAssignments(assignmentsObj);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAllAssignments();
+  }, []);
+
+  // Fetch certificates (same logic as StudentCertificateCard)
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      setCertLoading(true);
+      setCertError(null);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/certificates/my-certificates", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch certificates");
+        const data = await res.json();
+        setCertificates(data.certificates || []);
+      } catch (err) {
+        setCertError(err.message);
+      } finally {
+        setCertLoading(false);
+      }
+    };
+    fetchCertificates();
+  }, []);
+
   const handleDownload = async (lessonId) => {
     const token = localStorage.getItem("token");
     try {
@@ -81,6 +171,138 @@ const DownloadPage = () => {
     } catch (err) {
       alert("Access denied or download failed.");
     }
+  };
+
+  // --- Download student report as CSV ---
+  const handleDownloadCSV = () => {
+    if (!courses.length) return;
+    const csvRows = [];
+    csvRows.push([
+      'Course Name', 'Organization', 'Date Earned', 'Certificate ID', 'Progress (%)', 'Quiz Score', 'Assignment Marks', 'Completed', 'Certificate Issued'
+    ].join(','));
+    courses.forEach(course => {
+      // Find certificate for this course
+      const cert = certificates.find(c => String(c.courseId) === String(course.courseId));
+      // Find all quizzes for this course
+      const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
+      // Find all assignments for this course
+      const assignmentsForCourse = Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId] : [];
+
+      // Calculate average quiz score (or blank if none)
+      let quizScore = "";
+      if (quizzesForCourse.length > 0) {
+        const scores = quizzesForCourse.map(q => typeof q.score === "number" ? q.score : null).filter(s => s !== null);
+        if (scores.length > 0) {
+          quizScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+        }
+      }
+
+      // Calculate total assignment marks (or blank if none)
+      let assignmentMarks = "";
+      if (assignmentsForCourse.length > 0) {
+        const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+        if (marks.length > 0) {
+          assignmentMarks = marks.reduce((a, b) => a + b, 0);
+        }
+      }
+
+      // Progress
+      const progress = typeof course.progress === "number" ? course.progress : "";
+
+      // Date Earned
+      let dateEarnedStr = "";
+      if (cert && cert.dateEarned) {
+        const dateObj = new Date(cert.dateEarned);
+        if (!isNaN(dateObj)) {
+          dateEarnedStr = dateObj.toLocaleDateString();
+        }
+      }
+
+      csvRows.push([
+        '"' + (course.title || '') + '"',
+        '"' + (cert?.organization || '') + '"',
+        dateEarnedStr,
+        cert?.certificateId || '',
+        progress,
+        quizScore,
+        assignmentMarks,
+        course.completed ? 'Yes' : 'No',
+        cert?.certificateId ? 'Yes' : 'No'
+      ].join(','));
+    });
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `student_report_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // --- Download student report as PDF ---
+  const handleDownloadPDF = async () => {
+    if (!courses.length) return;
+    const jsPDF = (await import('jspdf')).default;
+    const autoTable = (await import('jspdf-autotable')).default;
+    const doc = new jsPDF();
+    doc.text('Student Courses & Certificates Report', 14, 16);
+    const tableColumn = [
+      'Course Name', 'Organization', 'Date Earned', 'Certificate ID', 'Progress (%)', 'Quiz Score', 'Assignment Marks', 'Completed', 'Certificate Issued'
+    ];
+    const tableRows = courses.map(course => {
+      const cert = certificates.find(c => String(c.courseId) === String(course.courseId));
+      const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
+      const assignmentsForCourse = Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId] : [];
+
+      let quizScore = "";
+      if (quizzesForCourse.length > 0) {
+        const scores = quizzesForCourse.map(q => typeof q.score === "number" ? q.score : null).filter(s => s !== null);
+        if (scores.length > 0) {
+          quizScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+        }
+      }
+
+      let assignmentMarks = "";
+      if (assignmentsForCourse.length > 0) {
+        const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+        if (marks.length > 0) {
+          assignmentMarks = marks.reduce((a, b) => a + b, 0);
+        }
+      }
+
+      const progress = typeof course.progress === "number" ? course.progress : "";
+
+      let dateEarnedStr = "";
+      if (cert && cert.dateEarned) {
+        const dateObj = new Date(cert.dateEarned);
+        if (!isNaN(dateObj)) {
+          dateEarnedStr = dateObj.toLocaleDateString();
+        }
+      }
+
+      return [
+        course.title || '',
+        cert?.organization || '',
+        dateEarnedStr,
+        cert?.certificateId || '',
+        progress,
+        quizScore,
+        assignmentMarks,
+        course.completed ? 'Yes' : 'No',
+        cert?.certificateId ? 'Yes' : 'No'
+      ];
+    });
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 22,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+    doc.save(`student_report_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
   return (
@@ -262,6 +484,124 @@ const DownloadPage = () => {
                     </tr>
                   ))
                 )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      {/* Student Certificate Report Table */}
+      <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mt-10">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+          <h2 className="text-xl md:text-2xl font-bold text-blue-700">
+            Student Certificates & Course Report
+          </h2>
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1 rounded border bg-green-600 text-white"
+              onClick={handleDownloadCSV}
+              disabled={certLoading || !courses.length}
+            >
+              Download CSV
+            </button>
+            <button
+              className="px-3 py-1 rounded border bg-red-600 text-white"
+              onClick={handleDownloadPDF}
+              disabled={certLoading || !courses.length}
+            >
+              Download PDF
+            </button>
+          </div>
+        </div>
+        {certLoading ? (
+          <div className="text-gray-500">Loading certificates...</div>
+        ) : certError ? (
+          <div className="text-red-500">{certError}</div>
+        ) : courses.length === 0 ? (
+          <div className="text-gray-500">You have not enrolled in any courses yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-blue-100">
+                  <th className="p-3 text-left font-semibold text-gray-700">Course Name</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Organization</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Date Earned</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Certificate ID</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Progress (%)</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Quiz Score</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Assignment Marks</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Completed</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Certificate Issued</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map(course => {
+                  const cert = certificates.find(c => String(c.courseId) === String(course.courseId));
+                  const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
+                  const assignmentsForCourse = Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId] : [];
+
+                  // Calculate average quiz score (or blank if none)
+                  let quizScore = "";
+                  if (quizzesForCourse.length > 0) {
+                    const scores = quizzesForCourse.map(q => typeof q.score === "number" ? q.score : null).filter(s => s !== null);
+                    if (scores.length > 0) {
+                      quizScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+                    }
+                  }
+
+                  // Calculate total assignment marks (or blank if none)
+                  let assignmentMarks = "";
+                  if (assignmentsForCourse.length > 0) {
+                    const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+                    if (marks.length > 0) {
+                      assignmentMarks = marks.reduce((a, b) => a + b, 0);
+                    }
+                  }
+
+                  // Progress
+                  const progress = typeof course.progress === "number" ? course.progress : "";
+
+                  // Date Earned
+                  let dateEarnedStr = "";
+                  if (cert && cert.dateEarned) {
+                    const dateObj = new Date(cert.dateEarned);
+                    if (!isNaN(dateObj)) {
+                      dateEarnedStr = dateObj.toLocaleDateString();
+                    }
+                  }
+
+                  return (
+                    <tr key={course.courseId} className="hover:bg-blue-50 transition">
+                      <td className="p-3 font-medium text-gray-900">
+                        {course.title}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {cert?.organization || "-"}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {dateEarnedStr}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {cert?.certificateId || "-"}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {progress}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {quizScore}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {assignmentMarks}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {course.completed ? 'Yes' : 'No'}
+                      </td>
+                      <td className="p-3 text-gray-700">
+                        {cert?.certificateId ? 'Yes' : 'No'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

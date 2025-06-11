@@ -68,8 +68,9 @@ router.get("/student", verifyToken, checkRole(["student"]), async (req, res) => 
 router.get("/assignment/:assignmentId", verifyToken, checkRole(["teacher"]), async (req, res) => {
   try {
     const { assignmentId } = req.params;
-
+    console.log("Fetching submissions for assignmentId:", assignmentId);
     const submissions = await Submission.find({ assignment: assignmentId }).populate("student", "name email");
+    console.log("Found submissions:", submissions.length);
     res.json({ success: true, submissions });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error fetching submissions", error });
@@ -91,6 +92,60 @@ router.put("/:id/grade", verifyToken, checkRole(["teacher"]), async (req, res) =
     res.json({ success: true, submission });
   } catch (error) {
     res.status(500).json({ success: false, message: "Grading failed", error });
+  }
+});
+
+// GET: Student gets all assignments for their enrolled courses with submission status
+router.get("/student/assignments", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    // Get all enrollments for the student
+    const Enrollment = require("../Models/Enrollment");
+    const { Course } = require("../Models/course");
+    const Assignment = require("../Models/Assignment");
+    const enrollments = await Enrollment.find({ student: req.user.id });
+    const courseIds = enrollments.map(e => e.course);
+
+    // Get all assignments for these courses
+    // Populate course details for each assignment
+    const assignments = await Assignment.find({ course: { $in: courseIds } })
+      .populate("course", "title")
+      .lean();
+
+    // Get all submissions by this student
+    const submissions = await Submission.find({ student: req.user.id });
+    const submissionMap = {};
+    submissions.forEach(sub => {
+      submissionMap[sub.assignment.toString()] = sub;
+    });
+
+    // Group assignments by course, and attach submission info
+    const assignmentsByCourse = {};
+    assignments.forEach(assignment => {
+      const courseId = assignment.course._id ? assignment.course._id.toString() : assignment.course.toString();
+      if (!assignmentsByCourse[courseId]) {
+        assignmentsByCourse[courseId] = {
+          courseId,
+          courseTitle: assignment.course.title || "",
+          assignments: []
+        };
+      }
+      const submission = submissionMap[assignment._id.toString()] || null;
+      assignmentsByCourse[courseId].assignments.push({
+        ...assignment,
+        submitted: !!submission,
+        submissionId: submission ? submission._id : null,
+        marksObtained: submission ? submission.marksObtained : null,
+        feedback: submission ? submission.feedback : null,
+        submittedAt: submission ? submission.submittedAt : null,
+      });
+    });
+
+    // Convert assignmentsByCourse object to array for easier frontend rendering
+    const assignmentsByCourseArr = Object.values(assignmentsByCourse);
+
+    res.json({ success: true, assignmentsByCourse: assignmentsByCourseArr });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching assignments", error });
   }
 });
 
