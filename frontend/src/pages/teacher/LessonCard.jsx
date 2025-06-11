@@ -92,7 +92,7 @@ export default function LessonCard() {
       });
       const data = await res.json();
       if (res.ok) {
-       toast.success(data.message || "Lesson added successfully!");
+        toast.success(data.message || "Lesson added successfully!");
         // setMessage("Lesson added successfully!");
         setTitle("");
         setContentType("video");
@@ -199,130 +199,168 @@ export default function LessonCard() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md ">
-      <h2 className="text-2xl font-bold mb-4">Add Lesson to Course</h2>
-      {message && (
-        <div className="mb-4 text-center text-sm text-blue-700">{message}</div>
-      )}
-
-      {/* Course Search and Select */}
-      <div className="mb-4">
-        <label className="block mb-1 font-semibold">Search Course</label>
-        <input
-          type="text"
-          className="border px-3 py-2 rounded w-full"
-          placeholder="Enter course title or ID"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="mt-2 max-h-48 overflow-y-auto border rounded bg-white">
-          <table className="min-w-full text-xs">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-2 py-1 text-left font-semibold">Title</th>
-                <th className="px-2 py-1 text-left font-semibold">Category</th>
-                <th className="px-2 py-1 text-left font-semibold">Price</th>
-                <th className="px-2 py-1 text-left font-semibold">Select</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCourses.map((course) => (
-                <tr
-                  key={course._id}
-                  className={`hover:bg-blue-100 cursor-pointer ${selectedCourse && selectedCourse._id === course._id ? "bg-blue-200 font-bold" : ""}`}
-                >
-                  <td className="px-2 py-1">
-                    <div className="font-semibold">{course.title}</div>
-                    <div className="text-xs text-slate-600">{course.description}</div>
-                  </td>
-                  <td className="px-2 py-1 capitalize">{course.category || "General"}</td>
-                  <td className="px-2 py-1 text-blue-700 font-semibold">
-                    ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
-                  </td>
-                  <td className="px-2 py-1">
-                    <button
-                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                      onClick={() => setSelectedCourse(course)}
-                    >
-                      Select
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
+            Lesson Management
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Add, edit, and manage lessons for your courses.
+          </p>
         </div>
+        <img
+          src="/assets/lesson.png"
+          alt="Lesson"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
+      <div className="bg-white p-4 md:p-8 rounded-xl shadow-lg mb-10">
+        <h2 className="text-2xl font-bold mb-4">Add Lesson to Course</h2>
+        {message && (
+          <div className="mb-4 text-center text-sm text-blue-700">{message}</div>
+        )}
+
+        {/* Course Search and Select */}
+        <div className="mb-4">
+          <label className="block mb-1 font-semibold">Search Course</label>
+          <input
+            type="text"
+            className="border border-blue-200 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter course title or ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="mt-2 max-h-48 overflow-y-auto border rounded bg-white">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr className="bg-blue-100">
+                  <th className="px-2 py-1 text-left font-semibold">Title</th>
+                  <th className="px-2 py-1 text-left font-semibold">Category</th>
+                  <th className="px-2 py-1 text-left font-semibold">Price</th>
+                  <th className="px-2 py-1 text-left font-semibold">Select</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCourses.map((course) => (
+                  <tr
+                    key={course._id}
+                    className={`hover:bg-blue-100 cursor-pointer ${
+                      selectedCourse && selectedCourse._id === course._id
+                        ? "bg-blue-200 font-bold"
+                        : ""
+                    }`}
+                  >
+                    <td className="px-2 py-1">
+                      <div className="font-semibold">{course.title}</div>
+                      <div className="text-xs text-slate-600">
+                        {course.description}
+                      </div>
+                    </td>
+                    <td className="px-2 py-1 capitalize">
+                      {course.category || "General"}
+                    </td>
+                    <td className="px-2 py-1 text-blue-700 font-semibold">
+                      $
+                      {course.price?.toFixed
+                        ? Number(course.price).toFixed(2)
+                        : course.price || "0.00"}
+                    </td>
+                    <td className="px-2 py-1">
+                      <button
+                        className="bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                        onClick={() => setSelectedCourse(course)}
+                      >
+                        Select
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Lesson Form */}
+        {selectedCourse && (
+          <form
+            onSubmit={handleLessonSubmit}
+            className="mt-4"
+            encType="multipart/form-data"
+          >
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Lesson Title</label>
+              <input
+                type="text"
+                className="border border-blue-200 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-400"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                placeholder="Enter lesson title"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Content Type</label>
+              <select
+                className="border border-blue-200 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-400"
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+              >
+                <option value="video">Video</option>
+                <option value="pdf">PDF</option>
+                <option value="link">URL</option>
+              </select>
+            </div>
+            {contentType === "link" ? (
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">Content URL</label>
+                <input
+                  type="url"
+                  className="border border-blue-200 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-400"
+                  value={contentURL}
+                  onChange={(e) => setContentURL(e.target.value)}
+                  required
+                  placeholder="Enter content URL"
+                />
+              </div>
+            ) : (
+              <div className="mb-4">
+                <label className="block mb-1 font-semibold">
+                  {contentType === "video" ? "Upload Video" : "Upload PDF"}
+                </label>
+                <input
+                  type="file"
+                  accept={
+                    contentType === "video"
+                      ? "video/*"
+                      : "application/pdf"
+                  }
+                  className="w-full"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  required
+                />
+              </div>
+            )}
+            <button
+              type="submit"
+              className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+              disabled={loading}
+            >
+              {loading ? "Adding..." : "Add Lesson"}
+            </button>
+          </form>
+        )}
       </div>
 
-      {/* Lesson Form */}
-      {selectedCourse && (
-        <form onSubmit={handleLessonSubmit} className="mt-4" encType="multipart/form-data">
-          <div className="mb-4">
-            <label className="block mb-1 font-semibold">Lesson Title</label>
-            <input
-              type="text"
-              className="border px-3 py-2 rounded w-full"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              placeholder="Enter lesson title"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-1 font-semibold">Content Type</label>
-            <select
-              className="border px-3 py-2 rounded w-full"
-              value={contentType}
-              onChange={(e) => setContentType(e.target.value)}
-            >
-              <option value="video">Video</option>
-              <option value="pdf">PDF</option>
-              <option value="link">URL</option>
-            </select>
-          </div>
-          {contentType === "link" ? (
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Content URL</label>
-              <input
-                type="url"
-                className="border px-3 py-2 rounded w-full"
-                value={contentURL}
-                onChange={(e) => setContentURL(e.target.value)}
-                required
-                placeholder="Enter content URL"
-              />
-            </div>
-          ) : (
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">
-                {contentType === "video" ? "Upload Video" : "Upload PDF"}
-              </label>
-              <input
-                type="file"
-                accept={contentType === "video" ? "video/*" : "application/pdf"}
-                className="w-full"
-                onChange={(e) => setFile(e.target.files[0])}
-                required
-              />
-            </div>
-          )}
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            disabled={loading}
-          >
-            {loading ? "Adding..." : "Add Lesson"}
-          </button>
-        </form>
-      )}
-
-      <h3 className="text-xl font-bold mb-4 mt-8">All Courses & Lessons</h3>
+      <h3 className="text-2xl font-bold mb-4 mt-8 text-blue-700">
+        All Courses & Lessons
+      </h3>
       {courses.length === 0 && <p>No courses found.</p>}
       <div className="grid grid-cols-1 gap-6">
         {courses.map((course, idx) => (
           <div
             key={course._id}
-            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden w-full"
+            className="border rounded-xl bg-white shadow-lg hover:shadow-2xl transition transform duration-300 hover:scale-105 flex flex-col overflow-hidden w-full"
             style={{ width: "100%" }}
           >
             {course.picture && (
@@ -332,21 +370,26 @@ export default function LessonCard() {
                 className="w-full h-40 object-cover"
               />
             )}
-            <div className="flex-1 flex flex-col p-4">
+            <div className="flex-1 flex flex-col p-6">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-gray-500 font-semibold">
                   Course #{idx + 1} | ID: {course._id.slice(-6)}
                 </span>
               </div>
               <h3 className="text-lg font-bold mb-1">{course.title}</h3>
-              <p className="text-slate-600 text-sm mb-2 line-clamp-2">{course.description}</p>
+              <p className="text-slate-600 text-sm mb-2 line-clamp-2">
+                {course.description}
+              </p>
               {/* Category and Price */}
               <div className="flex items-center justify-between mb-2">
                 <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full capitalize">
                   {course.category || "General"}
                 </span>
                 <span className="text-blue-700 font-semibold text-xs">
-                  ${course.price?.toFixed ? Number(course.price).toFixed(2) : course.price || "0.00"}
+                  $
+                  {course.price?.toFixed
+                    ? Number(course.price).toFixed(2)
+                    : course.price || "0.00"}
                 </span>
               </div>
               <div className="mt-2">
@@ -388,7 +431,10 @@ export default function LessonCard() {
                         <button
                           className="ml-2 text-blue-600 underline"
                           onClick={() => {
-                            const newTitle = prompt("Enter new lesson title:", lesson.title);
+                            const newTitle = prompt(
+                              "Enter new lesson title:",
+                              lesson.title
+                            );
                             if (newTitle && newTitle !== lesson.title) {
                               handleUpdateLesson(lesson._id, { title: newTitle });
                             }
@@ -409,11 +455,12 @@ export default function LessonCard() {
                   <p className="text-slate-500 text-xs">No lessons added yet.</p>
                 )}
                 <p className="mt-2 font-semibold text-xs">
-                  Total Lessons: {lessons[course._id] ? lessons[course._id].length : 0}
+                  Total Lessons:{" "}
+                  {lessons[course._id] ? lessons[course._id].length : 0}
                 </p>
               </div>
               <button
-                className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                 onClick={async () => {
                   if (
                     window.confirm(

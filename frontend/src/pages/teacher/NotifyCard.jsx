@@ -53,38 +53,54 @@ export default function TeacherNotify() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">Your Notifications</h2>
-      {loading && <p>Loading notifications...</p>}
-      {error && <p className="text-red-600">{error}</p>}
-      {!loading && notifications.length === 0 && (
-        <p>No notifications found.</p>
-      )}
-      <ul className="space-y-4">
-        {notifications.map((n) => (
-          <li
-            key={n._id}
-            className={`p-4 rounded border shadow flex items-center justify-between ${
-              n.isRead ? "bg-gray-100" : "bg-blue-50"
-            }`}
-          >
-            <div>
-              <div className="font-medium">{n.message}</div>
-              <div className="text-xs text-gray-500">
-                {new Date(n.createdAt).toLocaleString()}
+    <div className="max-w-3xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
+            Your Notifications
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Stay updated with important alerts and messages.
+          </p>
+        </div>
+        <img
+          src="/assets/notify.png"
+          alt="Notifications"
+          className="w-20 h-20 md:w-28 md:h-28 object-contain hidden md:block"
+        />
+      </div>
+      <div className="bg-white rounded-xl shadow-lg p-4 md:p-8">
+        {loading && <p>Loading notifications...</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        {!loading && notifications.length === 0 && (
+          <p>No notifications found.</p>
+        )}
+        <ul className="space-y-4">
+          {notifications.map((n) => (
+            <li
+              key={n._id}
+              className={`p-4 rounded-xl border shadow flex items-center justify-between ${
+                n.isRead ? "bg-gray-100" : "bg-blue-50"
+              }`}
+            >
+              <div>
+                <div className="font-medium">{n.message}</div>
+                <div className="text-xs text-gray-500">
+                  {new Date(n.createdAt).toLocaleString()}
+                </div>
               </div>
-            </div>
-            {!n.isRead && (
-              <button
-                className="ml-4 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-                onClick={() => markAsRead(n._id)}
-              >
-                Mark as read
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+              {!n.isRead && (
+                <button
+                  className="ml-4 px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700"
+                  onClick={() => markAsRead(n._id)}
+                >
+                  Mark as read
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom'; // import useNavigate
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   BookOpen,
@@ -11,10 +11,12 @@ import {
   LogOut,
   User,
   HelpCircle,
-  MessageSquare // <-- Added for Question/Answer
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
-const SidebarItem = ({ icon, label, active, href, onClick }) => (
+const SidebarItem = ({ icon, label, active, href, onClick, collapsed }) => (
   <div
     onClick={onClick}
     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
@@ -26,18 +28,19 @@ const SidebarItem = ({ icon, label, active, href, onClick }) => (
     {href ? (
       <Link to={href} className="flex items-center gap-2 w-full h-full">
         <span className="text-lg">{icon}</span>
-        <span>{label}</span>
+        {!collapsed && <span>{label}</span>}
       </Link>
     ) : (
       <>
         <span className="text-lg">{icon}</span>
-        <span>{label}</span>
+        {!collapsed && <span>{label}</span>}
       </>
     )}
   </div>
 );
 
 const TeacherDashboardSidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
@@ -49,13 +52,26 @@ const TeacherDashboardSidebar = () => {
     navigate("/"); // Redirect to landing/home page
   };
 
+  const handleToggle = () => setCollapsed((prev) => !prev);
+
   return (
-    <div className="h-screen w-[250px] bg-blue-500 flex flex-col">
+    <div
+      className={`h-screen ${collapsed ? 'w-[70px]' : 'w-[250px]'} bg-blue-500 flex flex-col transition-all duration-200`}
+    >
       <div className="p-4 flex items-center gap-2">
         <div className="w-8 h-8 bg-blue rounded flex items-center justify-center">
           <span className="text-white font-bold">ED</span>
         </div>
-        <h2 className="text-white font-bold text-xl">EduMids</h2>
+        {!collapsed && <h2 className="text-white font-bold text-xl">EduMids</h2>}
+        <button
+          className="ml-auto rounded hover:bg-blue-600 transition-colors"
+          onClick={handleToggle}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed
+            ? <ChevronRight size={20} color="white" strokeWidth={3} />
+            : <ChevronLeft size={20} color="white" strokeWidth={3} />}
+        </button>
       </div>
       <div className="mt-6 px-2 flex-1 flex flex-col gap-1">
         <SidebarItem
@@ -63,54 +79,63 @@ const TeacherDashboardSidebar = () => {
           label="Home"
           active={pathname === '/teacher/dashboard'}
           href="/teacher/dashboard"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<BookOpen size={18} />}
           label="Created Courses"
           active={pathname === '/teacher/courses'}
           href="/teacher/courses"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<PlusSquare size={18} />}
           label="Add Lessons"
           active={pathname === '/teacher/add-lessons'}
           href="/teacher/add-lessons"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<Users size={18} />}
           label="View Enrollments"
           active={pathname === '/teacher/enrollments'}
           href="/teacher/enrollments"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<User size={18} />}
           label="Students"
           active={pathname === '/teacher/students'}
           href="/teacher/students"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<HelpCircle size={18} />}
           label="Quiz"
           active={pathname === '/teacher/quiz'}
           href="/teacher/quiz"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<Award size={18} />}
           label="Certificates"
           active={pathname === '/teacher/certificates'}
           href="/teacher/certificates"
+          collapsed={collapsed}
         />
         {/* <SidebarItem
           icon={<Calendar size={18} />}
           label="Calendar"
           active={pathname === '/Teacher/TeacherCalendar'}
           href="/Teacher/TeacherCalendar"
+          collapsed={collapsed}
         /> */}
         <SidebarItem
           icon={<MessageSquare size={18} />}
           label="QnAs"
           active={pathname === '/teacher/questions'}
           href="/teacher/questions"
+          collapsed={collapsed}
         />
       </div>
       <div className="mt-auto px-2 mb-6">
@@ -119,11 +144,13 @@ const TeacherDashboardSidebar = () => {
           label="Settings"
           active={pathname === '/teacher/settings'}
           href="/teacher/settings"
+          collapsed={collapsed}
         />
         <SidebarItem
           icon={<LogOut size={18} />}
           label="Logout"
           onClick={handleLogout}
+          collapsed={collapsed}
         />
       </div>
     </div>

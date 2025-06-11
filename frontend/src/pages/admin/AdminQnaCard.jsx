@@ -133,15 +133,26 @@ const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Q&amp;A Section</h2>
-
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Q&amp;A Section</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            View, answer, and manage all questions on the platform.
+          </p>
+        </div>
+        <img
+          src="/assets/qna.png"
+          alt="QnA"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       {/* Student Question Form */}
       {isStudent && (
-        <form onSubmit={handleAskQuestion} className="mb-6 bg-white rounded shadow p-4">
-          <h3 className="text-lg font-semibold mb-2">Ask a Question</h3>
+        <form onSubmit={handleAskQuestion} className="mb-8 bg-white rounded-xl shadow-lg p-4 md:p-8">
+          <h3 className="text-xl font-bold text-blue-700 mb-4">Ask a Question</h3>
           <select
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-blue-200 p-3 mb-4 rounded-lg focus:ring-2 focus:ring-blue-400"
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
           >
@@ -153,15 +164,16 @@ const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
             ))}
           </select>
           <textarea
-            className="w-full border p-2 mb-2 rounded"
+            className="w-full border border-blue-200 p-3 mb-4 rounded-lg focus:ring-2 focus:ring-blue-400"
             placeholder="Type your question here..."
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
             required
+            rows={3}
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
           >
             Submit Question
           </button>
@@ -169,26 +181,40 @@ const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
       )}
 
       {/* Question List */}
-      <div className="bg-white rounded shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">All Questions</h3>
+      <div className="bg-white rounded-xl shadow-lg p-4 md:p-8">
+        <h3 className="text-xl font-bold text-blue-700 mb-6">All Questions</h3>
         {questions.length === 0 ? (
-          <p>No questions found.</p>
+          <p className="text-gray-500">No questions found.</p>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-6">
             {questions.map((q) => (
-              <li key={q._id} className="border-b pb-4">
-                <p className="font-medium">{q.text}</p>
-                <p className="text-sm text-gray-500">Course: {q.course?.title || "N/A"}</p>
-                <div className="text-xs text-gray-600 mb-1">
-                  Asked by: {q.askedBy?.name} ({q.askedBy?.email}) | ID: {q.askedBy?._id}
+              <li key={q._id} className="border-b last:border-b-0 pb-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="font-semibold text-lg text-gray-900 mb-1">{q.text}</p>
+                    <p className="text-sm text-gray-500 mb-1">
+                      Course: <span className="font-medium">{q.course?.title || "N/A"}</span>
+                    </p>
+                    <div className="text-xs text-gray-600 mb-2">
+                      Asked by: {q.askedBy?.name} ({q.askedBy?.email}) | ID: {q.askedBy?._id}
+                    </div>
+                  </div>
+                  {(isTeacher || user?.role === "admin") && (
+                    <button
+                      onClick={() => handleDeleteQuestion(q._id)}
+                      className="bg-red-600 text-white text-xs px-3 py-1 rounded-lg shadow hover:bg-red-700 mt-2 md:mt-0"
+                    >
+                      Delete Question
+                    </button>
+                  )}
                 </div>
                 <div className="mt-2">
-                  <h4 className="text-sm font-semibold">Answers:</h4>
+                  <h4 className="text-sm font-semibold text-blue-700 mb-1">Answers:</h4>
                   {q.answers?.length > 0 ? (
-                    <ul className="list-disc ml-5 text-sm text-gray-700">
+                    <ul className="list-disc ml-5 text-sm text-gray-700 space-y-2">
                       {q.answers.map((a, i) => (
                         <li key={i}>
-                          {a.text}
+                          <span className="font-medium">{a.text}</span>
                           <div className="text-xs text-gray-600">
                             Answered by: {a.answeredBy?.name} ({a.answeredBy?.email}) | ID: {a.answeredBy?._id}
                           </div>
@@ -199,12 +225,10 @@ const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
                     <p className="text-xs text-gray-400">No answers yet.</p>
                   )}
                 </div>
-
-                {/* Admin Answer Box and Delete Button */}
                 {(isTeacher || user?.role === "admin") && (
-                  <div className="mt-2">
+                  <div className="mt-4">
                     <textarea
-                      className="w-full border p-2 text-sm rounded"
+                      className="w-full border border-blue-200 p-2 text-sm rounded-lg focus:ring-2 focus:ring-blue-400"
                       placeholder="Write your answer..."
                       value={answerInputs[q._id] || ""}
                       onChange={(e) =>
@@ -213,19 +237,14 @@ const user = userStr ? JSON.parse(userStr) : null; // includes role, id, etc.
                           [q._id]: e.target.value,
                         }))
                       }
+                      rows={2}
                     />
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2 mt-2">
                       <button
                         onClick={() => handleAnswer(q._id)}
-                        className="bg-green-600 text-white text-sm px-3 py-1 rounded"
+                        className="bg-green-600 text-white text-sm px-4 py-1 rounded-lg shadow hover:bg-green-700"
                       >
                         Submit Answer
-                      </button>
-                      <button
-                        onClick={() => handleDeleteQuestion(q._id)}
-                        className="bg-red-600 text-white text-sm px-3 py-1 rounded"
-                      >
-                        Delete Question
                       </button>
                     </div>
                   </div>

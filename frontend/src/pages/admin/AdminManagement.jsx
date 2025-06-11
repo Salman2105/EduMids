@@ -4,13 +4,16 @@ import AdminReportCard from './AdminReportCard'
 import QnA from './AdminQnaCard'
 import AdminpaymentCard from './AdminpaymentCard'
 import AdminCertificateCard from './AdminCertificateCard'
+import SearchBar from '../../components/SearchBar'
 
 export default function AdminManagement() {
   const [tab, setTab] = useState('users')
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Management Panel</h1>
+    <div className='p-6 bg-gradient-to-br from-blue-50 to-white'>  
+       <SearchBar/>
+    <div className="max-w-7xl mx-auto ">
+      <h1 className="mt-12 mb-6  text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Admin Management Panel</h1>
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={() => setTab('users')}
@@ -53,7 +56,7 @@ export default function AdminManagement() {
           Certificates
         </button>
       </div>
-      <div className="bg-white rounded shadow p-4">
+      <div className="">
         {tab === 'users' && <StudentCard />}
         {tab === 'reports' && <AdminReportCard />}
         {tab === 'qna' && <QnA />}
@@ -61,5 +64,6 @@ export default function AdminManagement() {
         {tab === 'certificates' && <AdminCertificateCard />}
       </div>
     </div>
-  )
+</div>  
+)
 }

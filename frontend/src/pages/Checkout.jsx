@@ -22,7 +22,7 @@ function CheckoutForm({ course, paying, setPaying, setError, setClientSecret, cl
     try {
       const token = localStorage.getItem('token');
       // 1. Create PaymentIntent
-      const res = await fetch('http://localhost:5000/api/payment/create-payment-intent', {
+      const res = await fetch('https://localhost:5000/api/payment/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -37,7 +37,7 @@ import PaymentSummary from "./pages/admin/PaymentSummary";
 // import AdminCalendar from "./pages/admin/AdminCalendar";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminNotify from "./pages/admin/AdminNotify";
-import AdminQna from "./pages/admin/AdminQnaCard"; // Assuming you have a Q&A page for teachers
+import AdminQna from "./pages/admin/AdminQna"; // Assuming you have a Q&A page for teachers
 import AdminSettingCard from "./pages/admin/AdminSettingCard"; // Assuming you have a settings page for admin
 import AdminDownloadPage from "./pages/admin/AdminDownloadPage"; // Assuming you have a download page
 import AdminManagement from "./pages/admin/AdminManagement"; // Assuming you have a management page
@@ -77,7 +77,7 @@ import ThemeProvider from "./lib/theme-provider";
 const LayoutWithSidebar = ({ Sidebar, children }) => (
   <div className="flex h-screen">
     <Sidebar />
-    <div className="flex-1 overflow-y-auto p-4">
+    <div className="flex-1 overflow-y-auto ">
       {children}
       <Footer />
     </div>

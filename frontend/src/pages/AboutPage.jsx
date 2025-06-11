@@ -27,7 +27,7 @@ export default function AboutPage() {
       >
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">About EduMinds</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 mt-12 mb-6  font-extrabold text-blue-800 ">About EduMinds</h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
             Transforming education through technology and innovation
           </p>
@@ -38,10 +38,19 @@ export default function AboutPage() {
           <div>
             <h2 className="text-2xl md:text-3xl font-bold mb-6">Our Story</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Founded in 2020, EduMinds began with a simple mission: to make high-quality education accessible to everyone, regardless of location or background.
+              Founded in 2025, EduMinds began with a simple mission: to make high-quality education accessible to everyone, regardless of location or background.
             </p>
+            {/* Added project journey points */}
+            <ul className="list-disc ml-6 mb-4 text-slate-600 dark:text-slate-400">
+              <li>Developed a robust multi-role platform for students, teachers, and admins.</li>
+              <li>Integrated real-time notifications, Q&A, and assignment management.</li>
+              <li>Implemented secure authentication and role-based access control.</li>
+              <li>Enabled certificate issuance, download tracking, and progress analytics.</li>
+              <li>Focused on a modern, responsive, and accessible user interface.</li>
+              <li>Continuously improved based on user feedback and evolving needs.</li>
+            </ul>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              What started as a small collection of courses has grown into a comprehensive learning platform with thousands of instructors and students from over 150 countries.
+              What started as a small collection of courses.
             </p>
             <p className="text-slate-600 dark:text-slate-400">
               Today, we continue to innovate and expand our platform, always keeping our core mission at the heart of everything we do.

@@ -1,11 +1,11 @@
 import React from 'react'
-import SearchBar from '../../components/SearchBar'
+import SearchBar from "../../components/SearchBar"
 import QnA from './AdminQnaCard'
 
 export default function AdminQna() {
   return (
-    <div>
-        <SearchBar />
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-white"> 
+      <SearchBar />
         <QnA />
       
     </div>

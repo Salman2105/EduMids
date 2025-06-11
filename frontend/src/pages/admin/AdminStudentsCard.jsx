@@ -91,8 +91,22 @@ export default function StudentCard() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">All Registered Users</h2>
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
+            All Registered Users
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            View, search, and manage all users on the platform.
+          </p>
+        </div>
+        <img
+          src="/assets/student.png"
+          alt="Users"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       {loading && <p>Loading users...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && users.length === 0 && <p>No users found.</p>}
@@ -100,12 +114,15 @@ export default function StudentCard() {
         {users.map((user, idx) => (
           <motion.div
             key={user._id}
-            className="rounded-xl bg-white border shadow hover:shadow-lg transition flex flex-col overflow-hidden"
+            className="rounded-xl bg-white border shadow-lg hover:shadow-2xl transition flex flex-col overflow-hidden"
             style={{ minHeight: 220 }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.07, type: "spring", stiffness: 80 }}
-            whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+            whileHover={{
+              scale: 1.04,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+            }}
           >
             <div className="flex-1 flex flex-col p-4">
               <div className="flex items-center justify-between mb-1">
@@ -116,17 +133,22 @@ export default function StudentCard() {
                   {user.role}
                 </span>
               </div>
-              <h3 className="text-lg font-bold mb-1">{user.name || "No Name"}</h3>
-              <p className="text-slate-600 text-sm mb-2 line-clamp-2">{user.email}</p>
+              <h3 className="text-lg font-bold mb-1">
+                {user.name || "No Name"}
+              </h3>
+              <p className="text-slate-600 text-sm mb-2 line-clamp-2">
+                {user.email}
+              </p>
               <div className="flex items-center gap-2 mt-auto">
                 <span className="text-xs text-gray-400">
-                  Joined: {user.createdAt && !isNaN(new Date(user.createdAt))
+                  Joined:{" "}
+                  {user.createdAt && !isNaN(new Date(user.createdAt))
                     ? new Date(user.createdAt).toLocaleDateString()
                     : "N/A"}
                 </span>
                 {(user.role === "student" || user.role === "teacher") && (
                   <button
-                    className="ml-auto bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs"
+                    className="ml-auto bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 text-xs"
                     onClick={() => handleRoleUpdate(user._id, user.role)}
                   >
                     Make {user.role === "student" ? "Teacher" : "Student"}
@@ -134,7 +156,7 @@ export default function StudentCard() {
                 )}
                 {user.role !== "admin" && (
                   <button
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                    className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-xs"
                     onClick={() => handleDelete(user._id)}
                   >
                     Delete

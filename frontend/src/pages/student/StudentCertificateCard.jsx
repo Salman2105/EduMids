@@ -64,12 +64,25 @@ export default function StudentCertificateCard() {
     return <div className="p-4">You have not earned any certificates yet.</div>;
 
   return (
-    <>
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">My Certificates</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Download your earned certificates for completed courses.
+          </p>
+        </div>
+        <img
+          src="/assets/certificate.png"
+          alt="Certificate"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {certificates.map((cert) => (
           <div
             key={cert.certificateId}
-            className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between border border-gray-100 hover:shadow-lg transition-shadow duration-200"
+            className="bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between border border-gray-100 hover:shadow-2xl transition-shadow duration-200"
           >
             <div>
               <h2 className="text-xl font-bold text-blue-700 mb-2">{cert.courseName}</h2>
@@ -89,13 +102,13 @@ export default function StudentCertificateCard() {
             </div>
             <button
               onClick={() => handleDownload(cert.courseId, cert.courseName)}
-              className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center text-sm font-medium"
+              className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm font-medium"
             >
               Download PDF
             </button>
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

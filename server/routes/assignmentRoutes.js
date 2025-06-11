@@ -8,6 +8,8 @@ const Assignment = require("../Models/Assignment.js");
 // const {Course} = require("../Models/course");
 const jwt = require("jsonwebtoken");
 const User = require("../Models/user.js");
+const { assignmentValidation } = require("../validators/assignmentValidator");
+const { validationResult } = require("express-validator");
 const router = express.Router();
 
 // Middleware to verify user token (CommonJS style)
@@ -38,7 +40,12 @@ const checkRole = (roles) => (req, res, next) => {
 
 // @route   POST /api/assignments
 // @desc    Teacher creates a new assignment
-router.post("/create", verifyToken, checkRole(["teacher"]), async (req, res) => {
+router.post("/create", verifyToken, checkRole(["teacher"]), assignmentValidation, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+
   try {
     const { title, description, course, deadline, totalMarks, attachmentUrl } = req.body;
     // Validate required fields

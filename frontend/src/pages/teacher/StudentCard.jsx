@@ -80,23 +80,37 @@ export default function StudentCard() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">All Registered Students</h2>
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
+            All Registered Students
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            View, search, and manage all students on the platform.
+          </p>
+        </div>
+        <img
+          src="/assets/student.png"
+          alt="Student"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       {/* Search Bar */}
       <form
         onSubmit={handleSearch}
-        className="mb-8 flex flex-col sm:flex-row gap-2 items-center"
+        className="mb-8 flex flex-col sm:flex-row gap-2 items-center bg-white rounded-xl shadow-lg p-4"
       >
         <input
           type="text"
           placeholder="Enter Student ID, Name, or Email to search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-72"
+          className="border border-blue-200 px-3 py-2 rounded-lg w-full sm:w-72 focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
         >
           Search
         </button>
@@ -104,12 +118,12 @@ export default function StudentCard() {
 
       {/* Search Result */}
       {searchResult && (
-        <div className="mb-8  rounded-lg p-4 bg-white shadow">
-          <h3 className="text-lg font-bold mb-2">Search Result</h3>
+        <div className="mb-8 rounded-xl bg-white shadow-lg p-6 max-w-lg mx-auto">
+          <h3 className="text-lg font-bold mb-2 text-blue-700">Search Result</h3>
           {searchResult.notFound ? (
             <p className="text-red-500">Student not found.</p>
           ) : (
-            <div className="rounded-xl bg-white border shadow flex flex-col overflow-hidden max-w-md">
+            <div className="rounded-xl bg-white border shadow flex flex-col overflow-hidden">
               <div className="flex-1 flex flex-col p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-500 font-semibold">
@@ -119,16 +133,22 @@ export default function StudentCard() {
                     {searchResult.role}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-1">{searchResult.name || "No Name"}</h3>
-                <p className="text-slate-600 text-sm mb-2 line-clamp-2">{searchResult.email}</p>
+                <h3 className="text-lg font-bold mb-1">
+                  {searchResult.name || "No Name"}
+                </h3>
+                <p className="text-slate-600 text-sm mb-2 line-clamp-2">
+                  {searchResult.email}
+                </p>
                 <div className="flex items-center gap-2 mt-auto">
                   <span className="text-xs text-gray-400">
-                    Joined: {searchResult.createdAt && !isNaN(new Date(searchResult.createdAt))
+                    Joined:{" "}
+                    {searchResult.createdAt &&
+                    !isNaN(new Date(searchResult.createdAt))
                       ? new Date(searchResult.createdAt).toLocaleDateString()
                       : "N/A"}
                   </span>
                   <button
-                    className="ml-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                    className="ml-auto bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-xs"
                     onClick={() => handleDelete(searchResult._id)}
                   >
                     Delete
@@ -147,7 +167,7 @@ export default function StudentCard() {
         {users.map((user) => (
           <div
             key={user._id}
-            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden max-w-md"
+            className="border rounded-xl bg-white shadow-lg hover:shadow-2xl transition transform duration-300 hover:scale-105 flex flex-col overflow-hidden max-w-md"
             style={{ minHeight: 220 }}
           >
             <div className="flex-1 flex flex-col p-4">
@@ -168,7 +188,7 @@ export default function StudentCard() {
                     : "N/A"}
                 </span>
                 <button
-                  className="ml-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs"
+                  className="ml-auto bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-xs"
                   onClick={() => handleDelete(user._id)}
                 >
                   Delete

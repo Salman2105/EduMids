@@ -4,7 +4,7 @@ import SearchBar from '../../components/SearchBar'
 
 export default function TeacherSettingCard() {
   return (
-    <div>
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-white">
     <SearchBar />
      <Setting />
     </div>

@@ -1,5 +1,5 @@
 import React from 'react'
-import Searchbar from '../../components/searchbar'
+import Searchbar from '../../components/SearchBar'
 import AdminNotifyCard from './AdminNotifyCard'
 
 
@@ -10,7 +10,7 @@ export default function AdminNotify() {
         { id: 3, title: 'New Feature', content: 'A new feature has been added to the dashboard.' }
     ];
   return (
-    <div>
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-white">
         <Searchbar />
       <AdminNotifyCard  />
     </div>

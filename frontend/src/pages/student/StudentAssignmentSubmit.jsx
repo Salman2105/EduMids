@@ -139,14 +139,28 @@ const StudentAssignmentSubmit = () => {
     if (message) return <p className="text-red-600">{message}</p>;
     if (!allAssignments.length) return <p>No assignments found.</p>;
     return (
-      <div className="p-4 max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Your Assignments</h2>
+      <div className="max-w-4xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
+              Your Assignments
+            </h2>
+            <p className="text-gray-600 text-base md:text-lg">
+              Submit your assignments for all enrolled courses.
+            </p>
+          </div>
+          <img
+            src="/assets/assignment.png"
+            alt="Assignments"
+            className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+          />
+        </div>
         {allAssignments.map((course) => (
           <div key={course.courseId} className="mb-6">
             <h3 className="text-lg font-semibold mb-2">{course.courseTitle}</h3>
             <div className="space-y-2">
               {course.assignments.map((a) => (
-                <div key={a._id} className="border rounded p-3 flex flex-col md:flex-row md:items-center md:justify-between bg-white">
+                <div key={a._id} className="border rounded-xl bg-white shadow p-3 flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
                     <div className="font-semibold">{a.title}</div>
                     <div className="text-sm text-gray-600">{a.description}</div>
@@ -172,7 +186,7 @@ const StudentAssignmentSubmit = () => {
                           className="mb-2"
                         />
                         <button
-                          className="bg-blue-600 text-white px-3 py-1 rounded"
+                          className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
                           onClick={async () => {
                             const file = fileInputs[a._id];
                             if (!file) return alert("Please upload a file.");
@@ -252,9 +266,18 @@ const StudentAssignmentSubmit = () => {
   if (!assignment) return <p>Loading assignment...</p>;
 
   return (
-    <div className="p-4 border rounded-lg shadow-md max-w-xl mx-auto bg-white">
-      <h2 className="text-xl font-bold mb-2">{assignment.title}</h2>
-      <p className="mb-2">{assignment.description}</p>
+    <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">{assignment.title}</h2>
+          <p className="text-gray-600 text-base md:text-lg">{assignment.description}</p>
+        </div>
+        <img
+          src="/assets/assignment.png"
+          alt="Assignment"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       <p className="mb-4 text-sm text-gray-600">
         Deadline: {new Date(assignment.deadline).toLocaleString()}
         {" "}
@@ -272,7 +295,7 @@ const StudentAssignmentSubmit = () => {
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Submit Assignment
           </button>

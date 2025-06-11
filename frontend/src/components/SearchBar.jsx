@@ -78,15 +78,27 @@ const SearchBar = () => {
         </div>
 
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative flex items-center">
           <Bell
             size={20}
             className="text-gray-600 cursor-pointer"
             onClick={handleBellClick}
           />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
-              {unreadCount}
+            <span
+              className="absolute flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full"
+              style={{
+                top: '-6px',
+                right: '-6px',
+                minWidth: '18px',
+                height: '18px',
+                padding: '0 4px',
+                lineHeight: '18px',
+                fontSize: '12px',
+                zIndex: 10,
+              }}
+            >
+              {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </div>

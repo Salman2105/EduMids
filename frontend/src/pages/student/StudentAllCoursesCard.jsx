@@ -81,37 +81,52 @@ export default function StudentAllCoursesCard() {
   if (!courses.length) return <div className="p-4">No courses available at the moment.</div>;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 items-stretch">
-      {courses.map((course) => (
-        <div
-          key={course._id}
-          className="border rounded-xl shadow bg-white flex flex-col max-w-xs w-full mx-auto h-full hover:shadow-lg transition-transform duration-300 hover:scale-105"
-          style={{ minHeight: "420px", transitionProperty: "box-shadow, transform" }}
-        >
-          {course.picture && (
-            <img
-              src={`http://localhost:5000/${course.picture}`}
-              alt={course.title}
-              className="w-full h-44 object-cover rounded-t-xl"
-            />
-          )}
-          <div className="p-5 flex flex-col flex-1">
-            <div className="font-bold text-lg mb-1">{course.title}</div>
-            <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full capitalize">
-                {course.category || "General"}
-              </span>
-              <span className="text-green-700 font-semibold text-lg">
-                PKR{course.price?.toFixed ? course.price.toFixed(2) : course.price || "0.00"}
-              </span>
-            </div>
-            <div className="mt-auto flex justify-end">
-              <EnrollButton course={course} />
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">All Courses</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Browse and enroll in available courses.
+          </p>
+        </div>
+        <img
+          src="/assets/allcourses.png"
+          alt="All Courses"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 items-stretch">
+        {courses.map((course) => (
+          <div
+            key={course._id}
+            className="border rounded-xl shadow-lg bg-white flex flex-col max-w-xs w-full mx-auto h-full hover:shadow-2xl transition-transform duration-300 hover:scale-105"
+            style={{ minHeight: "420px", transitionProperty: "box-shadow, transform" }}
+          >
+            {course.picture && (
+              <img
+                src={`http://localhost:5000/${course.picture}`}
+                alt={course.title}
+                className="w-full h-44 object-cover rounded-t-xl"
+              />
+            )}
+            <div className="p-5 flex flex-col flex-1">
+              <div className="font-bold text-lg mb-1">{course.title}</div>
+              <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full capitalize">
+                  {course.category || "General"}
+                </span>
+                <span className="text-green-700 font-semibold text-lg">
+                  PKR{course.price?.toFixed ? course.price.toFixed(2) : course.price || "0.00"}
+                </span>
+              </div>
+              <div className="mt-auto flex justify-end">
+                <EnrollButton course={course} />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

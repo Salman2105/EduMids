@@ -32,20 +32,61 @@ const Login = () => {
     message: "",
     severity: "success",
   });
+  const [passwordError, setPasswordError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    if (e.target.name === "password") {
+      if (!isLogin && e.target.value.length > 0 && e.target.value.length < 6) {
+        setPasswordError("Password must be at least 6 characters");
+      } else {
+        setPasswordError("");
+      }
+    }
+    if (e.target.name === "name") {
+      if (!isLogin && e.target.value.trim().length === 0) {
+        setNameError("Name is required");
+      } else {
+        setNameError("");
+      }
+    }
+    if (e.target.name === "email") {
+      if (!e.target.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) {
+        setEmailError("Valid email is required");
+      } else {
+        setEmailError("");
+      }
+    }
   };
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const validateForm = () => {
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setSnackbar({ open: true, message: "Valid email is required", severity: "error" });
+      return false;
+    }
+    if (!formData.password || (isLogin ? false : formData.password.length < 6)) {
+      setSnackbar({ open: true, message: isLogin ? "Password is required" : "Password must be at least 6 characters", severity: "error" });
+      return false;
+    }
+    if (!isLogin && !formData.name.trim()) {
+      setSnackbar({ open: true, message: "Name is required", severity: "error" });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
     try {
       const endpoint = isLogin
@@ -157,6 +198,8 @@ const Login = () => {
                 fullWidth
                 required
                 size="small"
+                error={!isLogin && !!nameError}
+                helperText={!isLogin && nameError ? nameError : ""}
               />
             </Box>
           )}
@@ -176,6 +219,8 @@ const Login = () => {
               fullWidth
               required
               size="small"
+              error={!!emailError}
+              helperText={emailError}
             />
           </Box>
           <Box mb={2}>
@@ -194,6 +239,8 @@ const Login = () => {
               fullWidth
               required
               size="small"
+              error={!isLogin && !!passwordError}
+              helperText={!isLogin && passwordError ? passwordError : ""}
             />
             {isLogin && (
               <Box mt={1}>

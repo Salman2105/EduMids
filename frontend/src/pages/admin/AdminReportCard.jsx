@@ -158,8 +158,20 @@ export default function AdminReportCard() {
   const filteredReport = getFilteredReport();
 
   return (
-    <div className="max-w-7xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">Courses & Users Report</h2>
+    <div className="max-w-7xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Courses & Users Report</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Download and analyze course, user, and certificate statistics.
+          </p>
+        </div>
+        <img
+          src="/assets/certificate.png"
+          alt="Certificates"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       <div className="mb-4 flex gap-2">
         <button
           className="px-3 py-1 rounded border bg-green-600 text-white"

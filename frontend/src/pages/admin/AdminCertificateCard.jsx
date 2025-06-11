@@ -185,8 +185,20 @@ export default function AdminCertificateCard() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto mt-8 p-4 sm:p-6 bg-white rounded shadow-lg w-full">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Issued Certificates</h2>
+    <div className="max-w-7xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Issued Certificates</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Manage, revoke, and re-issue certificates for all students and courses.
+          </p>
+        </div>
+        <img
+          src="/assets/certificate.png"
+          alt="Certificates"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       {/* Search/Filter UI */}
       <div className="w-full max-w-3xl mx-auto flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
         <input
@@ -211,7 +223,7 @@ export default function AdminCertificateCard() {
       )}
 
       {/* Responsive Table/Card for Issued Certificates */}
-      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-lg bg-white">
         <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
@@ -286,13 +298,13 @@ export default function AdminCertificateCard() {
       </div>
 
       {/* Revoked Certificates Section */}
-      <h2 className="text-2xl sm:text-3xl font-bold mt-12 mb-6 text-gray-800">Revoked Certificates</h2>
+      <h2 className="mt-12 mb-6 text-3xl md:text-4xl font-extrabold text-blue-800">Revoked Certificates</h2>
       {revokedLoading && <p>Loading revoked certificates...</p>}
       {revokedError && <p className="text-red-600">{revokedError}</p>}
       {!revokedLoading && filteredRevokedCertificates.length === 0 && !revokedError && (
         <p>No revoked certificates found.</p>
       )}
-      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-lg bg-white">
         <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
@@ -399,13 +411,13 @@ export default function AdminCertificateCard() {
       </div>
 
       {/* Revoked & Reissued Certificates Section */}
-      <h2 className="text-2xl sm:text-3xl font-bold mt-12 mb-6 text-gray-800">Revoked & Reissued Certificates</h2>
+      <h2 className="mt-12 mb-6 text-3xl md:text-4xl font-extrabold text-blue-800">Revoked & Reissued Certificates</h2>
       {revokedReissuedLoading && <p>Loading revoked & reissued certificates...</p>}
       {revokedReissuedError && <p className="text-red-600">{revokedReissuedError}</p>}
       {!revokedReissuedLoading && revokedReissuedCertificates.length === 0 && !revokedReissuedError && (
         <p>No revoked & reissued certificates found.</p>
       )}
-      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-lg bg-white">
         <table className="hidden md:table min-w-full divide-y divide-gray-200">
           <thead>
             <tr>

@@ -169,10 +169,20 @@ export default function TeacherEnrollmentCrad() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">
-        Student Enrollments in Your Courses
-      </h2>
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Student Enrollments in Your Courses</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            View, search, and manage enrollments for your courses.
+          </p>
+        </div>
+        <img
+          src="/assets/enroll.png"
+          alt="Enrollments"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
 
       {/* Download Buttons */}
       <div className="mb-8 flex gap-2">
@@ -193,18 +203,18 @@ export default function TeacherEnrollmentCrad() {
       {/* Search Bar */}
       <form
         onSubmit={handleSearch}
-        className="mb-8 flex flex-col sm:flex-row gap-2 items-center"
+        className="mb-8 flex flex-col sm:flex-row gap-2 items-center bg-white rounded-xl shadow-lg p-4"
       >
         <input
           type="text"
           placeholder="Enter Course ID or Name to search"
           value={searchCourseId}
           onChange={(e) => setSearchCourseId(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-72"
+          className="border border-blue-200 px-3 py-2 rounded-lg w-full sm:w-72 focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
         >
           Search
         </button>
@@ -212,17 +222,14 @@ export default function TeacherEnrollmentCrad() {
 
       {/* Search Result */}
       {searchResult && (
-        <div className="mb-8 border rounded-lg p-4 bg-blue-100 shadow">
-          <h3 className="text-lg font-bold mb-2">Search Result</h3>
+        <div className="mb-8 border rounded-xl bg-white shadow-lg p-6 max-w-lg mx-auto">
+          <h3 className="text-lg font-bold mb-2 text-blue-700">Search Result</h3>
           {searchResult.course ? (
             <>
-              {/* Show course number and ID */}
               <div className="mb-2 text-sm text-gray-500 font-semibold">
-                Course #
-                {courses.findIndex((c) => c._id === searchResult.course._id) + 1}
+                Course #{courses.findIndex((c) => c._id === searchResult.course._id) + 1}
                 &nbsp;|&nbsp; ID: {searchResult.course._id}
               </div>
-              {/* Show course picture if available */}
               {searchResult.course.picture && (
                 <img
                   src={getImageSrc(searchResult.course.picture)}
@@ -230,12 +237,8 @@ export default function TeacherEnrollmentCrad() {
                   className="w-40 h-28 object-cover rounded mb-4"
                 />
               )}
-              <h3 className="text-xl font-semibold mb-2">
-                {searchResult.course.title}
-              </h3>
-              <p className="mb-2 text-slate-600">
-                {searchResult.course.description}
-              </p>
+              <h3 className="text-xl font-semibold mb-2">{searchResult.course.title}</h3>
+              <p className="mb-2 text-slate-600">{searchResult.course.description}</p>
               <h4 className="font-bold mb-2">Enrolled Students:</h4>
               {searchResult.students.length > 0 ? (
                 <ul className="list-disc pl-6">
@@ -251,9 +254,8 @@ export default function TeacherEnrollmentCrad() {
               <p className="mt-2 font-semibold">
                 Total Enrolled: {searchResult.students.length}
               </p>
-              {/* Delete Course Button */}
               <button
-                className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                 onClick={async () => {
                   if (
                     window.confirm(
@@ -296,15 +298,16 @@ export default function TeacherEnrollmentCrad() {
           )}
         </div>
       )}
+
       {/* All Courses List */}
-      <h3 className="text-xl font-bold mb-4 mt-8">All Courses Created By You</h3>
+      <h3 className="text-2xl font-bold mb-4 mt-8 text-blue-700">All Courses Created By You</h3>
       {courses.length === 0 && <p>No courses found.</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {courses.map((course, idx) => (
           <div
             key={course._id}
-            className="border rounded-xl bg-white shadow hover:shadow-lg transition transform duration-300 hover:scale-105 hover:shadow-2xl flex flex-col overflow-hidden max-w-md"
+            className="border rounded-xl bg-white shadow-lg hover:shadow-2xl transition transform duration-300 hover:scale-105 flex flex-col overflow-hidden max-w-md"
             style={{ minHeight: 340 }}
           >
             {/* Course Image */}

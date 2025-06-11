@@ -92,9 +92,22 @@ const StudentCourseCard = () => {
     return <div className="p-4">You have not enrolled in any courses yet.</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">My Courses</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Track your progress, quizzes, and assignments for enrolled courses.
+          </p>
+        </div>
+        <img
+          src="/assets/mycourses.png"
+          alt="My Courses"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
+      </div>
       {/* User Info */}
-      <div className="mb-6 p-4 bg-white rounded shadow flex items-center gap-4">
+      <div className="mb-6 p-4 bg-white rounded-xl shadow-lg flex items-center gap-4">
         <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center text-2xl font-bold">
           {data.user.id.slice(0, 2).toUpperCase()}
         </div>
@@ -106,7 +119,7 @@ const StudentCourseCard = () => {
       {/* Courses */}
       <div className="space-y-8">
         {data.courses.map((course) => (
-          <div key={course.courseId} className="bg-white rounded shadow p-6">
+          <div key={course.courseId} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold mb-1">{course.title}</h2>
@@ -117,12 +130,12 @@ const StudentCourseCard = () => {
               </div>
               <div className="mt-4 md:mt-0">
                 <div className="font-semibold">
-                  Progress: {typeof course.progress === "number" ? course.progress : 0}%
+                  Progress: {typeof course.progress === "number" ? Math.round(course.progress) : 0}%
                 </div>
                 <div className="w-40 h-2 bg-gray-200 rounded mt-1">
                   <div
                     className="h-2 bg-blue-500 rounded"
-                    style={{ width: `${typeof course.progress === "number" ? course.progress : 0}%` }}
+                    style={{ width: `${typeof course.progress === "number" ? Math.round(course.progress) : 0}%` }}
                   ></div>
                 </div>
               </div>
@@ -133,7 +146,6 @@ const StudentCourseCard = () => {
               {(course.lessons && course.lessons.length > 0) ? (
                 <ul className="space-y-1">
                   {course.lessons.map((lesson) => {
-                    // Check if lesson is completed (assuming course.completedLessons is an array of lesson IDs)
                     const isCompleted = Array.isArray(course.completedLessons) && (course.completedLessons.includes(lesson.lessonId) || course.completedLessons.includes(lesson._id));
                     return (
                       <li key={lesson.lessonId || lesson._id} className="flex items-center gap-2">
@@ -153,11 +165,9 @@ const StudentCourseCard = () => {
             {/* Quizzes */}
             <div>
               <div className="font-semibold mb-2">
-                {/* Count quizzes for this course from allQuizzes */}
                 Quizzes ({allQuizzes.filter(q => String(q.courseId) === String(course.courseId)).length})
               </div>
               {(() => {
-                // Find all quizzes for this course from allQuizzes
                 const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
                 if (quizzesForCourse.length > 0) {
                   return (
@@ -196,7 +206,6 @@ const StudentCourseCard = () => {
                       ) : (
                         <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
                       )}
-                      {/* Add submit button for not submitted assignments */}
                       {!assignment.submitted && (
                         <button
                           className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
@@ -213,7 +222,7 @@ const StudentCourseCard = () => {
               )}
             </div>
             <button
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               onClick={() => handleUnenroll(course.courseId)}
               disabled={unenrolling[course.courseId]}
             >

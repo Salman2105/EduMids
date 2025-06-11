@@ -4,7 +4,7 @@ import QnA from './qna'
 
 export default function TeacherQna() {
   return (
-    <div>
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-white">
       
         <Searchbar />
         <QnA />

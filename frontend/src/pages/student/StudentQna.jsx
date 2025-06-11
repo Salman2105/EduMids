@@ -4,7 +4,7 @@ import QnA from "./StudentQnaCard"
 
 export default function StudentQna() {
   return (
-    <div>
+    <div className='p-6 bg-gradient-to-br from-blue-50 to-white'>
      <SearchBar />
      <QnA/>
     </div>

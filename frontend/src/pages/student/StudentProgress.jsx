@@ -6,7 +6,7 @@ import StudentProgressCard from "./StudentProgressCard";
 
 const StudentProgress = () => {
   return (
- <> <div className="p-6">
+ <> <div className="p-6 bg-gradient-to-br from-blue-50 to-white">
       <SearchBar />
       <StudentProgressCard />
       {/* <CourseDetails /> */}

@@ -231,229 +231,242 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto bg-white rounded shadow">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold">Student Submissions</h2>
-        {onBack && (
-          <button onClick={onBack} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">Back</button>
-        )}
+    <div className="max-w-4xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Assignment & Submissions</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Manage assignments and grade student submissions for your courses.
+          </p>
+        </div>
+        <img
+          src="/assets/assignment.png"
+          alt="Assignments"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
+        />
       </div>
-      {/* Assignment selection dropdown */}
-      <div className="mb-4">
-        <label className="font-semibold mr-2">Select Assignment:</label>
-        <select
-          className="border px-2 py-1 rounded"
-          value={selectedAssignmentId || ""}
-          onChange={e => setSelectedAssignmentId(e.target.value)}
+      <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-10">
+        <div className="flex items-center justify-between mb-4">
+          {onBack && (
+            <button onClick={onBack} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">Back</button>
+          )}
+        </div>
+        <button
+          className="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          onClick={() => setShowAssignmentForm((v) => !v)}
         >
-          <option value="">-- Select Assignment --</option>
-          {myAssignments.map(a => (
-            <option key={a._id} value={a._id}>
-              {a.title} (Course: {a.course?.title || "N/A"}, Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"})
-            </option>
-          ))}
-        </select>
-      </div>
-      {/* Upload New Assignment button and form */}
-      <button
-        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowAssignmentForm((v) => !v)}
-      >
-        {showAssignmentForm ? "Cancel" : "Upload New Assignment"}
-      </button>
-      {showAssignmentForm && (
-        <form onSubmit={handleAssignmentSubmit} className="mb-6 bg-gray-50 p-4 rounded">
-          <h3 className="text-lg font-bold mb-2">New Assignment</h3>
-          <input
-            type="text"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Title"
-            value={newAssignment.title}
-            onChange={e => handleAssignmentInput("title", e.target.value)}
-            required
-          />
-          <textarea
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Description"
-            value={newAssignment.description}
-            onChange={e => handleAssignmentInput("description", e.target.value)}
-          />
+          {showAssignmentForm ? "Cancel" : "Upload New Assignment"}
+        </button>
+        {showAssignmentForm && (
+          <form onSubmit={handleAssignmentSubmit} className="mb-6 bg-gray-50 p-4 rounded-xl">
+            <h3 className="text-lg font-bold mb-2">New Assignment</h3>
+            <select
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              value={newAssignment.course}
+              onChange={e => handleAssignmentInput("course", e.target.value)}
+              required
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((c) => (
+                <option key={c._id} value={c._id}>{c.title}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Title"
+              value={newAssignment.title}
+              onChange={e => handleAssignmentInput("title", e.target.value)}
+              required
+            />
+            <textarea
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Description"
+              value={newAssignment.description}
+              onChange={e => handleAssignmentInput("description", e.target.value)}
+            />
+            <input
+              type="datetime-local"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              value={newAssignment.deadline}
+              onChange={e => handleAssignmentInput("deadline", e.target.value)}
+              required
+            />
+            <input
+              type="number"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Total Marks"
+              value={newAssignment.totalMarks}
+              onChange={e => handleAssignmentInput("totalMarks", e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Attachment URL (optional)"
+              value={newAssignment.attachmentUrl}
+              onChange={e => handleAssignmentInput("attachmentUrl", e.target.value)}
+            />
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">Create Assignment</button>
+            {message && <p className="mt-2 text-green-600">{message}</p>}
+          </form>
+        )}
+        <div className="mb-4">
+          <h3 className="text-lg font-bold mb-2">Your Assignments</h3>
+          {myAssignments.length === 0 ? (
+            <div className="text-gray-500">No assignments created yet.</div>
+          ) : (
+            <ul className="divide-y">
+              {myAssignments.map(a => (
+                <li key={a._id} className="py-2 flex flex-col">
+                  <span className="font-semibold">{a.title}</span>
+                  <span className="text-sm text-gray-600">
+                    Course: {a.course?.title || "N/A"} | Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"}
+                  </span>
+                  <div className="flex gap-2 mt-1">
+                    <button
+                      className="bg-yellow-500 text-white px-2 py-1 rounded"
+                      onClick={() => handleEditAssignment(a)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-600 text-white px-2 py-1 rounded"
+                      onClick={() => handleDeleteAssignment(a._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="mb-4">
+          <label className="font-semibold mr-2">Select Assignment:</label>
           <select
-            className="border px-3 py-2 rounded w-full mb-2"
-            value={newAssignment.course}
-            onChange={e => handleAssignmentInput("course", e.target.value)}
-            required
+            className="border border-blue-200 px-2 py-1 rounded-lg focus:ring-2 focus:ring-blue-400"
+            value={selectedAssignmentId || ""}
+            onChange={e => setSelectedAssignmentId(e.target.value)}
           >
-            <option value="">-- Select Course --</option>
-            {courses.map((c) => (
-              <option key={c._id} value={c._id}>{c.title}</option>
+            <option value="">-- Select Assignment --</option>
+            {myAssignments.map(a => (
+              <option key={a._id} value={a._id}>
+                {a.title} (Course: {a.course?.title || "N/A"}, Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"})
+              </option>
             ))}
           </select>
-          <input
-            type="datetime-local"
-            className="border px-3 py-2 rounded w-full mb-2"
-            value={newAssignment.deadline}
-            onChange={e => handleAssignmentInput("deadline", e.target.value)}
-            required
-          />
-          <input
-            type="number"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Total Marks"
-            value={newAssignment.totalMarks}
-            onChange={e => handleAssignmentInput("totalMarks", e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Attachment URL (optional)"
-            value={newAssignment.attachmentUrl}
-            onChange={e => handleAssignmentInput("attachmentUrl", e.target.value)}
-          />
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Create Assignment</button>
-          {message && <p className="mt-2 text-green-600">{message}</p>}
-        </form>
-      )}
-      {/* List all assignments created by this teacher */}
-      <div className="mb-4">
-        <h3 className="text-lg font-bold mb-2">Your Assignments</h3>
-        {myAssignments.length === 0 ? (
-          <div className="text-gray-500">No assignments created yet.</div>
+        </div>
+        {editAssignmentId && (
+          <form onSubmit={handleEditAssignmentSubmit} className="mb-6 bg-yellow-50 p-4 rounded-xl">
+            <h3 className="text-lg font-bold mb-2">Edit Assignment</h3>
+            <input
+              type="text"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Title"
+              value={editAssignment.title}
+              onChange={e => handleEditAssignmentInput("title", e.target.value)}
+              required
+            />
+            <textarea
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Description"
+              value={editAssignment.description}
+              onChange={e => handleEditAssignmentInput("description", e.target.value)}
+            />
+            <select
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              value={editAssignment.course}
+              onChange={e => handleEditAssignmentInput("course", e.target.value)}
+              required
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((c) => (
+                <option key={c._id} value={c._id}>{c.title}</option>
+              ))}
+            </select>
+            <input
+              type="datetime-local"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              value={editAssignment.deadline}
+              onChange={e => handleEditAssignmentInput("deadline", e.target.value)}
+              required
+            />
+            <input
+              type="number"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Total Marks"
+              value={editAssignment.totalMarks}
+              onChange={e => handleEditAssignmentInput("totalMarks", e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="Attachment URL (optional)"
+              value={editAssignment.attachmentUrl}
+              onChange={e => handleEditAssignmentInput("attachmentUrl", e.target.value)}
+            />
+            <button type="submit" className="bg-yellow-600 text-white px-4 py-2 rounded-lg">Update Assignment</button>
+            <button
+              type="button"
+              className="ml-2 bg-gray-400 text-white px-4 py-2 rounded-lg"
+              onClick={() => setEditAssignmentId(null)}
+            >
+              Cancel
+            </button>
+            {message && <p className="mt-2 text-red-600">{message}</p>}
+          </form>
+        )}
+        <div className="flex items-center justify-between mb-4 mt-8">
+          <h2 className="text-2xl font-semibold text-blue-700">Student Submissions</h2>
+        </div>
+        {loading ? (
+          <div>Loading...</div>
         ) : (
-          <ul className="divide-y">
-            {myAssignments.map(a => (
-              <li key={a._id} className="py-2 flex flex-col">
-                <span className="font-semibold">{a.title}</span>
-                <span className="text-sm text-gray-600">
-                  Course: {a.course?.title || "N/A"} | Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"}
-                </span>
-                <div className="flex gap-2 mt-1">
+          selectedAssignmentId && submissions && submissions.length > 0 ? (
+            submissions.map((s) => (
+              <div key={s._id} className="border-b py-4">
+                <p>
+                  <strong>Student:</strong> {s.student.name} ({s.student.email})
+                </p>
+                <a
+                  href={s.submittedFileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline"
+                >
+                  View Submission
+                </a>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Marks"
+                    value={inputs[s._id]?.marks || ""}
+                    onChange={e => handleInputChange(s._id, "marks", e.target.value)}
+                    className="border border-blue-200 px-2 py-1 w-20 rounded-lg focus:ring-2 focus:ring-blue-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Feedback"
+                    value={inputs[s._id]?.feedback || ""}
+                    onChange={e => handleInputChange(s._id, "feedback", e.target.value)}
+                    className="border border-blue-200 px-2 py-1 flex-1 rounded-lg focus:ring-2 focus:ring-blue-400"
+                  />
                   <button
-                    className="bg-yellow-500 text-white px-2 py-1 rounded"
-                    onClick={() => handleEditAssignment(a)}
+                    onClick={() => handleGrade(s._id)}
+                    className="bg-green-600 text-white px-3 py-1 rounded-lg"
                   >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-600 text-white px-2 py-1 rounded"
-                    onClick={() => handleDeleteAssignment(a._id)}
-                  >
-                    Delete
+                    Grade
                   </button>
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+            ))
+          ) : (
+            selectedAssignmentId ? <div>No submissions found.</div> : <div>Select an assignment to view submissions.</div>
+          )
         )}
       </div>
-      {/* Edit Assignment Form */}
-      {editAssignmentId && (
-        <form onSubmit={handleEditAssignmentSubmit} className="mb-6 bg-yellow-50 p-4 rounded">
-          <h3 className="text-lg font-bold mb-2">Edit Assignment</h3>
-          <input
-            type="text"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Title"
-            value={editAssignment.title}
-            onChange={e => handleEditAssignmentInput("title", e.target.value)}
-            required
-          />
-          <textarea
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Description"
-            value={editAssignment.description}
-            onChange={e => handleEditAssignmentInput("description", e.target.value)}
-          />
-          <select
-            className="border px-3 py-2 rounded w-full mb-2"
-            value={editAssignment.course}
-            onChange={e => handleEditAssignmentInput("course", e.target.value)}
-            required
-          >
-            <option value="">-- Select Course --</option>
-            {courses.map((c) => (
-              <option key={c._id} value={c._id}>{c.title}</option>
-            ))}
-          </select>
-          <input
-            type="datetime-local"
-            className="border px-3 py-2 rounded w-full mb-2"
-            value={editAssignment.deadline}
-            onChange={e => handleEditAssignmentInput("deadline", e.target.value)}
-            required
-          />
-          <input
-            type="number"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Total Marks"
-            value={editAssignment.totalMarks}
-            onChange={e => handleEditAssignmentInput("totalMarks", e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Attachment URL (optional)"
-            value={editAssignment.attachmentUrl}
-            onChange={e => handleEditAssignmentInput("attachmentUrl", e.target.value)}
-          />
-          <button type="submit" className="bg-yellow-600 text-white px-4 py-2 rounded">Update Assignment</button>
-          <button
-            type="button"
-            className="ml-2 bg-gray-400 text-white px-4 py-2 rounded"
-            onClick={() => setEditAssignmentId(null)}
-          >
-            Cancel
-          </button>
-          {message && <p className="mt-2 text-red-600">{message}</p>}
-        </form>
-      )}
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        selectedAssignmentId && submissions && submissions.length > 0 ? (
-          submissions.map((s) => (
-            <div key={s._id} className="border-b py-4">
-              <p>
-                <strong>Student:</strong> {s.student.name} ({s.student.email})
-              </p>
-              <a
-                href={s.submittedFileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline"
-              >
-                View Submission
-              </a>
-              <div className="mt-2 flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Marks"
-                  value={inputs[s._id]?.marks || ""}
-                  onChange={e => handleInputChange(s._id, "marks", e.target.value)}
-                  className="border px-2 py-1 w-20"
-                />
-                <input
-                  type="text"
-                  placeholder="Feedback"
-                  value={inputs[s._id]?.feedback || ""}
-                  onChange={e => handleInputChange(s._id, "feedback", e.target.value)}
-                  className="border px-2 py-1 flex-1"
-                />
-                <button
-                  onClick={() => handleGrade(s._id)}
-                  className="bg-green-600 text-white px-3 py-1 rounded"
-                >
-                  Grade
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          selectedAssignmentId ? <div>No submissions found.</div> : <div>Select an assignment to view submissions.</div>
-        )
-      )}
     </div>
   );
 };
