@@ -29,6 +29,9 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
   });
   const [courses, setCourses] = useState([]);
 
+  const CLOUDINARY_CLOUD_NAME = "dctpna06w"; // Replace with your Cloudinary cloud name
+  const CLOUDINARY_UPLOAD_PRESET = "upload"; // Replace with your Cloudinary upload preset
+
   // Helper to get token from localStorage (adjust if you store it elsewhere)
   const getToken = () => localStorage.getItem("token");
 
@@ -127,6 +130,32 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
     setNewAssignment((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleAttachmentFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    try {
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await res.json();
+      if (data.secure_url) {
+        setNewAssignment((prev) => ({ ...prev, attachmentUrl: data.secure_url }));
+        toast.success("Attachment uploaded!");
+      } else {
+        toast.error("Cloudinary upload failed");
+      }
+    } catch (err) {
+      toast.error("Cloudinary upload error");
+    }
+  };
+
   const handleAssignmentSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -140,7 +169,7 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
         ...newAssignment,
         deadline: formattedDeadline,
       };
-      const { data } = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/assignments/create",
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -148,8 +177,12 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
       toast.success("Assignment created successfully!");
       setShowAssignmentForm(false);
       setNewAssignment({ title: "", description: "", deadline: "", totalMarks: 100, attachmentUrl: "", course: "" });
-      // Refresh assignments list
-      setMyAssignments((prev) => [...prev, data.assignment]);
+      // Re-fetch assignments so all have populated course info
+      const { data: refreshed } = await axios.get(
+        "http://localhost:5000/api/assignments/my",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMyAssignments(Array.isArray(refreshed.assignments) ? refreshed.assignments : []);
     } catch (err) {
       setMessage("Failed to create assignment");
       // Debug log
@@ -300,6 +333,18 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
               onChange={e => handleAssignmentInput("totalMarks", e.target.value)}
               required
             />
+            <div className="mb-2">
+              <label className="block font-semibold mb-1">Attachment (PDF, image, etc.)</label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.avi,.mov"
+                onChange={handleAttachmentFileChange}
+                className="mb-1"
+              />
+              {newAssignment.attachmentUrl && (
+                <a href={newAssignment.attachmentUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">View Uploaded Attachment</a>
+              )}
+            </div>
             <input
               type="text"
               className="border border-blue-200 px-3 py-2 rounded-lg w-full mb-2 focus:ring-2 focus:ring-blue-400"
@@ -321,7 +366,7 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
                 <li key={a._id} className="py-2 flex flex-col">
                   <span className="font-semibold">{a.title}</span>
                   <span className="text-sm text-gray-600">
-                    Course: {a.course?.title || "N/A"} | Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"}
+                    Course: {(typeof a.course === 'object' && a.course && a.course.title) ? a.course.title : "N/A"} | Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"}
                   </span>
                   <div className="flex gap-2 mt-1">
                     <button

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -8,6 +8,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Cta from '../components/Cta';
 import Work from '../components/Work';
+import { motion, useInView } from "framer-motion";
 
 export default function ServicesPage() {
   const services = [
@@ -29,10 +30,13 @@ export default function ServicesPage() {
     }  
   ];
 
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
     <>
       <Header />
-      <Helmet>
+      <Helmet >
         <title>Our Services | EduMinds Learning Platform</title>
         <meta name="description" content="Discover the comprehensive educational services offered by EduMinds - from online courses and mentorship to corporate training and AI-powered tutoring." />
       </Helmet>
@@ -46,40 +50,60 @@ export default function ServicesPage() {
       >
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">Our Educational Services</h1>
-          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+          <motion.h1
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-blue-800"
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            ref={ref}
+          >
+            Our Educational Services
+          </motion.h1>
+          <motion.p
+            className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
+          >
             Comprehensive learning solutions designed to help you achieve your educational and career goals.
-          </p>
+          </motion.p>
         </div>
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {services.map((service, index) => (
-            <Card key={index} className="overflow-hidden transition-all hover:shadow-lg">
-              <CardContent className="p-6">
-                <div className="mb-4">{service.icon}</div>
-                <h2 className="text-2xl font-bold mb-3">{service.title}</h2>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
-                  {service.description}
-                </p>
-                <div className="space-y-2">
-                  {service.features.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6">
-                  <Button asChild className="w-full">
-                    <Link to="/CoursesPage">
-                      <span>Learn More</span>
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 40 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+              transition={{ delay: inView ? index * 0.15 : 0, duration: 0.7, ease: "easeOut" }}
+            >
+              <Card className="overflow-hidden transition-all hover:shadow-lg">
+                <CardContent className="p-6">
+                  <div className="mb-4 ">{service.icon}</div>
+                  <h2 className="text-2xl font-bold mb-3 text-blue-800">{service.title}</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6">
+                    {service.description}
+                  </p>
+                  <div className="space-y-2">
+                    {service.features.map((feature, i) => (
+                      <div key={i} className="flex items-start">
+                        <Check className="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-slate-600 dark:text-slate-400">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6">
+                    <Button asChild className="w-full text-blue-800">
+                      <Link to="/CoursesPage">
+                        <span>Learn More</span>
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
 

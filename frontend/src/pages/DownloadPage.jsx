@@ -16,6 +16,7 @@ const DownloadPage = () => {
   const [courses, setCourses] = useState([]);
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [allAssignments, setAllAssignments] = useState({});
+  const [assignmentMarksMap, setAssignmentMarksMap] = useState({});
 
   // Fetch lessons (downloadable files)
   useEffect(() => {
@@ -120,6 +121,33 @@ const DownloadPage = () => {
     fetchAllAssignments();
   }, []);
 
+  // Fetch student submissions to get marks for assignments
+  useEffect(() => {
+    const fetchAssignmentMarks = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/submissions/student", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch assignment submissions");
+        const data = await res.json();
+        // Build a map: assignmentId -> marksObtained
+        const map = {};
+        if (Array.isArray(data.submissions)) {
+          data.submissions.forEach(sub => {
+            if (sub.assignment && sub.assignment._id && typeof sub.marksObtained === "number") {
+              map[sub.assignment._id] = sub.marksObtained;
+            }
+          });
+        }
+        setAssignmentMarksMap(map);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAssignmentMarks();
+  }, []);
+
   // Fetch certificates (same logic as StudentCertificateCard)
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -145,13 +173,28 @@ const DownloadPage = () => {
   const handleDownload = async (lessonId) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/download/lesson/${lessonId}`, {
+      const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.message || "Access denied or download failed.");
+          return;
+        }
+        if (data.url) {
+          window.open(data.url, "_blank");
+          return;
+        }
+        alert("Access denied or download failed.");
+        return;
+      }
       if (!response.ok) {
-        throw new Error("Failed to download file");
+        alert("Access denied or download failed.");
+        return;
       }
       const blob = await response.blob();
       // Try to get filename from Content-Disposition header
@@ -200,10 +243,25 @@ const DownloadPage = () => {
       // Calculate total assignment marks (or blank if none)
       let assignmentMarks = "";
       if (assignmentsForCourse.length > 0) {
-        const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+        // Use assignmentMarksMap to get marks for each assignment
+        const marks = assignmentsForCourse.map(a =>
+          typeof assignmentMarksMap[a._id] === "number"
+            ? assignmentMarksMap[a._id]
+            : typeof a.marksObtained === "number"
+            ? a.marksObtained
+            : typeof a.marks === "number"
+            ? a.marks
+            : typeof a.score === "number"
+            ? a.score
+            : null
+        ).filter(m => m !== null);
         if (marks.length > 0) {
           assignmentMarks = marks.reduce((a, b) => a + b, 0);
+        } else {
+          assignmentMarks = "-";
         }
+      } else {
+        assignmentMarks = "-";
       }
 
       // Progress
@@ -267,10 +325,25 @@ const DownloadPage = () => {
 
       let assignmentMarks = "";
       if (assignmentsForCourse.length > 0) {
-        const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+        // Use assignmentMarksMap to get marks for each assignment
+        const marks = assignmentsForCourse.map(a =>
+          typeof assignmentMarksMap[a._id] === "number"
+            ? assignmentMarksMap[a._id]
+            : typeof a.marksObtained === "number"
+            ? a.marksObtained
+            : typeof a.marks === "number"
+            ? a.marks
+            : typeof a.score === "number"
+            ? a.score
+            : null
+        ).filter(m => m !== null);
         if (marks.length > 0) {
           assignmentMarks = marks.reduce((a, b) => a + b, 0);
+        } else {
+          assignmentMarks = "-";
         }
+      } else {
+        assignmentMarks = "-";
       }
 
       const progress = typeof course.progress === "number" ? course.progress : "";
@@ -428,6 +501,9 @@ const DownloadPage = () => {
                     File Name
                   </th>
                   <th className="p-3 text-left font-semibold text-gray-700">
+                    Course
+                  </th>
+                  <th className="p-3 text-left font-semibold text-gray-700">
                     Path
                   </th>
                   <th className="p-3 text-left font-semibold text-gray-700">
@@ -445,7 +521,7 @@ const DownloadPage = () => {
                 {history.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="p-3 text-center text-gray-500"
                     >
                       No history found.
@@ -471,6 +547,20 @@ const DownloadPage = () => {
                         </span>
                       </td>
                       <td className="p-3">{h.fileName}</td>
+                      <td className="p-3 text-gray-700">
+                        {
+                          typeof h.courseTitle === "string" && h.courseTitle.trim() && h.courseTitle !== "-"
+                            ? h.courseTitle
+                            : (
+                                typeof h.filePath === "string"
+                                  ? (() => {
+                                      const match = h.filePath.match(/courses\/([^\/]+)/);
+                                      return match && match[1] ? decodeURIComponent(match[1]) : "-";
+                                    })()
+                                  : "-"
+                              )
+                        }
+                      </td>
                       <td className="p-3 text-xs text-gray-600">
                         {h.filePath}
                       </td>
@@ -552,10 +642,25 @@ const DownloadPage = () => {
                   // Calculate total assignment marks (or blank if none)
                   let assignmentMarks = "";
                   if (assignmentsForCourse.length > 0) {
-                    const marks = assignmentsForCourse.map(a => typeof a.marksObtained === "number" ? a.marksObtained : null).filter(m => m !== null);
+                    // Use assignmentMarksMap to get marks for each assignment
+                    const marks = assignmentsForCourse.map(a =>
+                      typeof assignmentMarksMap[a._id] === "number"
+                        ? assignmentMarksMap[a._id]
+                        : typeof a.marksObtained === "number"
+                        ? a.marksObtained
+                        : typeof a.marks === "number"
+                        ? a.marks
+                        : typeof a.score === "number"
+                        ? a.score
+                        : null
+                    ).filter(m => m !== null);
                     if (marks.length > 0) {
                       assignmentMarks = marks.reduce((a, b) => a + b, 0);
+                    } else {
+                      assignmentMarks = "-";
                     }
+                  } else {
+                    assignmentMarks = "-";
                   }
 
                   // Progress

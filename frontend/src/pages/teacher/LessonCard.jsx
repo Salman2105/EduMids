@@ -365,7 +365,11 @@ export default function LessonCard() {
           >
             {course.picture && (
               <img
-                src={`http://localhost:5000/${course.picture}`}
+                src={
+                  course.picture.startsWith("http")
+                    ? course.picture
+                    : `http://localhost:5000/${course.picture.replace(/^\//, "")}`
+                }
                 alt={course.title}
                 className="w-full h-40 object-cover"
               />

@@ -1,15 +1,18 @@
-import React from 'react'
-import { motion } from "framer-motion";
+import React, { useRef } from 'react'
+import { motion, useInView } from "framer-motion";
 
 export default function Banner() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
     <div>
         <section className="py-16 bg-white dark:bg-slate-900">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4" ref={ref}>
           <motion.h2
             className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4 font-accent fade-in"
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
             Why Choose EduMinds
@@ -17,7 +20,7 @@ export default function Banner() {
           <motion.p
             className="text-lg text-gray-600 dark:text-gray-400 text-center max-w-3xl mx-auto mb-16 fade-in"
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
           >
             Our platform combines cutting-edge technology with expert instruction to provide an unmatched learning experience.
@@ -28,7 +31,7 @@ export default function Banner() {
             <motion.div
               className="bg-gray-50 dark:bg-slate-800 rounded-xl p-8 text-center shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 zoom-in"
               initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
               transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
             >
               <div className="feature-icon-container bg-primary/10 dark:bg-primary/20">
@@ -46,7 +49,7 @@ export default function Banner() {
             <motion.div
               className="bg-gray-50 dark:bg-slate-800 rounded-xl p-8 text-center shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 zoom-in"
               initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
               transition={{ delay: 0.45, duration: 0.7, ease: "easeOut" }}
             >
               <div className="feature-icon-container bg-accent/10 dark:bg-accent/20">
@@ -64,7 +67,7 @@ export default function Banner() {
             <motion.div
               className="bg-gray-50 dark:bg-slate-800 rounded-xl p-8 text-center shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 zoom-in"
               initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
               transition={{ delay: 0.6, duration: 0.7, ease: "easeOut" }}
             >
               <div className="feature-icon-container bg-primary/10 dark:bg-primary/20">

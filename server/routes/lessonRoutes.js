@@ -28,7 +28,7 @@ router.post(
 
       // If file is uploaded, set contentURL to the file path
       if (req.file) {
-        contentURL = `uploads/${req.file.filename}`;
+        contentURL = req.file.path;
       }
 
       // Validate required fields

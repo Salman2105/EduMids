@@ -28,6 +28,7 @@ const impactRoutes = require("./routes/impact"); // Import impact routes
 const downloadRoutes = require("./routes/download"); // Import download routes
 const assignmentRoutes = require("./routes/assignmentRoutes"); // Import assignment routes
 const submissionRoutes = require("./routes/submissionRoutes"); // Import submission routes
+const searchRoutes = require("./routes/searchRoutes"); // Import search routes
 
 dotenv.config(); // Load environment variables
 
@@ -67,6 +68,7 @@ app.use("/api/impact", impactRoutes); // Use impact routes at correct path
 app.use("/api/download", downloadRoutes); // Use download routes
 app.use("/api/assignments", assignmentRoutes); // Use assignment routes
 app.use("/api/submissions", submissionRoutes); // Use submission routes
+app.use("/api/search", searchRoutes); // Use search routes
 
 
 // In your main server file (index.js or server.js)

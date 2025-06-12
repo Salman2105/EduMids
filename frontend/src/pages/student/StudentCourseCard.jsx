@@ -125,7 +125,17 @@ const StudentCourseCard = () => {
                 <h2 className="text-xl font-bold mb-1">{course.title}</h2>
                 <p className="text-gray-600 mb-2">{course.description}</p>
                 <div className="text-sm text-gray-500">
-                  Enrolled: {new Date(course.enrolledAt).toLocaleDateString()}
+                  Enrolled: {
+                    course.enrolledAt
+                      ? (() => {
+                          // Try to parse as date
+                          const date = new Date(course.enrolledAt);
+                          return !isNaN(date)
+                            ? date.toLocaleDateString()
+                            : String(course.enrolledAt);
+                        })()
+                      : "Unknown"
+                  }
                 </div>
               </div>
               <div className="mt-4 md:mt-0">

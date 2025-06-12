@@ -79,6 +79,27 @@ router.post("/create-payment-intent", auth, async (req, res) => {
   }
 });
 
+// ✅ Save payment after successful Stripe payment
+router.post("/save-payment", auth, async (req, res) => {
+  try {
+    const { courseId, amount, stripePaymentId } = req.body;
+    if (!courseId || !amount) {
+      return res.status(400).json({ message: "Course ID and amount are required" });
+    }
+    const payment = new Payment({
+      student: req.user.id,
+      course: courseId,
+      amount,
+      paymentDate: new Date(),
+      stripePaymentId: stripePaymentId || undefined,
+    });
+    await payment.save();
+    res.status(201).json({ message: "Payment saved", payment });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving payment", error: error.message });
+  }
+});
+
 // GET: Admin payment history (all payments with student and course details)
 // router.get("/admin-history", auth, async (req, res) => {
 //   try {

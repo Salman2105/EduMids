@@ -232,7 +232,11 @@ export default function TeacherEnrollmentCrad() {
               </div>
               {searchResult.course.picture && (
                 <img
-                  src={getImageSrc(searchResult.course.picture)}
+                  src={
+                    searchResult.course.picture.startsWith("http")
+                      ? searchResult.course.picture
+                      : `http://localhost:5000/${searchResult.course.picture.replace(/^\//, "")}`
+                  }
                   alt={searchResult.course.title}
                   className="w-40 h-28 object-cover rounded mb-4"
                 />
@@ -313,7 +317,11 @@ export default function TeacherEnrollmentCrad() {
             {/* Course Image */}
             {course.picture && (
               <img
-                src={course.picture ? `http://localhost:5000/${course.picture}` : "/default.jpg"}
+                src={
+                  course.picture.startsWith("http")
+                    ? course.picture
+                    : `http://localhost:5000/${course.picture.replace(/^\//, "")}`
+                }
                 alt={course.title}
                 className="w-full h-40 object-cover"
               />

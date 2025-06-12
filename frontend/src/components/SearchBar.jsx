@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Input } from "./ui/input";
 import { Search, Bell } from "lucide-react";
 import { Avatar } from "./ui/avatar";
@@ -8,6 +8,12 @@ const SearchBar = () => {
   const [userInitial, setUserInitial] = useState("");
   const [userName, setUserName] = useState(""); // Add this line
   const [unreadCount, setUnreadCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeout = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +48,60 @@ const SearchBar = () => {
     fetchNotifications();
   }, []);
 
+  // Debounced search effect
+  useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    setSearchLoading(true);
+    setSearchError(null);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:5000/api/search/all?q=${encodeURIComponent(searchTerm)}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) throw new Error("Search failed");
+        const data = await res.json();
+        // Flatten and tag results
+        const results = [];
+        if (data.courses) results.push(...data.courses.map((c) => ({ ...c, _type: "course" })));
+        if (data.lessons) results.push(...data.lessons.map((l) => ({ ...l, _type: "lesson" })));
+        if (data.quizzes) results.push(...data.quizzes.map((q) => ({ ...q, _type: "quiz" })));
+        if (data.assignments) results.push(...data.assignments.map((a) => ({ ...a, _type: "assignment" })));
+        setSearchResults(results);
+        setShowDropdown(true);
+      } catch (err) {
+        setSearchError("Failed to search");
+        setSearchResults([]);
+        setShowDropdown(false);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400); // 400ms debounce
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchTerm]);
+
+  // Handle navigation on result click
+  const handleResultClick = (item) => {
+    setShowDropdown(false);
+    if (item._type === "course") {
+      navigate(`/courses/${item._id}`);
+    } else if (item._type === "lesson") {
+      navigate(`/lessons/${item._id}`);
+    } else if (item._type === "quiz") {
+      navigate(`/quizzes/${item._id}`);
+    } else if (item._type === "assignment") {
+      navigate(`/assignments/${item._id}`);
+    }
+  };
+
   // Handler for bell click
   const handleBellClick = () => {
     const role = localStorage.getItem("role");
@@ -59,7 +119,7 @@ const SearchBar = () => {
       {/* Dashboard Title */}
       <div className="flex-1">
         <h1 className="text-2xl font-bold">
-          {userName ? `Welcome ${userName}` : "Welcome"}
+          {userName ? ` ${userName}` : "n"}
         </h1>
       </div>
 
@@ -73,8 +133,46 @@ const SearchBar = () => {
           />
           <Input
             className="pl-10 pr-4 w-[300px] bg-gray-50"
-            placeholder="Search for students/teachers/documents..."
+            placeholder="Search for courses, lessons, quizzes, assignments..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            autoComplete="off"
           />
+          {/* Dropdown */}
+          {showDropdown && (
+            <div className="absolute z-20 left-0 mt-2 w-full bg-white border border-gray-200 rounded shadow-lg max-h-72 overflow-y-auto">
+              {searchLoading && (
+                <div className="p-3 text-gray-500 text-sm">Searching...</div>
+              )}
+              {searchError && (
+                <div className="p-3 text-red-500 text-sm">{searchError}</div>
+              )}
+              {!searchLoading && !searchError && searchResults.length === 0 && (
+                <div className="p-3 text-gray-500 text-sm">No results found</div>
+              )}
+              {!searchLoading && !searchError && searchResults.map((item) => {
+                let displayTitle = item.title || item.quizTitle || item.assignmentTitle || item.name || "Untitled";
+                let typeLabel = item._type.charAt(0).toUpperCase() + item._type.slice(1);
+                let tooltipText = `Go to ${typeLabel} page`;
+                return (
+                  <div
+                    key={item._type + item._id}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer flex flex-col border-b last:border-b-0 group"
+                    onMouseDown={() => handleResultClick(item)}
+                    title={tooltipText}
+                  >
+                    <span className="font-medium text-gray-800 flex items-center gap-2">
+                      {displayTitle}
+                      <span className="ml-2 text-xs text-blue-500 hidden group-hover:inline">↗</span>
+                    </span>
+                    <span className="text-xs text-gray-500 capitalize">{typeLabel}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Notifications */}

@@ -26,6 +26,7 @@ import Refund from "./pages/Refund";
 import Resources from "./pages/Resources";
 import Community from "./pages/Community"; 
 import Instructors from "./pages/instructors"; 
+// import ThemeTogglePage from "./pages/ThemeTogglePage"; // Assuming you have a theme toggle page
 // import DownloadPage from "./pages/DownloadPage"; // Assuming you have a download page
 // import Setting from "./components/Setting"
 // Admin
@@ -74,6 +75,7 @@ import StudentAssignmentSubmit from "./pages/student/StudentAssignmentSubmit"; /
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import ThemeProvider from "./lib/theme-provider";
+import ThemeTogglePage from "./pages/ThemeTogglePage";
 const LayoutWithSidebar = ({ Sidebar, children }) => (
   <div className="flex h-screen">
     <Sidebar />
@@ -114,7 +116,7 @@ function App() {
             {/* <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} />  */}
 
             {/* TeacherGradeSubmissions */}
-            {/* <Route path="/DownloadPage" element={<DownloadPage />} /> */}
+            {/* <Route path="/ThemeTogglePage" element={<ThemeTogglePage />} /> */}
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
               <Route
@@ -409,6 +411,7 @@ function App() {
                 }
               />
             </Route>
+            <Route path="/theme-toggle" element={<ThemeTogglePage />} />
           </Routes>
           <ToastContainer />
         </AuthLayout>

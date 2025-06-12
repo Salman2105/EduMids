@@ -43,7 +43,7 @@ const DownloadPage = () => {
   const handleDownload = async (lessonId) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/download/lesson/${lessonId}`, {
+      const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

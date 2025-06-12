@@ -40,14 +40,18 @@ const checkRole = (roles) => (req, res, next) => {
 
 // @route   POST /api/assignments
 // @desc    Teacher creates a new assignment
-router.post("/create", verifyToken, checkRole(["teacher"]), assignmentValidation, async (req, res) => {
+router.post("/create", verifyToken, checkRole(["teacher"]), upload.single("attachment"), assignmentValidation, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ success: false, errors: errors.array() });
   }
 
   try {
-    const { title, description, course, deadline, totalMarks, attachmentUrl } = req.body;
+    const { title, description, course, deadline, totalMarks } = req.body;
+    let attachmentUrl = req.body.attachmentUrl;
+    if (req.file) {
+      attachmentUrl = req.file.path;
+    }
     // Validate required fields
     if (!title || !course || !deadline || !totalMarks) {
       return res.status(400).json({ success: false, message: "Missing required fields" });

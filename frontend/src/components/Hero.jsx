@@ -1,25 +1,31 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { motion } from "framer-motion"; // Add this import
+import { motion, useInView } from "framer-motion"; // Add useInView
 
 
 const Hero = () => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" }); // Animate once when in view
+
   return (
     <div className="pb-16 bg-blue-500">
       {/* Hero Section */}
       <section className="relative hero-gradient py-20">
-        <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center">
+        <div
+          className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center"
+          ref={ref}
+        >
           <motion.div
             className="md:w-1/2 mb-10 md:mb-0 text-white"
             initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <motion.h1
               className="text-4xl md:text-5xl font-bold mb-4 font-accent"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ delay: 0.2, duration: 0.7 }}
             >
               Your Pathway to Knowledge
@@ -27,7 +33,7 @@ const Hero = () => {
             <motion.p
               className="text-xl mb-8 opacity-90"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ delay: 0.4, duration: 0.7 }}
             >
               Discover courses taught by industry experts and expand your skills with hands-on learning experiences.
@@ -35,7 +41,7 @@ const Hero = () => {
             <motion.div
               className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ delay: 0.6, duration: 0.7 }}
             >
               <Button
@@ -62,7 +68,7 @@ const Hero = () => {
           <motion.div
             className="md:w-1/2 relative"
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
             transition={{ delay: 0.8, duration: 0.8 }}
           >
             {/* Students collaborating on a digital learning platform */}

@@ -54,6 +54,14 @@ router.post("/", verifyToken, checkRole(["student"]), async (req, res) => {
   }
 });
 
+// POST: Student uploads a file for assignment submission (Cloudinary)
+router.post("/upload", verifyToken, checkRole(["student"]), require("../utils/upload").single("file"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
+  res.status(200).json({ success: true, fileUrl: req.file.path });
+});
+
 // GET: Student gets all their submissions
 router.get("/student", verifyToken, checkRole(["student"]), async (req, res) => {
   try {

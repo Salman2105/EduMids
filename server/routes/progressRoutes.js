@@ -77,9 +77,9 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
     const enrollments = await Enrollment.find({ student: req.user.id }).populate({
       path: "course",
       populate: [
-        { path: "createdBy", select: "firstName lastName" },
-        { path: "category", select: "name" },
-        { path: "lessons", model: "Lesson" }, // Ensure full lesson docs are populated
+        { path: "createdBy", select: "firstName lastName" }, // Ensure teacher is populated
+        { path: "category", select: "name" },                // Ensure category is populated
+        { path: "lessons", model: "Lesson" },                // Lessons
       ],
     });
 
@@ -99,7 +99,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
         const course = enrollment.course;
         const progress = progressMap[course._id.toString()];
         return {
-          courseId: course, // always populated (with full lessons)
+          courseId: course, // always populated (with full lessons, createdBy, category)
           progressPercentage: progress ? progress.progressPercentage : 0,
           completedLessons: progress ? progress.completedLessons : [],
           _id: progress ? progress._id : null,
@@ -147,7 +147,13 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
     if (!lesson.contentURL) {
       return res.status(404).json({ message: "No file found for this lesson." });
     }
-    // Build file path
+    // If contentURL is a Cloudinary/external URL, respond with the URL
+    if (lesson.contentURL.startsWith("http")) {
+      return res.json({ url: lesson.contentURL });
+      // Alternatively, to redirect:
+      // return res.redirect(lesson.contentURL);
+    }
+    // Build file path for local files
     const path = require("path");
     const filePath = lesson.contentURL.startsWith("uploads/") ? path.join(__dirname, "..", lesson.contentURL) : path.join(__dirname, "..", "uploads", lesson.contentURL);
     res.download(filePath, path.basename(filePath), (err) => {

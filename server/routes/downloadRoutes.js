@@ -5,6 +5,7 @@ const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware"); // Correct import
 const notifyUser = require("../utils/notifyUser");
 const Progress = require("../Models/Progress"); // Import Progress model
+const DownloadHistory = require("../Models/DownloadHistory"); // Import DownloadHistory model
 
 // Middleware for auth & roles
 router.use(verifyToken);
@@ -223,6 +224,35 @@ router.get("/all-quizzes", verifyToken, checkRole(["student"]), async (req, res)
   } catch (error) {
     console.error("Error fetching all quizzes for student:", error.message);
     res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// 🟡 Get Download History (Admin)
+router.get("/history", verifyToken, checkRole(["admin"]), async (req, res) => {
+  try {
+    const history = await DownloadHistory.find({})
+      .populate("user", "name email")
+      .populate("course", "title"); // <-- populate course title
+
+    // Map to flatten the response and always include courseTitle
+    const result = history.map(h => {
+      let courseTitle = h.course && h.course.title ? h.course.title : "-";
+      // Fallback: Try to extract course name from filePath if courseTitle is missing
+      if (courseTitle === "-" && h.filePath && typeof h.filePath === "string") {
+        const match = h.filePath.match(/courses\/([^\/]+)/);
+        if (match) {
+          courseTitle = decodeURIComponent(match[1]);
+        }
+      }
+      return {
+        ...h.toObject(),
+        courseTitle
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch download history" });
   }
 });
 

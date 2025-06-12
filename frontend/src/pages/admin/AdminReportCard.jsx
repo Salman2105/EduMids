@@ -66,12 +66,17 @@ export default function AdminReportCard() {
         // Fetch assignments
         let assignments = [];
         try {
-          const res = await fetch(`http://localhost:5000/api/assignments/${courseId}`, {
+          const res = await fetch(`http://localhost:5000/api/assignments/course/${courseId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await res.json();
+          // Debug: log the assignments API response
+          console.log("Assignments API response for course", courseId, data);
           assignments = Array.isArray(data.assignments) ? data.assignments : [];
-        } catch {}
+        } catch (err) {
+          // Optionally log error
+          console.error("Assignments fetch error for course", courseId, err);
+        }
         details[courseId] = { lessons, quizzes, assignments };
       }
       setCourseDetails(details);
@@ -86,10 +91,12 @@ export default function AdminReportCard() {
     const csvRows = [];
     // Header
     csvRows.push([
-      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified'
+      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified', 'Assignments'
     ].join(','));
     // Data
     report.forEach(course => {
+      const courseId = course.courseId || course._id;
+      const assignmentsCount = courseDetails[courseId]?.assignments?.length ?? 0;
       csvRows.push([
         '"' + (course.title || '') + '"',
         '"' + (course.category || '') + '"',
@@ -98,7 +105,8 @@ export default function AdminReportCard() {
         '"' + (course.teacher?.email || '') + '"',
         course.totalEnrolled ?? 0,
         course.totalCompleted ?? 0,
-        course.totalCertified ?? 0
+        course.totalCertified ?? 0,
+        assignmentsCount
       ].join(','));
     });
     const csvContent = csvRows.join('\n');
@@ -122,18 +130,23 @@ export default function AdminReportCard() {
     const doc = new jsPDF();
     doc.text('Admin Courses & Users Report', 14, 16);
     const tableColumn = [
-      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified'
+      'Course Title', 'Category', 'Price', 'Teacher Name', 'Teacher Email', 'Total Enrolled', 'Total Completed', 'Total Certified', 'Assignments'
     ];
-    const tableRows = report.map(course => [
-      course.title || '',
-      course.category || '',
-      course.price != null ? course.price : '',
-      course.teacher?.name || '',
-      course.teacher?.email || '',
-      course.totalEnrolled ?? 0,
-      course.totalCompleted ?? 0,
-      course.totalCertified ?? 0
-    ]);
+    const tableRows = report.map(course => {
+      const courseId = course.courseId || course._id;
+      const assignmentsCount = courseDetails[courseId]?.assignments?.length ?? 0;
+      return [
+        course.title || '',
+        course.category || '',
+        course.price != null ? course.price : '',
+        course.teacher?.name || '',
+        course.teacher?.email || '',
+        course.totalEnrolled ?? 0,
+        course.totalCompleted ?? 0,
+        course.totalCertified ?? 0,
+        assignmentsCount
+      ];
+    });
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
@@ -163,7 +176,7 @@ export default function AdminReportCard() {
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Courses & Users Report</h2>
           <p className="text-gray-600 text-base md:text-lg">
-            Download and analyze course, user, and certificate statistics.
+            Download and analyze course, user, certificate, and assignment statistics.
           </p>
         </div>
         <img
@@ -219,6 +232,7 @@ export default function AdminReportCard() {
                 <th className="px-4 py-2">Total Enrolled</th>
                 <th className="px-4 py-2">Total Completed</th>
                 <th className="px-4 py-2">Total Certified</th>
+                <th className="px-4 py-2">Assignments</th>
                 <th className="px-4 py-2">Details</th>
               </tr>
             </thead>
@@ -259,10 +273,12 @@ export default function AdminReportCard() {
                           </div>
                           <div className="mt-1">
                             <span className="font-semibold">Assignments:</span>
-                            {details.assignments && details.assignments.length > 0 ? (
+                            {Array.isArray(details.assignments) && details.assignments.length > 0 ? (
                               <ul className="list-disc ml-4">
-                                {details.assignments.map((a) => (
-                                  <li key={a._id}>{a.title}</li>
+                                {details.assignments.map((a, idx) => (
+                                  <li key={a._id || a.assignmentId || a.title || idx}>
+                                    {a.title || JSON.stringify(a)}
+                                  </li>
                                 ))}
                               </ul>
                             ) : (
@@ -285,6 +301,9 @@ export default function AdminReportCard() {
                       <td className="px-4 py-2">{course.totalEnrolled ?? 0}</td>
                       <td className="px-4 py-2">{course.totalCompleted ?? 0}</td>
                       <td className="px-4 py-2">{course.totalCertified ?? 0}</td>
+                      <td className="px-4 py-2">
+                        {details.assignments ? details.assignments.length : 0}
+                      </td>
                       <td className="px-4 py-2">
                         <details>
                           <summary className="cursor-pointer text-blue-600">View</summary>

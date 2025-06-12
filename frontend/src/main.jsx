@@ -1,4 +1,3 @@
-
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -7,6 +6,7 @@ import "./index.css"; // Adjust the path as necessary
 // import store from "./redux/store";
 
 import App from "./App";
+import ThemeProvider from "./lib/theme-provider";
 
 // Ensure the root element exists in your index.html
 const rootElement = document.getElementById("root");
@@ -17,10 +17,9 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter >
-    {/* store={store} */}
-      {/* <Provider> */}
+      <ThemeProvider defaultTheme="system" storageKey="eduminds-theme">
         <App />
-      {/* </Provider> */}
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

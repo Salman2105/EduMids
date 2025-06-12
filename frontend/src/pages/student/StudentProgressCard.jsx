@@ -7,6 +7,7 @@ const StudentProgressCard = () => {
   const [error, setError] = useState(null);
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [marking, setMarking] = useState(false);
+  const [downloadingLessonId, setDownloadingLessonId] = useState(null);
 
   // Replace with your auth token logic
   const token = localStorage.getItem("token");
@@ -60,14 +61,28 @@ const StudentProgressCard = () => {
 
   // Download handler for protected lessons
   const handleDownloadLesson = async (lessonId, displayName, resourceType) => {
+    setDownloadingLessonId(lessonId);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        alert(data.message || "Download failed");
+        if (!response.ok) {
+          alert(data.message || "Download failed");
+          return;
+        }
+        if (data.url) {
+          window.open(data.url, "_blank");
+          return;
+        }
+        alert("Download failed");
+        return;
+      }
+      if (!response.ok) {
+        alert("Download failed");
         return;
       }
       const blob = await response.blob();
@@ -81,6 +96,8 @@ const StudentProgressCard = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       alert("Download failed");
+    } finally {
+      setDownloadingLessonId(null);
     }
   };
 
@@ -137,10 +154,10 @@ const StudentProgressCard = () => {
               {course?.title || "Untitled Course"}
             </h2>
             <div className="mb-1 text-gray-600">
-              Teacher: {course?.createdBy?.firstName} {course?.createdBy?.lastName}
+              Teacher: {course?.createdBy?.firstName || "-"} {course?.createdBy?.lastName || ""}
             </div>
             <div className="mb-1 text-gray-600">
-              Category: {course?.category?.name}
+              Category: {course?.category?.name || "-"}
             </div>
             <div className="mb-2">
               Progress: <span className="font-semibold">{typeof selectedProgress.progressPercentage === "number" ? selectedProgress.progressPercentage.toFixed(1) : "0.0"}%</span>
@@ -212,8 +229,9 @@ const StudentProgressCard = () => {
                             onClick={() => handleDownloadLesson(lessonId, displayName, resourceType)}
                             className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition"
                             title={`Download ${resourceType}`}
+                            disabled={downloadingLessonId === lessonId}
                           >
-                            Download
+                            {downloadingLessonId === lessonId ? "Downloading..." : "Download"}
                           </button>
                         )}
                       </div>

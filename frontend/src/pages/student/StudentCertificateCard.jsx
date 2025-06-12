@@ -90,9 +90,18 @@ export default function StudentCertificateCard() {
               <div className="text-gray-500 text-sm mb-2">
                 Date Earned: {
                   (() => {
-                    if (cert.dateEarned) {
-                      const dateObj = new Date(cert.dateEarned);
-                      return !isNaN(dateObj) ? dateObj.toLocaleDateString() : '';
+                    // Debug log to see what values are present
+                    console.log("Certificate dateEarned:", cert.dateEarned, "createdAt:", cert.createdAt, "certificateId:", cert.certificateId);
+                    let dateVal = cert.dateEarned || cert.createdAt;
+                    // Try to parse ObjectId timestamp if no date fields
+                    if (!dateVal && cert.certificateId && typeof cert.certificateId === "string" && cert.certificateId.length === 24) {
+                      // Parse MongoDB ObjectId timestamp
+                      const timestamp = parseInt(cert.certificateId.substring(0, 8), 16) * 1000;
+                      dateVal = new Date(timestamp);
+                    }
+                    if (dateVal) {
+                      const dateObj = new Date(dateVal);
+                      return !isNaN(dateObj) ? dateObj.toLocaleDateString() : String(dateVal);
                     }
                     return '';
                   })()

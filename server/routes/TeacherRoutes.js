@@ -6,24 +6,12 @@ const Lesson = require("../Models/lesson");
 const { Course } = require("../Models/course");
 const User = require("../Models/user");
 const Quiz = require("../Models/quiz"); 
-const multer = require("multer");
-const path = require("path");
+const upload = require("../utils/upload");
 const notifyUser = require("../utils/notifyUser");
 const { validationResult } = require("express-validator");
 const { createCourseValidation } = require("../validators/courseValidator");
 
 
-
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/courses/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-const upload = multer({ storage });
 
 // ✅ Create a Course (Teacher Only) with picture upload
 router.post(

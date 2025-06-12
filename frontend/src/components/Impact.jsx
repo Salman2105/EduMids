@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import { motion, useInView } from "framer-motion";
 
 function useCountUp(target, duration = 1200) {
   const [count, setCount] = useState(0);
@@ -34,6 +35,9 @@ export default function Impact() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
   useEffect(() => {
     const fetchImpact = async () => {
       setLoading(true);
@@ -66,9 +70,15 @@ export default function Impact() {
   return (
     <div>
       {/* bg-primary/5 */}
-       <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-8 md:p-12 mb-24 transition-all duration-700">
+       <motion.div
+          className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-8 md:p-12 mb-24 transition-all duration-700"
+          ref={ref}
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Our Impact</h2>
+            <h2 className="mb-12 text-center text-2xl md:text-3xl  font-extrabold text-blue-800">Our Impact</h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
               Since our founding, we've made a significant impact on education worldwide.
             </p>
@@ -94,7 +104,7 @@ export default function Impact() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
     </div>
   )
 }

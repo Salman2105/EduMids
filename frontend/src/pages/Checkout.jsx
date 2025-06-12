@@ -22,7 +22,7 @@ function CheckoutForm({ course, paying, setPaying, setError, setClientSecret, cl
     try {
       const token = localStorage.getItem('token');
       // 1. Create PaymentIntent
-      const res = await fetch('https://localhost:5000/api/payment/create-payment-intent', {
+      const res = await fetch('http://localhost:5000/api/payment/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,6 +42,45 @@ function CheckoutForm({ course, paying, setPaying, setError, setClientSecret, cl
       if (result.error) {
         setCardError(result.error.message);
       } else if (result.paymentIntent.status === 'succeeded') {
+        // Save payment to backend
+        try {
+          const saveRes = await fetch('http://localhost:5000/api/payment/save-payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({
+              courseId: course._id,
+              amount: course.price,
+              stripePaymentId: result.paymentIntent.id,
+            }),
+          });
+          if (!saveRes.ok) {
+            const saveErrData = await saveRes.json();
+            // Optionally show error to user
+            console.error('Payment save failed:', saveErrData.message || saveErrData.error);
+          }
+        } catch (saveErr) {
+          // Optionally handle error (e.g., show notification)
+          console.error('Payment save request error:', saveErr);
+        }
+        // Enroll student in course after successful payment
+        try {
+          const enrollRes = await fetch(`http://localhost:5000/api/enrollments/${course._id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+          if (!enrollRes.ok) {
+            const enrollErrData = await enrollRes.json();
+            console.error('Enrollment failed:', enrollErrData.message || enrollErrData.error);
+          }
+        } catch (enrollErr) {
+          console.error('Enrollment request error:', enrollErr);
+        }
         navigate('/payment-success');
       }
     } catch (err) {

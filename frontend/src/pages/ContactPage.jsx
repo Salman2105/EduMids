@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { motion, useInView } from "framer-motion";
 import { Helmet } from 'react-helmet';
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -20,6 +21,8 @@ import { sendContactMessage } from '../services/contactService';
 export default function ContactPage() {
   const { toast } = useToast();
   const formRef = useRef();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
   // Add state for location
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
@@ -54,17 +57,22 @@ export default function ContactPage() {
     };
     try {
       await sendContactMessage(data);
-      toast({
-        title: 'Message sent!',
-        description: "We've received your message and will respond soon.",
-      });
+      // Force a re-render to trigger the toast (workaround for some custom hooks)
+      setTimeout(() => {
+        toast({
+          title: 'Message sent!',
+          description: "We've received your message and will respond soon.",
+        });
+      }, 0);
       form.reset();
     } catch (err) {
-      toast({
-        title: 'Failed to send message',
-        description: err?.response?.data?.error || 'Please try again later.',
-        variant: 'destructive',
-      });
+      setTimeout(() => {
+        toast({
+          title: 'Failed to send message',
+          description: err?.response?.data?.error || 'Please try again later.',
+          variant: 'destructive',
+        });
+      }, 0);
     }
   };
 
@@ -72,7 +80,7 @@ export default function ContactPage() {
     <>
       <Header />
       <Helmet>
-        <title>Contact Us | EduMinds Learning Platform</title>
+        <title >Contact Us | EduMinds Learning Platform</title>
         <meta name="description" content="Get in touch with EduMinds for support, partnership inquiries, or feedback. We're here to help with all your educational needs." />
       </Helmet>
 
@@ -82,29 +90,40 @@ export default function ContactPage() {
           background: "hsl(var(--background))",
           color: "hsl(var(--foreground))"
         }}
+        ref={ref}
       >
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">Contact Us</h1>
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-blue-800">Contact Us</h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
             We'd love to hear from you. Reach out to our team with any questions, feedback, or support needs.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ delay: 0.15, duration: 0.7, ease: "easeOut" }}
+        >
           {/* Contact Information Cards */}
           <Card className="overflow-hidden transition-all hover:shadow-md">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Mail className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Email Us</h3>
+              <h3 className="text-lg font-semibold mb-2 font-extrabold text-blue-800">Email Us</h3>
               <p className="text-slate-600 dark:text-slate-400 mb-4">
                 For general inquiries and support
               </p>
               <a 
                 href="mailto:info@eduminds.com" 
-                className="text-primary hover:underline font-medium"
+                className="text-blue-800 hover:underline font-medium"
               >
                edumideduinfo@gmail.com
               </a>
@@ -116,13 +135,13 @@ export default function ContactPage() {
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <PhoneCall className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Call Us</h3>
+              <h3 className="text-lg font-semibold mb-2 font-extrabold text-blue-800">Call Us</h3>
               <p className="text-slate-600 dark:text-slate-400 mb-4">
                 Monday through Friday, 1pm-6pm Pak
               </p>
               <a 
                 href="tel:+92 0318-7848331" 
-                className="text-primary hover:underline font-medium"
+                className="text-blue-800 hover:underline font-medium"
               >
                 +92 0318-7848331
               </a>
@@ -134,22 +153,27 @@ export default function ContactPage() {
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <MapPin className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
+              <h3 className="text-lg font-semibold mb-2 font-extrabold text-blue-800">Visit Us</h3>
               <p className="text-slate-600 dark:text-slate-400 mb-4">
                 Our University location
               </p>
-              <address className="not-italic text-primary">
+              <address className="not-italic text-blue-800 font-semibold">
                 Alipur Chowk<br />
                 Gukranwala, Punjab 51100<br />
               </address>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
         {/* Contact Form Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
+        >
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Get in Touch</h2>
+            <h2 className="text-2xl md:text-3xl mb-6 font-extrabold text-blue-800  ">Get in Touch</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
               Fill out the form and our team will get back to you within 24 hours.
             </p>
@@ -226,31 +250,31 @@ export default function ContactPage() {
           </div>
           
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl md:text-3xl mb-6 font-extrabold text-blue-800">Frequently Asked Questions</h2>
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-2">How do I enroll in a course?</h3>
+                <h3 className="text-xl font-semibold mb-2 font-extrabold text-blue-800">How do I enroll in a course?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
                   To enroll in a course, create an account or log in, browse our course catalog, and click the "Enroll Now" button on the course page. You'll be guided through the payment process if it's a paid course.
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-2">Can I get a refund if I'm not satisfied?</h3>
+                <h3 className="text-xl font-semibold mb-2 font-extrabold text-blue-800">Can I get a refund if I'm not satisfied?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
                   Yes, we offer a 30-day money-back guarantee for most courses. If you're not satisfied with your purchase, contact our support team within 30 days of enrollment for a full refund.
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-2">How do I become an instructor?</h3>
+                <h3 className="text-xl font-semibold mb-2 font-extrabold text-blue-800">How do I become an instructor?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
                   To become an instructor, visit your account contact page and Type on "Become an Instructor." You'll need to complete an application process and meet our quality standards before you can publish courses.
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-2">Do you offer corporate training?</h3>
+                <h3 className="text-xl font-semibold mb-2 font-extrabold text-blue-800">Do you offer corporate training?</h3>
                 <p className="text-slate-600 dark:text-slate-400">
                   Yes, we offer customized corporate training solutions for teams of all sizes. Contact our business team through the form on this page or email business@eduminds.com for more information.
                 </p>
@@ -259,7 +283,7 @@ export default function ContactPage() {
               <div className="bg-primary/10 dark:bg-primary/20 p-6 rounded-lg flex items-start">
                 <MessageSquare className="h-5 w-5 text-primary mt-1 mr-4 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold">Still have questions?</h4>
+                  <h4 className="text-xl font-semibold mb-2 font-extrabold text-blue-800">Still have questions?</h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     Our support team is ready to help. Contact us through the form or via live chat for immediate assistance.
                   </p>
@@ -267,10 +291,15 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Map Section */}
-        <div className="rounded-xl overflow-hidden h-96 mb-12">
+        <motion.div
+          className="rounded-xl overflow-hidden h-96 mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ delay: 0.45, duration: 0.7, ease: "easeOut" }}
+        >
           {location ? (
             <iframe
               src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
@@ -291,13 +320,18 @@ export default function ContactPage() {
               Loading your location...
             </div>
           )}
-        </div>
+        </motion.div>
         <Cta />
 
 
         {/* Connect Section */}
-        <div className="text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6">Connect With Us</h2>
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ delay: 0.6, duration: 0.7, ease: "easeOut" }}
+        >
+          <h2 className="text-2xl md:text-3xl mb-6 font-extrabold text-blue-800">Connect With Us</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-3xl mx-auto">
             Follow us on social media for the latest updates, educational content, and community discussions.
           </p>
@@ -314,7 +348,7 @@ export default function ContactPage() {
             </a>
             <a href="#" className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center text-white hover:bg-pink-700 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
+                <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.261-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
               </svg>
             </a>
             <a href="#" className="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center text-white hover:bg-blue-800 transition-colors">
@@ -328,7 +362,7 @@ export default function ContactPage() {
               </svg>
             </a>
           </div>
-        </div>
+        </motion.div>
       </div>
       <Footer />
     </>
