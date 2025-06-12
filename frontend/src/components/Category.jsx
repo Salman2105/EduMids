@@ -81,7 +81,7 @@ export default function Category() {
                     <div
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
-                        backgroundImage: `url(http://localhost:5000/${firstCourse.picture})`,
+                        backgroundImage: `url(${firstCourse.picture.startsWith('http') ? firstCourse.picture : 'http://localhost:5000/' + firstCourse.picture})`,
                         filter: "brightness(0.65)"
                       }}
                     />

@@ -74,7 +74,7 @@ export default function Feature() {
                 >
                   {course.picture && (
                     <img
-                      src={`http://localhost:5000/${course.picture}`}
+                      src={course.picture.startsWith("http") ? course.picture : `http://localhost:5000/${course.picture}`}
                       alt={course.title}
                       className="w-full h-44 object-cover rounded-t-xl"
                     />
