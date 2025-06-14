@@ -53,7 +53,9 @@ export default function AdminReportCard() {
           });
           const data = await res.json();
           lessons = Array.isArray(data.lessons) ? data.lessons : [];
-        } catch {}
+        } catch (err) {
+          console.error("Lessons fetch error for course", courseId, err);
+        }
         // Fetch quizzes
         let quizzes = [];
         try {
@@ -62,7 +64,9 @@ export default function AdminReportCard() {
           });
           const data = await res.json();
           quizzes = Array.isArray(data) ? data : [];
-        } catch {}
+        } catch (err) {
+          console.error("Quizzes fetch error for course", courseId, err);
+        }
         // Fetch assignments
         let assignments = [];
         try {
@@ -70,12 +74,18 @@ export default function AdminReportCard() {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await res.json();
-          // Debug: log the assignments API response
+          // Debug log
           console.log("Assignments API response for course", courseId, data);
-          assignments = Array.isArray(data.assignments) ? data.assignments : [];
+          if (Array.isArray(data)) {
+            assignments = data;
+          } else if (Array.isArray(data.assignments)) {
+            assignments = data.assignments;
+          } else {
+            assignments = [];
+          }
         } catch (err) {
-          // Optionally log error
           console.error("Assignments fetch error for course", courseId, err);
+          assignments = [];
         }
         details[courseId] = { lessons, quizzes, assignments };
       }
@@ -288,7 +298,7 @@ export default function AdminReportCard() {
                         </div>
                       </td>
                       <td className="px-4 py-2">{course.category || "-"}</td>
-                      <td className="px-4 py-2">{course.price != null ? `$${course.price}` : "-"}</td>
+                      <td className="px-4 py-2">{course.price != null ? `${course.price}` : "-"}</td>
                       <td className="px-4 py-2">
                         {course.teacher ? (
                           <>

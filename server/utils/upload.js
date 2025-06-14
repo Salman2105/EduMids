@@ -6,10 +6,19 @@ const cloudinary = require("./cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
+    let folder = "edumids";
+    let resource_type = "auto";
+    if (file.mimetype.startsWith("video/")) {
+      folder = "edumids/videos";
+      resource_type = "video";
+    } else if (file.mimetype === "application/pdf") {
+      folder = "edumids/pdfs";
+      resource_type = "raw"; // <-- this is the key change
+    }
     return {
-      folder: "edumids",
-      resource_type: file.mimetype.startsWith("video/") ? "video" : "auto", // handles video, image, pdf
-      format: file.originalname.split(".").pop(), // preserve extension
+      folder,
+      resource_type,
+      format: file.originalname.split(".").pop(),
     };
   },
 });

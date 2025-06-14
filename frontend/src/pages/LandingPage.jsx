@@ -1,5 +1,4 @@
 import React from "react";
-// Removed framer-motion import
 import Header from "./Header";
 import Hero from "../components/Hero";
 import Banner from "../components/Banner";

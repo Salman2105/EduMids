@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../components/theme-toggle";
 import { useAuthStore } from "../lib/auth";
@@ -24,11 +24,35 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
 
+  
+  // Debug: log isAuthenticated
+  console.log("isAuthenticated:", isAuthenticated);
+
+  // Fetch user role from localStorage
+  let userRole = null;
+  try {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    userRole = userData?.role || null;
+  } catch {
+    userRole = null;
+  }
+
+  // Dashboard redirect logic
+  const handleDashboardRedirect = () => {
+    if (userRole === "admin") navigate("/admin/dashboard");
+    else if (userRole === "teacher") navigate("/teacher/dashboard");
+    else if (userRole === "student") navigate("/student/dashboard");
+    else navigate("/");
+  };
+
   const handleLogout = () => {
     logout();
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     navigate("/");
   };
 
@@ -41,6 +65,28 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  useEffect(() => {
+    // Fetch notification count from API or localStorage
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/notifications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data)) {
+          const unread = data.filter((n) => !n.isRead).length;
+          setNotificationCount(unread);
+        }
+      } catch {
+        setNotificationCount(0);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   return (
     <header className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
@@ -62,7 +108,12 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
             <Link to="/">
               <div className="flex items-center space-x-2 cursor-pointer">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold">
-                  <span >E</span>
+                  {/* Replace <span >E</span> with logo image */}
+                  <img
+                    src="/assets/logo.png"
+                    alt="EduMids Logo"
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
                 <span className="text-xl font-bold text-primary">EduMinds</span>
               </div>
@@ -122,8 +173,8 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
           </Link>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
+        <div className="flex items-center space-x-2 ">
+          {/* <ThemeToggle /> */}
           
           {/* Mobile Menu Toggle */}
           <Button 
@@ -135,45 +186,83 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           
-          {isAuthenticated ? (
+          {(isAuthenticated || userRole) ? (
             <>
+              {/* Dashboard button for logged-in users */}
+              <Button
+                className="bg-blue-500 text-white hover:bg-blue-600"
+                size="sm"
+                onClick={handleDashboardRedirect}
+              >
+                Dashboard
+              </Button>
+              
+              {/* Notifications Button with Badge */}
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="relative"
+                className="relative flex items-center justify-center"
                 aria-label="Notifications"
+                onClick={() => navigate("/Notify")}
               >
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+                <span className="relative">
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 flex items-center justify-center bg-red-500 text-white font-bold rounded-full"
+                      style={{
+                        minWidth: '14px',
+                        height: '14px',
+                        padding: '0 2px',
+                        lineHeight: '14px',
+                        fontSize: '10px',
+                        zIndex: 10,
+                      }}
+                    >
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  )}
+                </span>
               </Button>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2 focus:ring-0">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage 
-                        src={user?.profileImage || "https://github.com/shadcn.png"} 
-                        alt={user?.fullName || "User"} 
-                      />
-                      <AvatarFallback>{user?.fullName?.charAt(0) || "U"}</AvatarFallback>
+                    <Avatar className="h-8 w-8 bg-blue-600 text-white flex items-center justify-center font-bold rounded-full">
+                      {/* Show user initials in a circle */}
+                      <AvatarFallback>
+                        {
+                          (user?.fullName && user.fullName.length > 0)
+                            ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
+                            : (() => {
+                                try {
+                                  const u = JSON.parse(localStorage.getItem("user"));
+                                  if (u && u.name && u.name.length > 0) {
+                                    return u.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                                  }
+                                } catch {}
+                                return "U";
+                              })()
+                        }
+                      </AvatarFallback>
                     </Avatar>
                     <span className="hidden md:block text-sm font-medium">{user?.fullName || "User"}</span>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-blue-50 to-white">
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium">{user?.fullName}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <Link to="/profile">
+                  {/* <Link to="/setting">
                     <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-                  </Link>
-                  <Link to="/dashboard">
+                  </Link> */}
+                  {/* <Link to="/dashboard">
                     <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
-                  </Link>
-                  <Link to="/settings">
+                  </Link> */}
+                  <Link to="/setting">
                     <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
                   </Link>
                   <DropdownMenuSeparator />
@@ -219,16 +308,14 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
               <span className="block py-2 text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium">Contact</span>
             </Link>
             {!isAuthenticated && (
-              <>
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <Link to="/auth/login">
-                    <span className="block py-2 text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium">Log in</span>
-                  </Link>
-                  <Link to="/auth/register">
-                    <span className="block py-2 text-primary font-medium">Sign up</span>
-                  </Link>
-                </div>
-              </>
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                <Link to="/auth/login">
+                  <span className="block py-2 text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium">Log in</span>
+                </Link>
+                <Link to="/auth/register">
+                  <span className="block py-2 text-primary font-medium">Sign up</span>
+                </Link>
+              </div>
             )}
           </nav>
         </div>
@@ -236,3 +323,4 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
     </header>
   );
 }
+

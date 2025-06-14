@@ -59,10 +59,44 @@ const TeacherDashboardSidebar = () => {
       className={`h-screen ${collapsed ? 'w-[70px]' : 'w-[250px]'} bg-blue-500 flex flex-col transition-all duration-200`}
     >
       <div className="p-4 flex items-center gap-2">
-        <div className="w-8 h-8 bg-blue rounded flex items-center justify-center">
-          <span className="text-white font-bold">ED</span>
-        </div>
-        {!collapsed && <h2 className="text-white font-bold text-xl">EduMids</h2>}
+        {/* Teacher Book Logo */}
+        <button
+          onClick={() => {
+            // Preserve all user details when navigating to landing page
+            const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+            localStorage.setItem("user", JSON.stringify({
+              ...currentUser,
+              role: "teacher"
+            }));
+            navigate("/");
+          }}
+          className="flex items-center gap-2 focus:outline-none"
+          style={{ background: 'none', border: 'none', padding: 0 }}
+          aria-label="Go to landing page"
+        >
+          <svg
+            width={collapsed ? 36 : 48}
+            height={collapsed ? 36 : 48}
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="drop-shadow-lg"
+          >
+            {/* Book base */}
+            <rect x="10" y="16" width="44" height="32" rx="6" fill="#fff" stroke="#1e40af" strokeWidth="2"/>
+            {/* Book spine */}
+            <rect x="30" y="16" width="4" height="32" fill="#2563eb"/>
+            {/* Pen/pointer */}
+            <rect x="48" y="22" width="3" height="18" rx="1.5" fill="#facc15" />
+            <circle cx="49.5" cy="40.5" r="2" fill="#1e40af" />
+          </svg>
+          {!collapsed && (
+            <div className="flex flex-col ml-2">
+              <span className="text-white font-extrabold text-2xl tracking-wide logo-font" style={{letterSpacing: '2px'}}>EduMids</span>
+              <span className="text-white text-xs font-light italic mt-1 opacity-80 logo-tagline">Pathway to Knowledge</span>
+            </div>
+          )}
+        </button>
         <button
           className="ml-auto rounded hover:bg-blue-600 transition-colors"
           onClick={handleToggle}

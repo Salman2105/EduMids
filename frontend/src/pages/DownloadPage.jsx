@@ -173,7 +173,7 @@ const DownloadPage = () => {
   const handleDownload = async (lessonId) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
+      const response = await fetch(`http://localhost:5000/api/download/lesson/${lessonId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -185,8 +185,20 @@ const DownloadPage = () => {
           alert(data.message || "Access denied or download failed.");
           return;
         }
+        // If backend returns a URL (Cloudinary/external), trigger download or open in new tab
         if (data.url) {
-          window.open(data.url, "_blank");
+          // For Cloudinary, force download if possible
+          let downloadUrl = data.url;
+          if (downloadUrl.includes("res.cloudinary.com")) {
+            downloadUrl = downloadUrl.replace(/\/upload\//, "/upload/fl_attachment/");
+          }
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.setAttribute("download", "");
+          link.rel = "noopener noreferrer";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
           return;
         }
         alert("Access denied or download failed.");
@@ -196,8 +208,8 @@ const DownloadPage = () => {
         alert("Access denied or download failed.");
         return;
       }
+      // Local file: download as blob
       const blob = await response.blob();
-      // Try to get filename from Content-Disposition header
       const disposition = response.headers.get("Content-Disposition");
       let filename = "download";
       if (disposition && disposition.indexOf("filename=") !== -1) {
@@ -629,7 +641,6 @@ const DownloadPage = () => {
                   const cert = certificates.find(c => String(c.courseId) === String(course.courseId));
                   const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
                   const assignmentsForCourse = Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId] : [];
-
                   // Calculate average quiz score (or blank if none)
                   let quizScore = "";
                   if (quizzesForCourse.length > 0) {
@@ -638,11 +649,9 @@ const DownloadPage = () => {
                       quizScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
                     }
                   }
-
                   // Calculate total assignment marks (or blank if none)
                   let assignmentMarks = "";
                   if (assignmentsForCourse.length > 0) {
-                    // Use assignmentMarksMap to get marks for each assignment
                     const marks = assignmentsForCourse.map(a =>
                       typeof assignmentMarksMap[a._id] === "number"
                         ? assignmentMarksMap[a._id]
@@ -662,11 +671,7 @@ const DownloadPage = () => {
                   } else {
                     assignmentMarks = "-";
                   }
-
-                  // Progress
                   const progress = typeof course.progress === "number" ? course.progress : "";
-
-                  // Date Earned
                   let dateEarnedStr = "";
                   if (cert && cert.dateEarned) {
                     const dateObj = new Date(cert.dateEarned);
@@ -674,36 +679,17 @@ const DownloadPage = () => {
                       dateEarnedStr = dateObj.toLocaleDateString();
                     }
                   }
-
                   return (
-                    <tr key={course.courseId} className="hover:bg-blue-50 transition">
-                      <td className="p-3 font-medium text-gray-900">
-                        {course.title}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {cert?.organization || "-"}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {dateEarnedStr}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {cert?.certificateId || "-"}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {progress}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {quizScore}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {assignmentMarks}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {course.completed ? 'Yes' : 'No'}
-                      </td>
-                      <td className="p-3 text-gray-700">
-                        {cert?.certificateId ? 'Yes' : 'No'}
-                      </td>
+                    <tr key={course.courseId}>
+                      <td className="p-3">{course.title || ''}</td>
+                      <td className="p-3">{cert?.organization || ''}</td>
+                      <td className="p-3">{dateEarnedStr}</td>
+                      <td className="p-3">{cert?.certificateId || ''}</td>
+                      <td className="p-3">{progress}</td>
+                      <td className="p-3">{quizScore}</td>
+                      <td className="p-3">{assignmentMarks}</td>
+                      <td className="p-3">{course.completed ? 'Yes' : 'No'}</td>
+                      <td className="p-3">{cert?.certificateId ? 'Yes' : 'No'}</td>
                     </tr>
                   );
                 })}

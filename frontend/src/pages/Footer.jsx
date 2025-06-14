@@ -10,7 +10,12 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold">
-                <span>E</span>
+                {/* Replace <span>E</span> with logo image */}
+                <img
+                  src="/assets/logo.png"
+                  alt="EduMinds Logo"
+                  className="w-6 h-6 object-contain"
+                />
               </div>
               <span className="text-xl font-medium">EduMinds</span>
             </div>

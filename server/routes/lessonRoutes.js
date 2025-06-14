@@ -29,6 +29,22 @@ router.post(
       // If file is uploaded, set contentURL to the file path
       if (req.file) {
         contentURL = req.file.path;
+        // PDF validation: If contentType is pdf, check mimetype and extension
+        if (contentType === "pdf") {
+          const isPDF = req.file.mimetype === "application/pdf" && req.file.originalname.toLowerCase().endsWith(".pdf");
+          if (!isPDF) {
+            // Delete from Cloudinary if uploaded
+            if (contentURL.startsWith("http")) {
+              const cloudinary = require("../utils/cloudinary");
+              // Extract public_id from URL
+              const matches = contentURL.match(/\/([^\/]+)\.[a-zA-Z0-9]+$/);
+              if (matches && matches[1]) {
+                await cloudinary.uploader.destroy(`edumids/${matches[1]}`);
+              }
+            }
+            return res.status(400).json({ message: "Uploaded file is not a valid PDF." });
+          }
+        }
       }
 
       // Validate required fields

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export default function TeacherNotify() {
+export default function Notify() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

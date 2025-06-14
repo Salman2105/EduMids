@@ -28,7 +28,8 @@ import Community from "./pages/Community";
 import Instructors from "./pages/instructors"; 
 // import ThemeTogglePage from "./pages/ThemeTogglePage"; // Assuming you have a theme toggle page
 // import DownloadPage from "./pages/DownloadPage"; // Assuming you have a download page
-// import Setting from "./components/Setting"
+import Setting from "./components/Setting"
+import Notify  from "./components/NotifyCard"
 // Admin
 import AdminDashboardSidebar from "./components/AdminDashboardSidebar";
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -112,6 +113,8 @@ function App() {
             <Route path="/Resources" element={<Resources />} />
             <Route path="/Community" element={<Community />} />
             <Route path="/Instructors" element={<Instructors />} />
+            <Route path="/Setting" element={<Setting />} />
+            <Route path="/Notify" element={<Notify />} />
             {/* <Route path="/teacher/TeacherGradeSubmissions" element={<TeacherGradeSubmissions />} />  */}
             {/* <Route path="/StudentAssignmentSubmit" element={<StudentAssignmentSubmit />} />  */}
 

@@ -60,10 +60,11 @@ const StudentProgressCard = () => {
   };
 
   // Download handler for protected lessons
-  const handleDownloadLesson = async (lessonId, displayName, resourceType) => {
+  const handleDownloadLesson = async (lessonId, displayName, resourceType, resourceUrl) => {
     setDownloadingLessonId(lessonId);
     try {
       const token = localStorage.getItem("token");
+      // Always use backend route for download
       const response = await fetch(`http://localhost:5000/api/progress/download-lesson/${lessonId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -74,8 +75,20 @@ const StudentProgressCard = () => {
           alert(data.message || "Download failed");
           return;
         }
+        // If backend returns a URL (Cloudinary/external), trigger download or open in new tab
         if (data.url) {
-          window.open(data.url, "_blank");
+          let downloadUrl = data.url;
+          // For Cloudinary, force download
+          if (downloadUrl.includes("res.cloudinary.com")) {
+            downloadUrl = downloadUrl.replace(/\/upload\//, "/upload/fl_attachment/");
+          }
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.setAttribute("download", "");
+          link.rel = "noopener noreferrer";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
           return;
         }
         alert("Download failed");
@@ -85,11 +98,21 @@ const StudentProgressCard = () => {
         alert("Download failed");
         return;
       }
+      // Download as blob
       const blob = await response.blob();
+      let filename = displayName;
+      const disposition = response.headers.get("Content-Disposition");
+      if (disposition && disposition.indexOf("filename=") !== -1) {
+        filename = disposition.split("filename=")[1].replace(/['"]/g, "");
+      } else if (resourceType === "PDF") {
+        filename += ".pdf";
+      } else if (resourceType === "VIDEO") {
+        filename += ".mp4";
+      }
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = displayName + (resourceType === "PDF" ? ".pdf" : resourceType === "VIDEO" ? ".mp4" : "");
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -106,6 +129,7 @@ const StudentProgressCard = () => {
   if (!progresses.length) return <div>No progress found.</div>;
 
   // Find selected course progress
+  
   const selectedProgress = progresses.find(
     (p) => p.courseId && p.courseId._id === selectedCourseId
   );
@@ -154,10 +178,10 @@ const StudentProgressCard = () => {
               {course?.title || "Untitled Course"}
             </h2>
             <div className="mb-1 text-gray-600">
-              Teacher: {course?.createdBy?.firstName || "-"} {course?.createdBy?.lastName || ""}
+              Teacher: {course?.teacher || "-"}
             </div>
             <div className="mb-1 text-gray-600">
-              Category: {course?.category?.name || "-"}
+              Category: {course?.category || "-"}
             </div>
             <div className="mb-2">
               Progress: <span className="font-semibold">{typeof selectedProgress.progressPercentage === "number" ? selectedProgress.progressPercentage.toFixed(1) : "0.0"}%</span>
@@ -190,7 +214,8 @@ const StudentProgressCard = () => {
                   let displayName = lesson.title || lesson.name || lessonId;
                   // Download link logic
                   const isDownloadable = resourceType === "PDF" || resourceType === "VIDEO";
-                  const downloadUrl = resourceUrl && !resourceUrl.startsWith("http") ? `http://localhost:5000/${resourceUrl}` : resourceUrl;
+                  // Always use backend download route for downloadable resources
+                  // const downloadUrl = resourceUrl && !resourceUrl.startsWith("http") ? `http://localhost:5000/${resourceUrl}` : resourceUrl;
                   return (
                     <li key={lessonId} className="bg-gray-50 rounded-lg shadow p-4 flex flex-col gap-2 border hover:shadow-lg transition-all w-full">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -198,7 +223,7 @@ const StudentProgressCard = () => {
                         <span className={`text-xs px-2 py-0.5 rounded ${resourceType === "VIDEO" ? "bg-blue-100 text-blue-700" : resourceType === "PDF" ? "bg-red-100 text-red-700" : resourceType === "LINK" ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>{resourceType}</span>
                         {resourceType === "VIDEO" && resourceUrl && (
                           <video
-                            src={downloadUrl}
+                            src={resourceUrl}
                             controls
                             className="w-full max-w-xs h-32 rounded mt-2 border"
                             preload="metadata"
@@ -206,7 +231,7 @@ const StudentProgressCard = () => {
                         )}
                         {resourceType === "PDF" && resourceUrl && (
                           <a
-                            href={downloadUrl}
+                            href={resourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="underline text-blue-600 text-xs ml-1 font-semibold"
@@ -226,7 +251,7 @@ const StudentProgressCard = () => {
                         )}
                         {isDownloadable && resourceUrl && (
                           <button
-                            onClick={() => handleDownloadLesson(lessonId, displayName, resourceType)}
+                            onClick={() => handleDownloadLesson(lessonId, displayName, resourceType, resourceUrl)}
                             className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition"
                             title={`Download ${resourceType}`}
                             disabled={downloadingLessonId === lessonId}

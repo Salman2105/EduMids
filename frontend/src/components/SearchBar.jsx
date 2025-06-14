@@ -118,7 +118,7 @@ const SearchBar = () => {
     <div className="flex items-center justify-between mb-6">
       {/* Dashboard Title */}
       <div className="flex-1">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2text-2xl font-bold">
           {userName ? ` ${userName}` : "n"}
         </h1>
       </div>
@@ -132,7 +132,7 @@ const SearchBar = () => {
             size={16}
           />
           <Input
-            className="pl-10 pr-4 w-[300px] bg-gray-50"
+            className="pl-10 pr-4 w-[180px] sm:w-[220px] md:w-[300px] bg-gray-50 transition-all duration-200"
             placeholder="Search for courses, lessons, quizzes, assignments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

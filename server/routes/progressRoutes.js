@@ -1,11 +1,19 @@
 const Progress = require("../Models/Progress");
 const express = require("express");
 const router = express.Router();
-const {Course,CourseProgress }= require("../Models/course"); // Import Progress Model
+const { Course, CourseProgress } = require("../Models/course");
 const Lesson = require("../Models/lesson");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 const notifyUser = require("../utils/notifyUser");
-const Enrollment = require("../Models/Enrollment"); // Import Enrollment Model
+const Enrollment = require("../Models/Enrollment");
+const cloudinary = require("cloudinary").v2;
+const Category = require("../Models/Category"); // Add this import
+
+// Helper to fetch category details by name
+async function getCategoryByName(name) {
+  if (!name) return null;
+  return await Category.findOne({ name });
+}
 
 // ✅ Mark a Lesson as Completed
 router.post("/complete-lesson", verifyToken, checkRole(["student"]), async (req, res) => {
@@ -13,14 +21,14 @@ router.post("/complete-lesson", verifyToken, checkRole(["student"]), async (req,
 
   try {
     // Find or create progress for the user and course
-    let progress = await Progress.findOne({ userId: req.user.id, courseId });
+    let progress = await Progress.findOne({ student: req.user.id, course: courseId });
 
     if (!progress) {
-      progress = new Progress({ userId: req.user.id, courseId, completedLessons: [] });
+      progress = new Progress({ student: req.user.id, course: courseId, completedLessons: [] });
     }
 
     // Add the lesson to completedLessons if not already completed
-    if (!progress.completedLessons.includes(lessonId)) {
+    if (!progress.completedLessons.map(id => String(id)).includes(String(lessonId))) {
       progress.completedLessons.push(lessonId);
     }
 
@@ -53,11 +61,11 @@ router.post("/complete-lesson", verifyToken, checkRole(["student"]), async (req,
 // ✅ Get all progress for a student (with course and lesson details)
 router.get("/my-progress", verifyToken, checkRole(["student"]), async (req, res) => {
   try {
-    const progresses = await Progress.find({ userId: req.user.id })
+    const progresses = await Progress.find({ student: req.user.id })
       .populate({
-        path: "courseId",
+        path: "course",
         populate: [
-          { path: "teacher", select: "firstName lastName" },
+          { path: "createdBy", select: "firstName lastName" },
           { path: "category", select: "name" },
           { path: "lessons" },
         ],
@@ -77,34 +85,42 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
     const enrollments = await Enrollment.find({ student: req.user.id }).populate({
       path: "course",
       populate: [
-        { path: "createdBy", select: "firstName lastName" }, // Ensure teacher is populated
-        { path: "category", select: "name" },                // Ensure category is populated
-        { path: "lessons", model: "Lesson" },                // Lessons
+        { path: "createdBy", select: "firstName lastName" },
+        { path: "lessons", model: "Lesson" },
       ],
     });
 
     // Fetch all progress documents for the user
-    const progresses = await Progress.find({ userId: req.user.id });
+    const progresses = await Progress.find({ student: req.user.id });
 
     // Map courseId to progress for quick lookup
     const progressMap = {};
     progresses.forEach((p) => {
-      progressMap[p.courseId.toString()] = p;
+      progressMap[p.course.toString()] = p;
     });
 
-    // Build result: for each enrollment, attach progress if exists
-    const result = enrollments
-      .filter((enrollment) => enrollment.course && enrollment.course._id) // filter out if course is missing
-      .map((enrollment) => {
-        const course = enrollment.course;
-        const progress = progressMap[course._id.toString()];
-        return {
-          courseId: course, // always populated (with full lessons, createdBy, category)
-          progressPercentage: progress ? progress.progressPercentage : 0,
-          completedLessons: progress ? progress.completedLessons : [],
-          _id: progress ? progress._id : null,
-        };
+    // Build result: for each enrollment, attach progress if exists and fetch category details
+    const result = [];
+    for (const enrollment of enrollments) {
+      if (!enrollment.course || !enrollment.course._id) continue;
+      const course = enrollment.course;
+      let categoryDetails = null;
+      if (course.category) {
+        categoryDetails = await getCategoryByName(course.category);
+        console.log("Course category string:", course.category);
+        console.log("Fetched categoryDetails:", categoryDetails);
+      }
+      const progress = progressMap[course._id.toString()];
+      result.push({
+        courseId: {
+          ...course.toObject(),
+          category: categoryDetails, // replace string with category object
+        },
+        progressPercentage: progress ? progress.progressPercentage : 0,
+        completedLessons: progress ? progress.completedLessons : [],
+        _id: progress ? progress._id : null,
       });
+    }
 
     return res.status(200).json(result);
   } catch (error) {
@@ -117,12 +133,11 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
 // ✅ Get Student Progress for a Course
 router.get("/:courseId", verifyToken, checkRole(["student"]), async (req, res, next) => {
   const mongoose = require("mongoose");
-  // If the param is not a valid ObjectId, skip to next route
   if (!mongoose.Types.ObjectId.isValid(req.params.courseId)) return next();
   try {
     const progress = await Progress.findOne({
-      userId: req.user.id,
-      courseId: req.params.courseId,
+      student: req.user.id,
+      course: req.params.courseId,
     }).populate("completedLessons");
 
     if (!progress) return res.status(404).json({ message: "No progress found" });
@@ -141,7 +156,7 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
     const lesson = await require("../Models/lesson").findById(lessonId);
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
     // Only allow download for video/pdf
-    if (!lesson.contentType || !["video", "pdf"].includes(lesson.contentType)) {
+    if (!lesson.contentType || !["video", "pdf"].includes(lesson.contentType.toLowerCase())) {
       return res.status(400).json({ message: "This lesson type cannot be downloaded." });
     }
     if (!lesson.contentURL) {
@@ -149,9 +164,42 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
     }
     // If contentURL is a Cloudinary/external URL, respond with the URL
     if (lesson.contentURL.startsWith("http")) {
+      if (
+        lesson.contentURL.includes("cloudinary.com") &&
+        (lesson.contentType.toLowerCase() === "pdf" || lesson.contentType.toLowerCase() === "video")
+      ) {
+        let publicId = null;
+        let resourceType = "raw";
+        if (lesson.contentType.toLowerCase() === "pdf") {
+          // Extract publicId WITHOUT .pdf extension
+          // Example: .../upload/v1234567890/edumids/pdfs/myfile.pdf
+          // Should extract: edumids/pdfs/myfile
+          const matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+)\.pdf/i);
+          publicId = matches && matches[1] ? matches[1] : null;
+          resourceType = "raw";
+        } else if (lesson.contentType.toLowerCase() === "video") {
+          // Extract publicId WITH extension
+          const matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.(mp4|mov|avi|mkv))/i);
+          publicId = matches && matches[1] ? matches[1] : null;
+          resourceType = "video";
+        }
+        // Debug log
+        if (!publicId) {
+          console.error("Could not extract Cloudinary publicId for lesson:", lesson.contentURL);
+          return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
+        }
+        const signedUrl = cloudinary.utils.private_download_url(
+          publicId, // no .pdf for raw
+          resourceType,
+          {
+            type: "authenticated",
+            attachment: true,
+            expires_at: Math.floor(Date.now() / 1000) + 60 * 5
+          }
+        );
+        return res.json({ url: signedUrl });
+      }
       return res.json({ url: lesson.contentURL });
-      // Alternatively, to redirect:
-      // return res.redirect(lesson.contentURL);
     }
     // Build file path for local files
     const path = require("path");

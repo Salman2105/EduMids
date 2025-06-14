@@ -95,15 +95,20 @@ router.post("/create", verifyToken, checkRole(["teacher"]), upload.single("attac
 
 // @route   GET /api/assignments/course/:courseId
 // @desc    Get all assignments for a course
-router.get("/course/:courseId", verifyToken, checkRole(["teacher"]), async (req, res) => {
-  try {
-    const { courseId } = req.params;
-    const assignments = await Assignment.find({ course: courseId }).sort({ createdAt: -1 });
-    res.json({ success: true, assignments });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch assignments", error });
+router.get(
+  "/course/:courseId",
+  verifyToken,
+  checkRole(["teacher", "admin"]), // <-- allow admin as well as teacher
+  async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      const assignments = await Assignment.find({ course: courseId }).sort({ createdAt: -1 });
+      res.json({ success: true, assignments });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Failed to fetch assignments", error });
+    }
   }
-});
+);
 
 // @route   GET /api/assignments/my
 // @desc    Get all assignments created by the logged-in teacher

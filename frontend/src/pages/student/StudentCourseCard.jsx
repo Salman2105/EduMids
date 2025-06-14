@@ -156,9 +156,11 @@ const StudentCourseCard = () => {
               {(course.lessons && course.lessons.length > 0) ? (
                 <ul className="space-y-1">
                   {course.lessons.map((lesson) => {
-                    const isCompleted = Array.isArray(course.completedLessons) && (course.completedLessons.includes(lesson.lessonId) || course.completedLessons.includes(lesson._id));
+                    const lessonId = lesson.lessonId || lesson._id;
+                    // Compare as string for completedLessons
+                    const isCompleted = Array.isArray(course.completedLessons) && course.completedLessons.map(l => String(l)).includes(String(lessonId));
                     return (
-                      <li key={lesson.lessonId || lesson._id} className="flex items-center gap-2">
+                      <li key={lessonId} className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${isCompleted ? "bg-green-500" : "bg-gray-400"}`}></span>
                         <span className={isCompleted ? "text-green-700 font-semibold" : undefined}>{lesson.title}</span>
                         {isCompleted && (
