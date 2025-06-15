@@ -178,7 +178,7 @@ export default function TeacherEnrollmentCrad() {
           </p>
         </div>
         <img
-          src="/assets/enroll.png"
+          src="/assets/enrollment.jpg"
           alt="Enrollments"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

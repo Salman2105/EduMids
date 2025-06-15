@@ -75,22 +75,14 @@ const AdminDashboardSidebar = () => {
           style={{ background: 'none', border: 'none', padding: 0 }}
           aria-label="Go to landing page"
         >
-          <svg
+          <img
+            src="/assets/logo.png"
+            alt="EduMids Logo"
             width={collapsed ? 36 : 48}
             height={collapsed ? 36 : 48}
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
             className="drop-shadow-lg"
-          >
-            {/* Cap top */}
-            <polygon points="32,16 56,26 32,36 8,26" fill="#2563eb" stroke="#1e40af" strokeWidth="2"/>
-            {/* Cap base */}
-            <rect x="24" y="36" width="16" height="4" rx="2" fill="#1e40af" />
-            {/* Tassel */}
-            <line x1="32" y1="36" x2="40" y2="48" stroke="#facc15" strokeWidth="2"/>
-            <circle cx="40" cy="48" r="2" fill="#facc15" />
-          </svg>
+            style={{ objectFit: "contain" }}
+          />
           {!collapsed && (
             <div className="flex flex-col ml-2">
               <span className="text-white font-extrabold text-2xl tracking-wide logo-font" style={{letterSpacing: '2px'}}>EduMids</span>
@@ -186,6 +178,9 @@ const AdminDashboardSidebar = () => {
 };
 
 export default AdminDashboardSidebar;
+         
+
+
 
 
 

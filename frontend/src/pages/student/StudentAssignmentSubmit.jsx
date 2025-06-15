@@ -150,7 +150,7 @@ const StudentAssignmentSubmit = () => {
             </p>
           </div>
           <img
-            src="/assets/assignment.png"
+            src="/assets/assignment.jpg"
             alt="Assignments"
             className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
           />
@@ -273,7 +273,7 @@ const StudentAssignmentSubmit = () => {
           <p className="text-gray-600 text-base md:text-lg">{assignment.description}</p>
         </div>
         <img
-          src="/assets/assignment.png"
+          src="/assets/assignment.jpg"
           alt="Assignment"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

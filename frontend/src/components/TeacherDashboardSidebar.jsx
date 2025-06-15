@@ -74,22 +74,14 @@ const TeacherDashboardSidebar = () => {
           style={{ background: 'none', border: 'none', padding: 0 }}
           aria-label="Go to landing page"
         >
-          <svg
+          <img
+            src="/assets/logo.png"
+            alt="EduMids Logo"
             width={collapsed ? 36 : 48}
             height={collapsed ? 36 : 48}
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
             className="drop-shadow-lg"
-          >
-            {/* Book base */}
-            <rect x="10" y="16" width="44" height="32" rx="6" fill="#fff" stroke="#1e40af" strokeWidth="2"/>
-            {/* Book spine */}
-            <rect x="30" y="16" width="4" height="32" fill="#2563eb"/>
-            {/* Pen/pointer */}
-            <rect x="48" y="22" width="3" height="18" rx="1.5" fill="#facc15" />
-            <circle cx="49.5" cy="40.5" r="2" fill="#1e40af" />
-          </svg>
+            style={{ objectFit: "contain" }}
+          />
           {!collapsed && (
             <div className="flex flex-col ml-2">
               <span className="text-white font-extrabold text-2xl tracking-wide logo-font" style={{letterSpacing: '2px'}}>EduMids</span>

@@ -190,7 +190,7 @@ export default function AdminReportCard() {
           </p>
         </div>
         <img
-          src="/assets/certificate.png"
+          src="/assets/certificate.jpg"
           alt="Certificates"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

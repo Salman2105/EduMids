@@ -40,7 +40,7 @@ const AdminpaymentCard = () => {
           </p>
         </div>
         <img
-          src="/assets/payment.png"
+          src="/assets/payment.jpg"
           alt="Payments"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

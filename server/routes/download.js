@@ -39,6 +39,54 @@ router.get("/lesson/:lessonId", verifyToken, async (req, res) => {
     });
     // If contentURL is a Cloudinary/external URL, respond with the URL for frontend to handle
     if (lesson.contentURL.startsWith("http")) {
+      // Handle Cloudinary protected resources (PDF/Video)
+      if (
+        lesson.contentURL.includes("cloudinary.com") &&
+        (lesson.contentType.toLowerCase() === "pdf" || lesson.contentType.toLowerCase() === "video")
+      ) {
+        const cloudinary = require("cloudinary").v2;
+        let publicId = null;
+        let resourceType = "raw";
+        if (lesson.contentType.toLowerCase() === "pdf") {
+          // Extract publicId WITH .pdf extension
+          let matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.pdf)/i);
+          publicId = matches && matches[1] ? matches[1] : null;
+          if (!publicId) {
+            return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
+          }
+          const signedUrl = cloudinary.utils.private_download_url(
+            publicId,
+            "raw",
+            {
+              type: "authenticated",
+              attachment: true,
+              expires_at: Math.floor(Date.now() / 1000) + 60 * 5,
+            }
+          );
+          return res.json({ url: signedUrl });
+        } else if (lesson.contentType.toLowerCase() === "video") {
+          // Extract publicId WITH extension
+          let matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.(mp4|mov|avi|mkv))/i);
+          publicId = matches && matches[1] ? matches[1] : null;
+          resourceType = "video";
+          if (!publicId) {
+            return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
+          }
+          const signedUrl = cloudinary.utils.private_download_url(
+            publicId,
+            resourceType,
+            {
+              type: "authenticated",
+              attachment: true,
+              expires_at: Math.floor(Date.now() / 1000) + 60 * 5,
+            }
+          );
+          return res.json({ url: signedUrl });
+        }
+        // fallback: just return the URL
+        return res.json({ url: lesson.contentURL });
+      }
+      // For other external URLs, just return as before
       return res.json({ url: lesson.contentURL });
     }
     // Build file path for local files

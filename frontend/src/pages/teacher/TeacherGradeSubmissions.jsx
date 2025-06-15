@@ -273,7 +273,7 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
           </p>
         </div>
         <img
-          src="/assets/assignment.png"
+          src="/assets/assignment.jpg"
           alt="Assignments"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

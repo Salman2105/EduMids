@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const StudentProgressCard = () => {
   const [progresses, setProgresses] = useState([]);
@@ -51,6 +52,7 @@ const StudentProgressCard = () => {
         { courseId, lessonId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      toast.success("Lesson marked as completed!");
       // Refresh progress after marking
     } catch (err) {
       alert(err.response?.data?.message || "Failed to mark lesson as completed");
@@ -60,7 +62,7 @@ const StudentProgressCard = () => {
   };
 
   // Download handler for protected lessons
-  const handleDownloadLesson = async (lessonId, displayName, resourceType, resourceUrl) => {
+  const handleDownloadLesson = async (lessonId, displayName, resourceType) => {
     setDownloadingLessonId(lessonId);
     try {
       const token = localStorage.getItem("token");
@@ -75,20 +77,19 @@ const StudentProgressCard = () => {
           alert(data.message || "Download failed");
           return;
         }
-        // If backend returns a URL (Cloudinary/external), trigger download or open in new tab
         if (data.url) {
-          let downloadUrl = data.url;
-          // For Cloudinary, force download
-          if (downloadUrl.includes("res.cloudinary.com")) {
-            downloadUrl = downloadUrl.replace(/\/upload\//, "/upload/fl_attachment/");
+          // For PDFs, open in new tab; for videos, trigger download
+          if (resourceType === "PDF") {
+            window.open(data.url, "_blank", "noopener,noreferrer");
+          } else {
+            const link = document.createElement("a");
+            link.href = data.url;
+            link.setAttribute("download", "");
+            link.rel = "noopener noreferrer";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
           }
-          const link = document.createElement("a");
-          link.href = downloadUrl;
-          link.setAttribute("download", "");
-          link.rel = "noopener noreferrer";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
           return;
         }
         alert("Download failed");
@@ -98,7 +99,7 @@ const StudentProgressCard = () => {
         alert("Download failed");
         return;
       }
-      // Download as blob
+      // Download as blob (fallback)
       const blob = await response.blob();
       let filename = displayName;
       const disposition = response.headers.get("Content-Disposition");
@@ -139,6 +140,13 @@ const StudentProgressCard = () => {
     : [];
   const lessons = course?.lessons || [];
 
+  // Helper to check if a file is an image (for mis-uploaded PDFs)
+  const isImageFile = (url) => {
+    if (!url) return false;
+    // Check by extension (jpg, jpeg, png, gif, webp, etc)
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -149,7 +157,7 @@ const StudentProgressCard = () => {
           </p>
         </div>
         <img
-          src="/assets/progress.png"
+          src="/assets/progress.jpg"
           alt="Progress"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />
@@ -196,9 +204,21 @@ const StudentProgressCard = () => {
               Completed Lessons: {completedLessons.length} / {lessons.length || "?"}
             </div>
             {selectedProgress.progressPercentage === 100 && (
-              <div className="text-green-600 font-semibold mt-2">
-                🏁 Congratulations! You've completed this course.
-              </div>
+              <>
+                <div className="text-green-600 font-semibold mt-2">
+                  🏁 Congratulations! You've completed this course.
+                </div>
+                <div className="mt-4">
+                  <a
+                    href={`http://localhost:5000/api/certificates/${selectedCourseId}`}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    🎓 Download Certificate
+                  </a>
+                </div>
+              </>
             )}
 
             {/* Lessons list with completion action */}
@@ -212,10 +232,8 @@ const StudentProgressCard = () => {
                   let resourceType = lesson.contentType ? lesson.contentType.toUpperCase() : "UNKNOWN";
                   let resourceUrl = lesson.contentURL || null;
                   let displayName = lesson.title || lesson.name || lessonId;
-                  // Download link logic
                   const isDownloadable = resourceType === "PDF" || resourceType === "VIDEO";
-                  // Always use backend download route for downloadable resources
-                  // const downloadUrl = resourceUrl && !resourceUrl.startsWith("http") ? `http://localhost:5000/${resourceUrl}` : resourceUrl;
+
                   return (
                     <li key={lessonId} className="bg-gray-50 rounded-lg shadow p-4 flex flex-col gap-2 border hover:shadow-lg transition-all w-full">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -230,14 +248,15 @@ const StudentProgressCard = () => {
                           />
                         )}
                         {resourceType === "PDF" && resourceUrl && (
-                          <a
-                            href={resourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          // Always render PDFs as links, never as images
+                          <button
+                            onClick={() => handleDownloadLesson(lessonId, displayName, resourceType)}
                             className="underline text-blue-600 text-xs ml-1 font-semibold"
+                            disabled={downloadingLessonId === lessonId}
+                            style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}
                           >
-                            View PDF
-                          </a>
+                            {downloadingLessonId === lessonId ? "Loading..." : "View PDF"}
+                          </button>
                         )}
                         {resourceType === "LINK" && resourceUrl && (
                           <a
@@ -248,6 +267,14 @@ const StudentProgressCard = () => {
                           >
                             Open Link
                           </a>
+                        )}
+                        {/* Optionally, if you want to show images for image files (not PDFs): */}
+                        {resourceType !== "PDF" && resourceUrl && isImageFile(resourceUrl) && (
+                          <img
+                            src={resourceUrl}
+                            alt={displayName}
+                            className="w-40 h-24 rounded mt-1 object-contain border"
+                          />
                         )}
                         {isDownloadable && resourceUrl && (
                           <button
@@ -286,3 +313,5 @@ const StudentProgressCard = () => {
 };
 
 export default StudentProgressCard;
+
+

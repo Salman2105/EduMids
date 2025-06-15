@@ -82,7 +82,7 @@ export default function CourseCard() {
           </p>
         </div>
         <img
-          src="/assets/course.png"
+          src="/assets/mycourses.jpg"
           alt="Course"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

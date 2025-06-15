@@ -198,6 +198,13 @@ export default function LessonCard() {
     return url.startsWith("/") ? url : `/${url}`;
   };
 
+  // Helper to check if a file is an image (for mis-uploaded PDFs)
+  const isImageFile = (url) => {
+    if (!url) return false;
+    // Check by extension (jpg, jpeg, png, gif, webp, etc)
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -210,7 +217,7 @@ export default function LessonCard() {
           </p>
         </div>
         <img
-          src="/assets/lesson.png"
+          src="/assets/lesson.jpg"
           alt="Lesson"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />
@@ -413,14 +420,22 @@ export default function LessonCard() {
                           />
                         )}
                         {lesson.contentType === "pdf" && lesson.contentURL && (
-                          <a
-                            href={`http://localhost:5000/${lesson.contentURL}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline ml-2"
-                          >
-                            View PDF
-                          </a>
+                          isImageFile(lesson.contentURL) ? (
+                            <img
+                              src={`http://localhost:5000/${lesson.contentURL}`}
+                              alt="PDF as image"
+                              className="w-40 h-24 rounded mt-1 object-contain border"
+                            />
+                          ) : (
+                            <a
+                              href={`http://localhost:5000/${lesson.contentURL}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline ml-2"
+                            >
+                              View PDF
+                            </a>
+                          )
                         )}
                         {lesson.contentType === "link" && lesson.contentURL && (
                           <a

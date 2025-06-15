@@ -171,12 +171,25 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
         let publicId = null;
         let resourceType = "raw";
         if (lesson.contentType.toLowerCase() === "pdf") {
-          // Extract publicId WITHOUT .pdf extension
-          // Example: .../upload/v1234567890/edumids/pdfs/myfile.pdf
-          // Should extract: edumids/pdfs/myfile
-          const matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+)\.pdf/i);
+          // Extract publicId WITH .pdf extension (since your Cloudinary resource has .pdf in publicId)
+          let matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.pdf)/i);
           publicId = matches && matches[1] ? matches[1] : null;
-          resourceType = "raw";
+          if (!publicId) {
+            return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
+          }
+          // Debug log
+          console.log("[DEBUG] Extracted publicId for PDF:", publicId);
+          // Always use resource_type: 'raw' for PDF
+          const signedUrl = cloudinary.utils.private_download_url(
+            publicId,
+            "raw",
+            {
+              type: "authenticated",
+              attachment: true,
+              expires_at: Math.floor(Date.now() / 1000) + 60 * 5,
+            }
+          );
+          return res.json({ url: signedUrl });
         } else if (lesson.contentType.toLowerCase() === "video") {
           // Extract publicId WITH extension
           const matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.(mp4|mov|avi|mkv))/i);
@@ -189,7 +202,7 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
           return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
         }
         const signedUrl = cloudinary.utils.private_download_url(
-          publicId, // no .pdf for raw
+          publicId,
           resourceType,
           {
             type: "authenticated",
@@ -197,6 +210,8 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
             expires_at: Math.floor(Date.now() / 1000) + 60 * 5
           }
         );
+        // Debug log for signed URL
+        console.log(`[DEBUG] Cloudinary signed ${resourceType} URL:`, signedUrl);
         return res.json({ url: signedUrl });
       }
       return res.json({ url: lesson.contentURL });
