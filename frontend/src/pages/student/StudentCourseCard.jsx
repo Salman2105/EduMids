@@ -118,130 +118,146 @@ const StudentCourseCard = () => {
       </div>
       {/* Courses */}
       <div className="space-y-8">
-        {data.courses.map((course) => (
-          <div key={course.courseId} className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold mb-1">{course.title}</h2>
-                <p className="text-gray-600 mb-2">{course.description}</p>
-                <div className="text-sm text-gray-500">
-                  Enrolled: {
-                    course.enrolledAt
-                      ? (() => {
-                          // Try to parse as date
-                          const date = new Date(course.enrolledAt);
-                          return !isNaN(date)
-                            ? date.toLocaleDateString()
-                            : String(course.enrolledAt);
-                        })()
-                      : "Unknown"
-                  }
+        {data.courses.map((course) => {
+          // Merge completedLessons from localStorage for instant UI sync
+          let completedLessonsFromStorage = [];
+          try {
+            const completedLessonsMap = JSON.parse(localStorage.getItem("completedLessonsMap") || "{}");
+            if (completedLessonsMap && completedLessonsMap[course.courseId]) {
+              completedLessonsFromStorage = completedLessonsMap[course.courseId].map(String);
+            }
+          } catch {}
+          // Merge with fetched completedLessons (avoid duplicates)
+          const completedLessonsFetched = Array.isArray(course.completedLessons)
+            ? course.completedLessons.map(l => String(l))
+            : [];
+          const completedLessons = Array.from(new Set([...completedLessonsFetched, ...completedLessonsFromStorage]));
+
+          return (
+            <div key={course.courseId} className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold mb-1">{course.title}</h2>
+                  <p className="text-gray-600 mb-2">{course.description}</p>
+                  <div className="text-sm text-gray-500">
+                    Enrolled: {
+                      course.enrolledAt
+                        ? (() => {
+                            // Try to parse as date
+                            const date = new Date(course.enrolledAt);
+                            return !isNaN(date)
+                              ? date.toLocaleDateString()
+                              : String(course.enrolledAt);
+                          })()
+                        : "Unknown"
+                    }
+                  </div>
+                </div>
+                <div className="mt-4 md:mt-0">
+                  <div className="font-semibold">
+                    Progress: {typeof course.progress === "number" ? Math.round(course.progress) : 0}%
+                  </div>
+                  <div className="w-40 h-2 bg-gray-200 rounded mt-1">
+                    <div
+                      className="h-2 bg-blue-500 rounded"
+                      style={{ width: `${typeof course.progress === "number" ? Math.round(course.progress) : 0}%` }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 md:mt-0">
-                <div className="font-semibold">
-                  Progress: {typeof course.progress === "number" ? Math.round(course.progress) : 0}%
-                </div>
-                <div className="w-40 h-2 bg-gray-200 rounded mt-1">
-                  <div
-                    className="h-2 bg-blue-500 rounded"
-                    style={{ width: `${typeof course.progress === "number" ? Math.round(course.progress) : 0}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-            {/* Lessons */}
-            <div className="mb-4">
-              <div className="font-semibold mb-2">Lessons</div>
-              {(course.lessons && course.lessons.length > 0) ? (
-                <ul className="space-y-1">
-                  {course.lessons.map((lesson) => {
-                    const lessonId = lesson.lessonId || lesson._id;
-                    // Compare as string for completedLessons
-                    const isCompleted = Array.isArray(course.completedLessons) && course.completedLessons.map(l => String(l)).includes(String(lessonId));
-                    return (
-                      <li key={lessonId} className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${isCompleted ? "bg-green-500" : "bg-gray-400"}`}></span>
-                        <span className={isCompleted ? "text-green-700 font-semibold" : undefined}>{lesson.title}</span>
-                        {isCompleted && (
-                          <span className="ml-2 text-xs text-green-600">Completed</span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <div className="text-gray-400 text-sm">No lessons available.</div>
-              )}
-            </div>
-            {/* Quizzes */}
-            <div>
-              <div className="font-semibold mb-2">
-                Quizzes ({allQuizzes.filter(q => String(q.courseId) === String(course.courseId)).length})
-              </div>
-              {(() => {
-                const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
-                if (quizzesForCourse.length > 0) {
-                  return (
-                    <ul className="space-y-1">
-                      {quizzesForCourse.map((quiz) => (
-                        <li key={quiz.quizId} className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${quiz.completed ? "bg-green-500" : "bg-gray-400"}`}></span>
-                          <span>{quiz.title}</span>
-                          {quiz.completed ? (
-                            <span className="ml-2 text-xs text-green-600">Submitted{quiz.score !== null ? ` (Score: ${quiz.score})` : ""}</span>
-                          ) : (
-                            <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
+              {/* Lessons */}
+              <div className="mb-4">
+                <div className="font-semibold mb-2">Lessons</div>
+                {(course.lessons && course.lessons.length > 0) ? (
+                  <ul className="space-y-1">
+                    {course.lessons.map((lesson) => {
+                      const lessonId = lesson.lessonId || lesson._id;
+                      // Use merged completedLessons for status
+                      const isCompleted = completedLessons.includes(String(lessonId));
+                      return (
+                        <li key={lessonId} className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${isCompleted ? "bg-green-500" : "bg-gray-400"}`}></span>
+                          <span className={isCompleted ? "text-green-700 font-semibold" : undefined}>{lesson.title}</span>
+                          {isCompleted && (
+                            <span className="ml-2 text-xs text-green-600">Completed</span>
                           )}
                         </li>
-                      ))}
-                    </ul>
-                  );
-                } else {
-                  return <div className="text-gray-400 text-sm">No quizzes available.</div>;
-                }
-              })()}
-            </div>
-            {/* Assignments */}
-            <div className="mt-4">
-              <div className="font-semibold mb-2">
-                Assignments ({Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId].length : 0})
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className="text-gray-400 text-sm">No lessons available.</div>
+                )}
               </div>
-              {Array.isArray(allAssignments[course.courseId]) && allAssignments[course.courseId].length > 0 ? (
-                <ul className="space-y-1">
-                  {allAssignments[course.courseId].map((assignment) => (
-                    <li key={assignment._id} className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${assignment.submitted ? "bg-green-500" : "bg-gray-400"}`}></span>
-                      <span>{assignment.title}</span>
-                      {assignment.submitted ? (
-                        <span className="ml-2 text-xs text-green-600">Submitted{assignment.marksObtained !== null ? ` (Marks: ${assignment.marksObtained})` : ""}</span>
-                      ) : (
-                        <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
-                      )}
-                      {!assignment.submitted && (
-                        <button
-                          className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-                          onClick={() => window.location.href = `/student/StudentAssignmentSubmit/${assignment._id}`}
-                        >
-                          Submit
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-gray-400 text-sm">No assignments available.</div>
-              )}
+              {/* Quizzes */}
+              <div>
+                <div className="font-semibold mb-2">
+                  Quizzes ({allQuizzes.filter(q => String(q.courseId) === String(course.courseId)).length})
+                </div>
+                {(() => {
+                  const quizzesForCourse = allQuizzes.filter(q => String(q.courseId) === String(course.courseId));
+                  if (quizzesForCourse.length > 0) {
+                    return (
+                      <ul className="space-y-1">
+                        {quizzesForCourse.map((quiz) => (
+                          <li key={quiz.quizId} className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${quiz.completed ? "bg-green-500" : "bg-gray-400"}`}></span>
+                            <span>{quiz.title}</span>
+                            {quiz.completed ? (
+                              <span className="ml-2 text-xs text-green-600">Submitted{quiz.score !== null ? ` (Score: ${quiz.score})` : ""}</span>
+                            ) : (
+                              <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  } else {
+                    return <div className="text-gray-400 text-sm">No quizzes available.</div>;
+                  }
+                })()}
+              </div>
+              {/* Assignments */}
+              <div className="mt-4">
+                <div className="font-semibold mb-2">
+                  Assignments ({Array.isArray(allAssignments[course.courseId]) ? allAssignments[course.courseId].length : 0})
+                </div>
+                {Array.isArray(allAssignments[course.courseId]) && allAssignments[course.courseId].length > 0 ? (
+                  <ul className="space-y-1">
+                    {allAssignments[course.courseId].map((assignment) => (
+                      <li key={assignment._id} className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${assignment.submitted ? "bg-green-500" : "bg-gray-400"}`}></span>
+                        <span>{assignment.title}</span>
+                        {assignment.submitted ? (
+                          <span className="ml-2 text-xs text-green-600">Submitted{assignment.marksObtained !== null ? ` (Marks: ${assignment.marksObtained})` : ""}</span>
+                        ) : (
+                          <span className="ml-2 text-xs text-gray-500">Not Submitted</span>
+                        )}
+                        {!assignment.submitted && (
+                          <button
+                            className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                            onClick={() => window.location.href = `/student/StudentAssignmentSubmit/${assignment._id}`}
+                          >
+                            Submit
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-gray-400 text-sm">No assignments available.</div>
+                )}
+              </div>
+              <button
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                onClick={() => handleUnenroll(course.courseId)}
+                disabled={unenrolling[course.courseId]}
+              >
+                {unenrolling[course.courseId] ? "Unenrolling..." : "Unenroll"}
+              </button>
             </div>
-            <button
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              onClick={() => handleUnenroll(course.courseId)}
-              disabled={unenrolling[course.courseId]}
-            >
-              {unenrolling[course.courseId] ? "Unenrolling..." : "Unenroll"}
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

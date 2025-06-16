@@ -7,7 +7,7 @@ export default function PaymentCancel() {
       <div className="bg-white p-8 rounded shadow-md text-center">
         <h1 className="text-2xl font-bold text-red-700 mb-4">Payment Cancelled</h1>
         <p className="mb-4">Your payment was cancelled. If this was a mistake, you can try again.</p>
-        <Link to="/CoursesPage" className="text-blue-600 underline">Back to Courses</Link>
+        <Link to="/student/courses" className="text-blue-600 underline">Back to Courses</Link>
       </div>
     </div>
   );

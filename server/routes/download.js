@@ -65,23 +65,8 @@ router.get("/lesson/:lessonId", verifyToken, async (req, res) => {
           );
           return res.json({ url: signedUrl });
         } else if (lesson.contentType.toLowerCase() === "video") {
-          // Extract publicId WITH extension
-          let matches = lesson.contentURL.match(/\/upload\/(?:v\d+\/)?(.+\.(mp4|mov|avi|mkv))/i);
-          publicId = matches && matches[1] ? matches[1] : null;
-          resourceType = "video";
-          if (!publicId) {
-            return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
-          }
-          const signedUrl = cloudinary.utils.private_download_url(
-            publicId,
-            resourceType,
-            {
-              type: "authenticated",
-              attachment: true,
-              expires_at: Math.floor(Date.now() / 1000) + 60 * 5,
-            }
-          );
-          return res.json({ url: signedUrl });
+          // For videos, return the original contentURL (public streaming URL)
+          return res.json({ url: lesson.contentURL });
         }
         // fallback: just return the URL
         return res.json({ url: lesson.contentURL });

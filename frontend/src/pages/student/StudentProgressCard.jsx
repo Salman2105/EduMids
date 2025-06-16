@@ -6,7 +6,10 @@ const StudentProgressCard = () => {
   const [progresses, setProgresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState(() => {
+    // Try to get from localStorage, fallback to ""
+    return localStorage.getItem("selectedCourseId") || "";
+  });
   const [marking, setMarking] = useState(false);
   const [downloadingLessonId, setDownloadingLessonId] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -31,8 +34,14 @@ const StudentProgressCard = () => {
         );
         const data = Array.isArray(res.data) ? res.data : res.data ? [res.data] : [];
         setProgresses(data);
-        // Set default selected course
-        if (data.length && !selectedCourseId) setSelectedCourseId(data[0].courseId._id);
+        // Set default selected course only if not set or not found in data
+        if (data.length) {
+          const found = data.find(p => p.courseId && p.courseId._id === selectedCourseId);
+          if (!selectedCourseId || !found) {
+            setSelectedCourseId(data[0].courseId._id);
+            localStorage.setItem("selectedCourseId", data[0].courseId._id);
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch progress");
       } finally {
@@ -68,7 +77,41 @@ const StudentProgressCard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Lesson marked as completed!");
-      // Refresh progress after marking
+      // Update progress locally for immediate UI feedback
+      setProgresses(prev =>
+        prev.map(progress => {
+          if (progress.courseId && progress.courseId._id === courseId) {
+            // Add lessonId to completedLessons if not already present
+            const completedLessons = Array.isArray(progress.completedLessons)
+              ? [...progress.completedLessons]
+              : [];
+            const lessonIdStr = lessonId.toString();
+            if (!completedLessons.map(l => (l && l._id ? l._id : l).toString()).includes(lessonIdStr)) {
+              completedLessons.push(lessonId);
+            }
+            // Recalculate progressPercentage
+            const totalLessons = progress.courseId.lessons ? progress.courseId.lessons.length : 0;
+            const completedCount = completedLessons.length;
+            const progressPercentage = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
+
+            // --- Store completed lessons in localStorage for StudentCourseCard sync ---
+            let completedLessonsMap = {};
+            try {
+              completedLessonsMap = JSON.parse(localStorage.getItem("completedLessonsMap") || "{}");
+            } catch {}
+            completedLessonsMap[courseId] = completedLessons.map(l => (l && l._id ? l._id : l));
+            localStorage.setItem("completedLessonsMap", JSON.stringify(completedLessonsMap));
+            // -------------------------------------------------------------------------
+
+            return {
+              ...progress,
+              completedLessons,
+              progressPercentage,
+            };
+          }
+          return progress;
+        })
+      );
     } catch (err) {
       alert(err.response?.data?.message || "Failed to mark lesson as completed");
     } finally {
@@ -93,10 +136,23 @@ const StudentProgressCard = () => {
           return;
         }
         if (data.url) {
-          // For PDFs, open in new tab; for videos, trigger download
+          // For PDFs, open in new tab
           if (resourceType === "PDF") {
             window.open(data.url, "_blank", "noopener,noreferrer");
+          } else if (resourceType === "VIDEO") {
+            // For videos, fetch as blob and trigger download
+            const videoRes = await fetch(data.url);
+            const videoBlob = await videoRes.blob();
+            const videoUrl = window.URL.createObjectURL(videoBlob);
+            const a = document.createElement("a");
+            a.href = videoUrl;
+            a.download = displayName + ".mp4";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(videoUrl);
           } else {
+            // fallback: open as link
             const link = document.createElement("a");
             link.href = data.url;
             link.setAttribute("download", "");
@@ -179,6 +235,12 @@ const StudentProgressCard = () => {
     return found ? found.name : "-";
   };
 
+  // When user changes course, update localStorage
+  const handleCourseChange = (e) => {
+    setSelectedCourseId(e.target.value);
+    localStorage.setItem("selectedCourseId", e.target.value);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -200,7 +262,7 @@ const StudentProgressCard = () => {
           <label className="font-semibold mr-2">Select Course:</label>
           <select
             value={selectedCourseId}
-            onChange={e => setSelectedCourseId(e.target.value)}
+            onChange={handleCourseChange}
             className="border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400"
           >
             {progresses.filter(p => p.courseId && p.courseId._id).map((p) => (
@@ -312,16 +374,6 @@ const StudentProgressCard = () => {
                             className="w-40 h-24 rounded mt-1 object-contain border"
                           />
                         )}
-                        {isDownloadable && resourceUrl && (
-                          <button
-                            onClick={() => handleDownloadLesson(lessonId, displayName, resourceType, resourceUrl)}
-                            className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition"
-                            title={`Download ${resourceType}`}
-                            disabled={downloadingLessonId === lessonId}
-                          >
-                            {downloadingLessonId === lessonId ? "Downloading..." : "Download"}
-                          </button>
-                        )}
                       </div>
                       <div className="flex items-center gap-2 mt-2">
                         {isCompleted ? (
@@ -333,6 +385,24 @@ const StudentProgressCard = () => {
                             onClick={() => handleCompleteLesson(course._id, lessonId)}
                           >
                             Mark as Completed
+                          </button>
+                        )}
+                        {/* Move Download button here, right after Mark as Completed / Completed */}
+                        {isDownloadable && resourceUrl && (
+                          <button
+                            onClick={() => handleDownloadLesson(lessonId, displayName, resourceType, resourceUrl)}
+                            className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition flex items-center"
+                            title={`Download ${resourceType}`}
+                            disabled={downloadingLessonId === lessonId}
+                          >
+                            {downloadingLessonId === lessonId ? (
+                              "Downloading..."
+                            ) : (
+                              // Download icon SVG
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                              </svg>
+                            )}
                           </button>
                         )}
                       </div>

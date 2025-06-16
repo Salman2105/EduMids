@@ -17,6 +17,8 @@ const DownloadPage = () => {
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [allAssignments, setAllAssignments] = useState({});
   const [assignmentMarksMap, setAssignmentMarksMap] = useState({});
+  const [showAllHistory, setShowAllHistory] = useState(false); // Add state for expand/collapse
+  const [showAllLessons, setShowAllLessons] = useState(false); // Add state for lessons expand/collapse
 
   // Fetch lessons (downloadable files)
   useEffect(() => {
@@ -47,19 +49,20 @@ const DownloadPage = () => {
   }, []);
 
   // Fetch download history (admin only)
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/download/history", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setHistory(res.data || []);
+    } catch (err) {
+      setHistory([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/download/history", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        setHistory(res.data || []);
-      } catch (err) {
-        setHistory([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHistory();
   }, []);
 
@@ -199,6 +202,8 @@ const DownloadPage = () => {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+          // Fetch updated history after download
+          fetchHistory();
           return;
         }
         alert("Access denied or download failed.");
@@ -223,6 +228,8 @@ const DownloadPage = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      // Fetch updated history after download
+      fetchHistory();
     } catch (err) {
       alert("Access denied or download failed.");
     }
@@ -277,7 +284,10 @@ const DownloadPage = () => {
       }
 
       // Progress
-      const progress = typeof course.progress === "number" ? course.progress : "";
+      let progress = "";
+      if (typeof course.progress === "number") {
+        progress = Math.round(course.progress) + "%";
+      }
 
       // Date Earned
       let dateEarnedStr = "";
@@ -358,7 +368,11 @@ const DownloadPage = () => {
         assignmentMarks = "-";
       }
 
-      const progress = typeof course.progress === "number" ? course.progress : "";
+      // Progress
+      let progress = "";
+      if (typeof course.progress === "number") {
+        progress = Math.round(course.progress) + "%";
+      }
 
       let dateEarnedStr = "";
       if (cert && cert.dateEarned) {
@@ -433,48 +447,50 @@ const DownloadPage = () => {
               </tr>
             </thead>
             <tbody>
-              {lessons
-                .filter((l) => ["video", "pdf"].includes(l.contentType))
-                .map((lesson) => (
-                  <tr
-                    key={lesson._id}
-                    className="hover:bg-blue-50 transition"
-                  >
-                    <td className="p-3 font-medium text-gray-900">
-                      {lesson.title}
-                    </td>
-                    <td className="p-3 capitalize text-gray-700">
-                      {lesson.contentType}
-                    </td>
-                    <td className="p-3 text-gray-700">
-                      {lesson.courseTitle || "-"}
-                    </td>
-                    <td className="p-3">
-                      <button
-                        className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                        onClick={() => handleDownload(lesson._id)}
-                      >
-                        <span className="inline-block align-middle mr-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 inline"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                            />
-                          </svg>
-                        </span>
-                        Download
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              {/* Only show first 2 if not expanded, else show all */}
+              {(showAllLessons
+                ? lessons.filter((l) => ["video", "pdf"].includes(l.contentType))
+                : lessons.filter((l) => ["video", "pdf"].includes(l.contentType)).slice(0, 2)
+              ).map((lesson) => (
+                <tr
+                  key={lesson._id}
+                  className="hover:bg-blue-50 transition"
+                >
+                  <td className="p-3 font-medium text-gray-900">
+                    {lesson.title}
+                  </td>
+                  <td className="p-3 capitalize text-gray-700">
+                    {lesson.contentType}
+                  </td>
+                  <td className="p-3 text-gray-700">
+                    {lesson.courseTitle || "-"}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                      onClick={() => handleDownload(lesson._id)}
+                    >
+                      <span className="inline-block align-middle mr-2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 inline"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                          />
+                        </svg>
+                      </span>
+                      Download
+                    </button>
+                  </td>
+                </tr>
+              ))}
               {lessons.filter((l) => ["video", "pdf"].includes(l.contentType))
                 .length === 0 && (
                 <tr>
@@ -488,6 +504,19 @@ const DownloadPage = () => {
               )}
             </tbody>
           </table>
+          {/* Expand/Collapse Button for lessons */}
+          {lessons.filter((l) => ["video", "pdf"].includes(l.contentType)).length > 2 && (
+            <div className="flex justify-center mt-4">
+              <button
+                className="px-4 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
+                onClick={() => setShowAllLessons((prev) => !prev)}
+              >
+                {showAllLessons
+                  ? "Show Less"
+                  : `Show All (${lessons.filter((l) => ["video", "pdf"].includes(l.contentType)).length})`}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-white rounded-xl shadow-lg p-4 md:p-8">
@@ -495,7 +524,7 @@ const DownloadPage = () => {
           Download History
           <span className="text-sm text-gray-400 font-normal">
             {history.length > 0 && history[0].user && history[0].user.email && history[0].user.email === "admin@example.com"
-              ? " (Admin Only)"
+              ? " (All Users' History - Admin View)"
               : " (Your History)"}
           </span>
         </h2>
@@ -540,7 +569,8 @@ const DownloadPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  history.map((h) => (
+                  // Always show only first 2 unless expanded, for both admin and student
+                  (showAllHistory ? history : history.slice(0, 2)).map((h) => (
                     <tr
                       key={h._id}
                       className="hover:bg-blue-50 transition"
@@ -560,25 +590,17 @@ const DownloadPage = () => {
                       </td>
                       <td className="p-3">{h.fileName}</td>
                       <td className="p-3 text-gray-700">
-                        {
-                          typeof h.courseTitle === "string" && h.courseTitle.trim() && h.courseTitle !== "-"
-                            ? h.courseTitle
-                            : (
-                                typeof h.filePath === "string"
-                                  ? (() => {
-                                      const match = h.filePath.match(/courses\/([^\/]+)/);
-                                      return match && match[1] ? decodeURIComponent(match[1]) : "-";
-                                    })()
-                                  : "-"
-                              )
-                        }
+                        {typeof h.courseTitle === "string" && h.courseTitle.trim() && h.courseTitle !== "-"
+                          ? h.courseTitle
+                          : (typeof h.filePath === "string"
+                              ? (() => {
+                                  const match = h.filePath.match(/courses\/([^\/]+)/);
+                                  return match && match[1] ? decodeURIComponent(match[1]) : "-";
+                                })()
+                              : "-")}
                       </td>
-                      <td className="p-3 text-xs text-gray-600">
-                        {h.filePath}
-                      </td>
-                      <td className="p-3 text-xs">
-                        {new Date(h.downloadedAt).toLocaleString()}
-                      </td>
+                      <td className="p-3 text-xs text-gray-600">{h.filePath}</td>
+                      <td className="p-3 text-xs">{new Date(h.downloadedAt).toLocaleString()}</td>
                       <td className="p-3 text-xs">{h.ip}</td>
                       <td className="p-3 text-xs truncate max-w-xs" title={h.userAgent}>
                         {h.userAgent}
@@ -588,6 +610,17 @@ const DownloadPage = () => {
                 )}
               </tbody>
             </table>
+            {/* Expand/Collapse Button for all users */}
+            {history.length > 2 && (
+              <div className="flex justify-center mt-4">
+                <button
+                  className="px-4 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
+                  onClick={() => setShowAllHistory((prev) => !prev)}
+                >
+                  {showAllHistory ? "Show Less" : `Show All (${history.length})`}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -671,7 +704,12 @@ const DownloadPage = () => {
                   } else {
                     assignmentMarks = "-";
                   }
-                  const progress = typeof course.progress === "number" ? course.progress : "";
+                  // Progress
+                  let progress = "";
+                  if (typeof course.progress === "number") {
+                    progress = Math.round(course.progress) + "%";
+                  }
+                  // Date Earned
                   let dateEarnedStr = "";
                   if (cert && cert.dateEarned) {
                     const dateObj = new Date(cert.dateEarned);

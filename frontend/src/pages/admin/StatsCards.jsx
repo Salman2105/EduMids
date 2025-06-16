@@ -28,10 +28,7 @@ const StatsCards = () => {
     <div className="max-w-6xl  mx-auto p-4 md:p-8  bg-gradient-to-br from-blue-50 to-white   ">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Admin Dashboard</h2>
-          <p className="text-gray-600 text-base md:text-lg">
-            Platform statistics and analytics overview.
-          </p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Welcome to the Admin Dashboard</h2>
         </div>
       </div>
       <div className="flex flex-col md:flex-row md:flex-wrap gap-6 mb-0">

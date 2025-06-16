@@ -35,37 +35,45 @@ const StudentStatsCards = () => {
       : "0.00";
 
   return (
-    <div className="flex flex-col md:flex-row md:flex-wrap gap-6 mb-6">
-      <StartCardTemplate
-        title="Courses Enrolled"
-        value={stats.coursesEnrolled ?? 0}
-        icon={BookOpen}
-        color="bg-indigo-500"
-      />
-      <StartCardTemplate
-        title="Active Enrollments"
-        value={activeEnrollments}
-        icon={UserCheck}
-        color="bg-emerald-500"
-      />
-      <StartCardTemplate
-        title="Quizzes Attempted"
-        value={quizzesAttempted}
-        icon={FileText}
-        color="bg-yellow-500"
-      />
-      <StartCardTemplate
-        title="Average Quiz Score"
-        value={averageScore}
-        icon={BarChart2}
-        color="bg-purple-500"
-      />
-      <StartCardTemplate
-        title="Total Certificates"
-        value={stats.certificates ?? 0}
-        icon={Users}
-        color="bg-blue-500"
-      />
+    <div className="max-w-6xl  mx-auto p-4 md:p-8  bg-gradient-to-br from-blue-50 to-white   ">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+         <div>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Welcome to the Student Dashboard</h2>   
+              
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row md:flex-wrap gap-6 mb-0">
+        <StartCardTemplate
+          title="Courses Enrolled"
+          value={stats.coursesEnrolled ?? 0}
+          icon={BookOpen}
+          color="bg-indigo-500"
+        />
+        <StartCardTemplate
+          title="Active Enrollments"
+          value={activeEnrollments}
+          icon={UserCheck}
+          color="bg-emerald-500"
+        />
+        <StartCardTemplate
+          title="Quizzes Attempted"
+          value={quizzesAttempted}
+          icon={FileText}
+          color="bg-yellow-500"
+        />
+        <StartCardTemplate
+          title="Average Quiz Score"
+          value={averageScore}
+          icon={BarChart2}
+          color="bg-purple-500"
+        />
+        <StartCardTemplate
+          title="Total Certificates"
+          value={stats.certificates ?? 0}
+          icon={Users}
+          color="bg-blue-500"
+        />
+      </div>
     </div>
   );
 };
