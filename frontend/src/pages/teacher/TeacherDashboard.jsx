@@ -2,7 +2,7 @@
 import React from "react";
 import SearchBar from "../../components/SearchBar";
 import TeacherStatsCards from "./TeacherStatsCards";
-import EventsCalendar from "../../components/EventsCalendar";
+import TeacherCalendar from "./TeacherCalendar";
 
 const TeacherDashboard = () => {
   return (
@@ -10,7 +10,7 @@ const TeacherDashboard = () => {
       <SearchBar />
       <h2 className="mt-12 mb-6  text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">Welcome to the Teacher Dashboard</h2>
       <TeacherStatsCards />
-        <EventsCalendar />
+        <TeacherCalendar />
     </div>
     </>
   );

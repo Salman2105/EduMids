@@ -9,6 +9,7 @@ const StudentProgressCard = () => {
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [marking, setMarking] = useState(false);
   const [downloadingLessonId, setDownloadingLessonId] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   // Replace with your auth token logic
   const token = localStorage.getItem("token");
@@ -41,6 +42,20 @@ const StudentProgressCard = () => {
     fetchProgress();
     // eslint-disable-next-line
   }, [token, marking]);
+
+  // Fetch all categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/category");
+        setCategories(res.data);
+      } catch (err) {
+        // Optionally handle error
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Handler to mark lesson as completed
   const handleCompleteLesson = async (courseId, lessonId) => {
@@ -135,6 +150,10 @@ const StudentProgressCard = () => {
     (p) => p.courseId && p.courseId._id === selectedCourseId
   );
   const course = selectedProgress?.courseId;
+
+  // Debug log to inspect course object
+  console.log("Selected course object:", course);
+
   const completedLessons = Array.isArray(selectedProgress?.completedLessons)
     ? selectedProgress.completedLessons.map(l => (l && l._id ? l._id : l))
     : [];
@@ -145,6 +164,19 @@ const StudentProgressCard = () => {
     if (!url) return false;
     // Check by extension (jpg, jpeg, png, gif, webp, etc)
     return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+  };
+
+  // Helper to get category name by id
+  const getCategoryName = (categoryId) => {
+    if (!categoryId) return "-";
+    // Convert both to string for comparison
+    const catIdStr = typeof categoryId === "object" && categoryId !== null && categoryId._id
+      ? categoryId._id
+      : categoryId.toString();
+    const found = categories.find(
+      (cat) => cat._id === catIdStr || cat._id === categoryId || cat.name === categoryId
+    );
+    return found ? found.name : "-";
   };
 
   return (
@@ -186,10 +218,14 @@ const StudentProgressCard = () => {
               {course?.title || "Untitled Course"}
             </h2>
             <div className="mb-1 text-gray-600">
-              Teacher: {course?.teacher || "-"}
+              Teacher: {course?.createdBy && typeof course.createdBy === "object"
+                ? `${course.createdBy.firstName ?? ""} ${course.createdBy.lastName ?? ""}`.trim()
+                : "-"}
             </div>
             <div className="mb-1 text-gray-600">
-              Category: {course?.category || "-"}
+              Category: {selectedProgress.categoryName
+                ? selectedProgress.categoryName
+                : getCategoryName(course?.category)}
             </div>
             <div className="mb-2">
               Progress: <span className="font-semibold">{typeof selectedProgress.progressPercentage === "number" ? selectedProgress.progressPercentage.toFixed(1) : "0.0"}%</span>

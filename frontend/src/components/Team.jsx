@@ -5,14 +5,14 @@ export default function Team() {
   const teamMembers = [
     {
       name: 'SALMAN AHMED',
-      position: 'CEO & Founder',
-      bio: 'With over 1 years of experience in education and technology, SALMAN founded EduMinds with a vision to make quality education accessible to everyone.',
+      position: 'Junior Software Engineer',
+      bio: 'With over 1 years of Development, Salman create the Backend for Eduminds ',
       imageUrl: '/assets/2.jpg'
     },
     {
-      name: 'Michael Chen',
-      position: 'Chief Academic Officer',
-      bio: 'Previously a university professor, Michael oversees course quality and academic standards at EduMinds.',
+      name: 'M Rehman Mujahid',
+      position: 'frontend Developer',
+      bio: 'Previously create many websites using react.',
       imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400'
     }
   ];

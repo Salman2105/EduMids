@@ -10,7 +10,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { LogIn, UserPlus } from "lucide-react"; // <-- Add this import
+import { LogIn, UserPlus, Eye, EyeOff } from "lucide-react"; // <-- Add Eye, EyeOff
 
 const roles = [
   { label: "Student", value: "student" },
@@ -35,6 +35,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // <-- Add state
 
   const handleInputChange = (e) => {
     setFormData({
@@ -230,18 +231,41 @@ const Login = () => {
             >
               Password
             </Typography>
-            <TextField
-              placeholder="Enter your password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              size="small"
-              error={!isLogin && !!passwordError}
-              helperText={!isLogin && passwordError ? passwordError : ""}
-            />
+            <div style={{ position: "relative" }}>
+              <TextField
+                placeholder="Enter your password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                size="small"
+                error={!isLogin && !!passwordError}
+                helperText={!isLogin && passwordError ? passwordError : ""}
+                InputProps={{
+                  endAdornment: (
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        position: "absolute",
+                        right: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        zIndex: 2,
+                        color: "#888"
+                      }}
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={0}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </span>
+                  ),
+                  style: { paddingRight: 36 }
+                }}
+              />
+            </div>
             {isLogin && (
               <Box mt={1}>
                 <Button

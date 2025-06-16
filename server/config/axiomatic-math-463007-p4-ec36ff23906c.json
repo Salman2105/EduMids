@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "axiomatic-math-463007-p4",
+  "private_key_id": "ec36ff23906cfdd9f8f70171be5343c106e88026",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDITCMZ6/eB7cMH\npeCMnMPWEJbHr1EuYYA5D8D8HK1fzEKN4l5sbukGYd2Nvtpp+iCETryuLavgI6vw\np2aTGOmUvwye0l21GC2JWzSxvFB6r6aXv/yWI2zwDolci64We/MugEf19ae/d3q7\nv6BY6c9nrR6iInSXOrfceOE7RnlRviEv63wIaZBC+ER6RDlpBEXBhA937RbOBhxb\n6mWYDcbQxEbJ09b21x7/rrbl/nC9nxWaKYnsUkjQV/QURWVRQfNCL4KnvkYsfWq5\nSNvW3Ka3YYE1+HCXc1zRVZ1x2eSp8VhXm+J39qVzt0tteNGaCtCA5v0P7WVhDEoS\n7D/dZZpxAgMBAAECggEAViUc0ajBnjF+uHrYrVE9DwO6fa6C2VJY3fHPG/9Pd8y3\ncSODXdqDwVl0+uIzOPI5av4cO0NsUS22ZP3yaWCFEZLroCE06U65QwKlkq295U5H\ndau+PGqHD2YJIPL4UDZGHGFS0c+yMnB2Kmqb0bHZoKr96lisUWCRNDMPF7nTMtqy\nafQfb4N7adU+yam1PwWHXIbzUnogQj9gvMNT4xULttxvlYd8v9gitrl4V4BR0uzN\nbZVqAWBw5a7HH7Q6HA7/U7Gu6JjXMhQ+oexFWYHBk2JJdUayPFnGShy0XhxrJXPj\n1LnYr6HnmPtlk6YasVNS/iQdcUGnoOBVG4m1BKeUQwKBgQDxQhoow01UUSUiS32u\nxC74J5Qk0QW0dyM/4LeUwHuGfzlBQY8YCXZyuyCsrxp+pJ4ZZULY5PjuvL3P7bnM\nPg9fnKGU1HfdfcAw/SsT+f9HdobzhT7RUhFQXxzDyYcer9cofjpejcontPdIv3jg\nroUcWrF7AZbGpPpxemCQF6XOewKBgQDUiU2HD5azjnUs5pbHPBoctwns4eFxL4fz\nlLlQrC96VTz7XpRw5c3R1pfP2fZ3WhPsWZFs7TAR7gELz1xLTf7tJ/tIxNvri+iq\nH3zBzWMuiMYOV2c3v/VeKBwsP+jvKqkq/4QiLfyGcB6aTNuTpjpuRRaLpe04ZPFm\nRK5JDVzdAwKBgDh3ez3tMC067NEREDKWclPcl5ziW0540AREaVNklcTOBC2U1ZQP\nquyBhc1FEpNvnh1diP7Q4L6n6FlBT8pRADIlq9/0trVdmF0e9DUxvyEPydg3aJN/\nfNPt3wKoKXryNw6gNLMqxpTykyowvm8ACeGwDHg4z/xgYsmqle1Dy6f/AoGBAI1N\nzBGjt5oheJ4loNFNkD7PIvYvJ2fNJiI4Gw0brWU0DptBQofdAX4lokE6tLadWOmm\nkx1MhM0m4+MqNj6K2JZsIpE68Mwl9MZGsPdYyjxCCwu16JYUNdon6LMyundocZh4\n0Sy4TlBDctU7jDEaL3bo0BiAdLstwaEwwH8pNzhpAoGAVFF+uOno5kIm2CQBzpf2\nZQL6Jn8f/XUABK7z80S1I4Rl4Fmf0+7Iza99sxhYZSqwN4SV7aGH7Wet8f4FrvSj\ns0bhifSTqICnb4VZ56uldg/7SOoAvjMJzGqAp4PKP+OuAThOG9G8mn+xxEecOPub\nkS/whr+hvoVS20ldNjFm04o=\n-----END PRIVATE KEY-----\n",
+  "client_email": "edumids-drive-uploader@axiomatic-math-463007-p4.iam.gserviceaccount.com",
+  "client_id": "112400689411936872122",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/edumids-drive-uploader%40axiomatic-math-463007-p4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

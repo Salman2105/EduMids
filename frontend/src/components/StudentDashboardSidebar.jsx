@@ -60,22 +60,41 @@ const StudentDashboardSidebar = () => {
     >
       <div className="p-4 flex items-center gap-2">
         {/* Student Face with Graduation Cap Logo */}
-        <img
-          src="/assets/logo.png"
-          alt="EduMids Logo"
-          width={collapsed ? 36 : 48}
-          height={collapsed ? 36 : 48}
-          className="drop-shadow-lg"
-          style={{ objectFit: "contain" }}
-        />
-        {!collapsed && (
-          <div className="flex flex-col ml-2">
-            <span className="text-white font-extrabold text-2xl tracking-wide logo-font" style={{letterSpacing: '2px'}}>EduMids</span>
-            <span className="text-white text-xs font-light italic mt-1 opacity-80 logo-tagline">Pathway to Knowledge</span>
-          </div>
-        )}
         <button
-          className={`ml-auto  rounded hover:bg-blue-600 transition-colors ${collapsed ? 'mx-auto' : ''}`}
+          onClick={() => {
+            // Save token and user with role "student" before navigating
+            const token = localStorage.getItem("token");
+            const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+            if (token) localStorage.setItem("token", token);
+            localStorage.setItem("user", JSON.stringify({
+              ...currentUser,
+              role: "student"
+            }));
+            navigate("/");
+          }}
+          className="flex items-center gap-2 focus:outline-none"
+          style={{ background: 'none', border: 'none', padding: 0 }}
+          aria-label="Go to landing page"
+        >
+          <img
+            src="/assets/logo.png"
+            alt="EduMids Logo"
+            className="drop-shadow-lg"
+            style={{
+              objectFit: "contain",
+              width: collapsed ? "36px" : "48px",
+              height: collapsed ? "36px" : "48px"
+            }}
+          />
+          {!collapsed && (
+            <div className="flex flex-col ml-2">
+              <span className="text-white font-extrabold text-2xl tracking-wide logo-font" style={{letterSpacing: '2px'}}>EduMids</span>
+              <span className="text-white text-xs font-light italic mt-1 opacity-80 logo-tagline">Pathway to Knowledge</span>
+            </div>
+          )}
+        </button>
+        <button
+          className="ml-auto rounded hover:bg-blue-600 transition-colors"
           onClick={handleToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >

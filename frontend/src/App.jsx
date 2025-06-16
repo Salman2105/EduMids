@@ -77,6 +77,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import ThemeProvider from "./lib/theme-provider";
 import ThemeTogglePage from "./pages/ThemeTogglePage";
+import CourseDetail from "./pages/CourseDetail";
+import AssignmentDetail from "./pages/AssignmentDetail";
+import LessonDetail from "./pages/LessonDetail";
+import QuizDetail from "./pages/QuizDetail";
+
 const LayoutWithSidebar = ({ Sidebar, children }) => (
   <div className="flex h-screen">
     <Sidebar />
@@ -415,6 +420,10 @@ function App() {
               />
             </Route>
             <Route path="/theme-toggle" element={<ThemeTogglePage />} />
+            <Route path="/courses/:id" element={<CourseDetail />} />
+            <Route path="/assignments/:id" element={<AssignmentDetail />} />
+            <Route path="/lessons/:id" element={<LessonDetail />} />
+            <Route path="/quizzes/:id" element={<QuizDetail />} />
           </Routes>
           <ToastContainer />
         </AuthLayout>

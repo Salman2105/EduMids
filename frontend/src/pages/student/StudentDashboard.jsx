@@ -1,8 +1,7 @@
 import React from "react";
 import SearchBar from "../../components/SearchBar";
 import StudentStatsCards from "./StudentStatsCards";
-import EventsCalendar from "../../components/EventsCalendar";
-
+import StudentCalendar from "./StudentCalendar";
 const StudentDashboard = () => {
   return (
   <>  <div className="p-6 bg-gradient-to-br from-blue-50 to-white ">
@@ -11,7 +10,7 @@ const StudentDashboard = () => {
       <StudentStatsCards />
       <div className="mt-8">
         {/* <h3 className="text-xl font-semibold mb-4">Upcoming Events</h3> */}
-        <EventsCalendar />
+        <StudentCalendar />
     </div>
         </div>
 

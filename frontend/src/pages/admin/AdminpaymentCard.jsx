@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const AdminpaymentCard = () => {
+const AdminpaymentCard = ({ onRevenueChange }) => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,7 +16,16 @@ const AdminpaymentCard = () => {
         });
         if (!res.ok) throw new Error("Failed to fetch payment history");
         const data = await res.json();
+        console.log("Payment data:", data); // <--- Check the field here
         setPayments(data);
+        // Calculate revenue and notify parent
+        if (onRevenueChange) {
+          // Try to use the correct field, fallback to amount or course.price if present
+          const revenue = data.reduce((sum, p) =>
+            sum + (p.price || p.amount || (p.course && p.course.price) || 0), 0
+          );
+          onRevenueChange(revenue);
+        }
       } catch (err) {
         setError(err.message || "Error fetching payment history");
       } finally {
@@ -24,7 +33,7 @@ const AdminpaymentCard = () => {
       }
     };
     fetchPayments();
-  }, []);
+  }, [onRevenueChange]);
 
   if (loading) return <div className="p-4">Loading payment history...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
@@ -64,7 +73,9 @@ const AdminpaymentCard = () => {
                 <td className="py-2 px-4 border-b">{p.student?.email || "-"}</td>
                 <td className="py-2 px-4 border-b">{p.course?.title || "-"}</td>
                 <td className="py-2 px-4 border-b">{p.course?.category || "-"}</td>
-                <td className="py-2 px-4 border-b">{p.amount}</td>
+                <td className="py-2 px-4 border-b">
+                  {p.price || p.amount || (p.course && p.course.price) || "-"}
+                </td>
                 <td className="py-2 px-4 border-b">{new Date(p.paymentDate).toLocaleString()}</td>
               </tr>
             ))}

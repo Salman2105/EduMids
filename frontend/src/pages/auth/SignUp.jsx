@@ -10,6 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import axios from "axios";
+import { Eye, EyeOff, UserPlus } from "lucide-react";
 
 const roles = [
   { label: "Student", value: "student" },
@@ -25,6 +26,7 @@ const Signup = () => {
     password: "",
     role: "student"
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,6 +65,16 @@ const Signup = () => {
           alignItems: "center",
         }}
       >
+        {/* Logo above title */}
+        <img
+          src="/assets/logo.png"
+          alt="EduMinds Logo"
+          style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 8 }}
+        />
+        {/* Debug: Check if this renders */}
+        {/* <Typography color="secondary" align="center" sx={{ mb: 1 }}>
+          Signup form below
+        </Typography> */}
         <Typography
           variant="h5"
           sx={{ fontWeight: 700, color: "#1565d8", mb: 1, mt: 1 }}
@@ -111,16 +123,39 @@ const Signup = () => {
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
               Password
             </Typography>
-            <TextField
-              placeholder="Enter your password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              fullWidth
-              required
-              size="small"
-            />
+            <div style={{ position: "relative" }}>
+              <TextField
+                placeholder="Enter your password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                fullWidth
+                required
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        position: "absolute",
+                        right: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        zIndex: 2,
+                        color: "#888"
+                      }}
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={0}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </span>
+                  ),
+                  style: { paddingRight: 36 }
+                }}
+              />
+            </div>
           </Box>
           <Box mb={2}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
@@ -152,10 +187,12 @@ const Signup = () => {
               fontSize: "1rem",
               mt: 1,
               mb: 1,
-              background: "#1597f2",
+              background: "#1565d8",
               textTransform: "none",
             }}
-            startIcon={<span className="material-icons">person_add</span>}
+            startIcon={
+              <UserPlus style={{ color: "#1565d8" }} size={22} />
+            }
           >
             Sign Up
           </Button>

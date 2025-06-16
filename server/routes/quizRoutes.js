@@ -246,4 +246,23 @@ router.get("/student/dashboard", verifyToken, checkRole(["student"]), async (req
   }
 });
 
+// ✅ Get Quiz by ID (for detail page)
+router.get("/id/:id", verifyToken, async (req, res) => {
+  try {
+    // Only populate course, not createdBy (since not in schema)
+    const quiz = await Quiz.findById(req.params.id)
+      .populate("course", "title")
+      .lean();
+
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    res.status(200).json({ success: true, quiz });
+  } catch (error) {
+    // Improved error logging
+    console.error("Error fetching quiz by ID:", error.message, error.stack);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+module.exports = router;
 module.exports = router;

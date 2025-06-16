@@ -28,6 +28,8 @@ router.post(
 
       // If file is uploaded, set contentURL to the file path
       if (req.file) {
+        console.log(req.file);
+        
         contentURL = req.file.path;
         // PDF validation: If contentType is pdf, check mimetype and extension
         if (contentType === "pdf") {
@@ -174,6 +176,19 @@ router.get("/course/:courseId", auth, async (req, res) => {
   } catch (error) {
     console.error("Error fetching lessons:", error.message); // Log the error message
     res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+// ✅ Fetch a single lesson by ID
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found" });
+    }
+    res.status(200).json(lesson);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 

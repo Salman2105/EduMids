@@ -1,14 +1,16 @@
 import React from 'react'
 import EventCalendar from "../../components/EventsCalendar";
+import PerformanceCircle from "../../components/performance"
 
 export default function StudentCalendar() {
   return (
-    <div>
-      <EventCalendar/>
-        <div className="p-4">
-            <p>Welcome to your calendar! Here you can view all upcoming events, deadlines, and important dates related to your courses.</p>
-            <p>Click on any event to see more details or to add it to your personal calendar.</p>
-            </div>
+    <div className="flex flex-row justify-center items-start gap-20 w-full mt-10">
+      <div className="flex-shrink-0 mt-10 ml-1">
+        <PerformanceCircle />
+      </div>
+      <div className="flex-shrink-0" style={{ width: 540, minWidth: 320 }}>
+        <EventCalendar />
+      </div>
     </div>
   )
 }

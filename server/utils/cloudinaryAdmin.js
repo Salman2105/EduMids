@@ -8,7 +8,7 @@ cloudinary.config({
 });
 
 // Replace with your public_id (without extension)
-const publicId = 'edumids/pdfs/stiboy1dac4ofqmom8ea';
+const publicId = 'edumids/pdfs/zsjql0xvi4nkvwmotgzw';
 
 cloudinary.api.resource(publicId, { resource_type: 'raw' }, function(error, result) {
   if (error) {

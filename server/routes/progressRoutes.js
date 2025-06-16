@@ -86,6 +86,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
       path: "course",
       populate: [
         { path: "createdBy", select: "firstName lastName" },
+        { path: "category", select: "name" }, // <-- Ensure category is populated as object
         { path: "lessons", model: "Lesson" },
       ],
     });
@@ -99,28 +100,41 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
       progressMap[p.course.toString()] = p;
     });
 
-    // Build result: for each enrollment, attach progress if exists and fetch category details
+    // Build result: for each enrollment, attach progress if exists
     const result = [];
     for (const enrollment of enrollments) {
       if (!enrollment.course || !enrollment.course._id) continue;
       const course = enrollment.course;
-      let categoryDetails = null;
-      if (course.category) {
-        categoryDetails = await getCategoryByName(course.category);
-        console.log("Course category string:", course.category);
-        console.log("Fetched categoryDetails:", categoryDetails);
+      // Debug: print course and category
+      console.log("[DEBUG] Course:", course.title, "Category field:", course.category);
+
+      let categoryName = "-";
+      if (course.category && course.category._id) {
+        const categoryDoc = await Category.findById(course.category._id).select("name");
+        // Debug log for category fetch
+        console.log(
+          `[DEBUG] Fetching category for course "${course.title}" (categoryId: ${course.category._id}):`,
+          categoryDoc ? categoryDoc.name : "Not found"
+        );
+        if (categoryDoc && categoryDoc.name) categoryName = categoryDoc.name;
+      } else {
+        // Debug log if no category
+        console.log(
+          `[DEBUG] No category found for course "${course.title}" (category: ${JSON.stringify(course.category)})`
+        );
       }
       const progress = progressMap[course._id.toString()];
       result.push({
-        courseId: {
-          ...course.toObject(),
-          category: categoryDetails, // replace string with category object
-        },
+        courseId: course, // category is now an object
+        categoryName,     // <-- Add categoryName here
         progressPercentage: progress ? progress.progressPercentage : 0,
         completedLessons: progress ? progress.completedLessons : [],
         _id: progress ? progress._id : null,
       });
     }
+
+    // Debug log to check structure
+    console.log("my-enrolled-progress result:", JSON.stringify(result, null, 2));
 
     return res.status(200).json(result);
   } catch (error) {
@@ -154,6 +168,7 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
   try {
     const lessonId = req.params.lessonId;
     const lesson = await require("../Models/lesson").findById(lessonId);
+    console.log(lesson);
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
     // Only allow download for video/pdf
     if (!lesson.contentType || !["video", "pdf"].includes(lesson.contentType.toLowerCase())) {

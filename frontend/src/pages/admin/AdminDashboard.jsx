@@ -3,17 +3,17 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import SearchBar from "../../components/SearchBar";
 import StatsCards from "./StatsCards";
-import EventsCalendar from "../../components/EventsCalendar"
+import Admincalendar from  "./Admincalendar"
 
 const AdminDashboard = () => {
   return (
  <>  
-  <div className="p-6  bg-gradient-to-br from-blue-50 to-white">
+  <div className="p-6 bg-gradient-to-br from-blue-50 to-white">
     <SearchBar />
        <StatsCards />
-       <EventsCalendar />
+       <Admincalendar />
     </div>
-    <Outlet />
+    {/* <Outlet /> */}
     </> 
   );
 };

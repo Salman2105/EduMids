@@ -124,9 +124,11 @@ router.get("/my", verifyToken, checkRole(["teacher"]), async (req, res) => {
 
 // @route   GET /api/assignments/:id
 // @desc    Get single assignment
-router.get("/:id", verifyToken, checkRole(["teacher"]), async (req, res) => {
+router.get("/:id", verifyToken, checkRole(["teacher", "admin", "student"]), async (req, res) => {
   try {
-    const assignment = await Assignment.findById(req.params.id);
+    const assignment = await Assignment.findById(req.params.id)
+      .populate("course", "title")
+      .populate("createdBy", "name");
     if (!assignment) return res.status(404).json({ success: false, message: "Assignment not found" });
     res.json({ success: true, assignment });
   } catch (error) {
