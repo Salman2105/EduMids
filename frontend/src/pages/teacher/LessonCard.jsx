@@ -428,7 +428,7 @@ export default function LessonCard() {
                             />
                           ) : (
                             <a
-                              href={`http://localhost:5000/${lesson.contentURL}`}
+                              href={`${lesson.contentURL}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 underline ml-2"
