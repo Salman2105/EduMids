@@ -85,8 +85,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
     const enrollments = await Enrollment.find({ student: req.user.id }).populate({
       path: "course",
       populate: [
-        { path: "createdBy", select: "firstName lastName" },
-        { path: "category", select: "name" }, // <-- Ensure category is populated as object
+        { path: "createdBy", select: "name" }, // use name instead of fullname
         { path: "lessons", model: "Lesson" },
       ],
     });
@@ -105,36 +104,31 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
     for (const enrollment of enrollments) {
       if (!enrollment.course || !enrollment.course._id) continue;
       const course = enrollment.course;
-      // Debug: print course and category
-      console.log("[DEBUG] Course:", course.title, "Category field:", course.category);
 
+      // Get category name
       let categoryName = "-";
-      if (course.category && course.category._id) {
-        const categoryDoc = await Category.findById(course.category._id).select("name");
-        // Debug log for category fetch
-        console.log(
-          `[DEBUG] Fetching category for course "${course.title}" (categoryId: ${course.category._id}):`,
-          categoryDoc ? categoryDoc.name : "Not found"
-        );
-        if (categoryDoc && categoryDoc.name) categoryName = categoryDoc.name;
-      } else {
-        // Debug log if no category
-        console.log(
-          `[DEBUG] No category found for course "${course.title}" (category: ${JSON.stringify(course.category)})`
-        );
+      if (course.category && typeof course.category === "object" && course.category.name) {
+        categoryName = course.category.name;
       }
+
+      // Get teacher name
+      let teacherName = "-";
+      if (course.createdBy && typeof course.createdBy === "object") {
+        teacherName = course.createdBy.name || "-";
+      }
+      // Debug log for teacherName
+      console.log("[DEBUG] teacherName for course", course.title, ":", teacherName);
+
       const progress = progressMap[course._id.toString()];
       result.push({
-        courseId: course, // category is now an object
-        categoryName,     // <-- Add categoryName here
+        courseId: course,
+        teacherName,
+        categoryName,
         progressPercentage: progress ? progress.progressPercentage : 0,
         completedLessons: progress ? progress.completedLessons : [],
         _id: progress ? progress._id : null,
       });
     }
-
-    // Debug log to check structure
-    console.log("my-enrolled-progress result:", JSON.stringify(result, null, 2));
 
     return res.status(200).json(result);
   } catch (error) {

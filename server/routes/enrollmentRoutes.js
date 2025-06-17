@@ -226,4 +226,18 @@ router.get("/all-quizzes", verifyToken, checkRole(["student"]), async (req, res)
   }
 });
 
+// 🟢 Check if student is already enrolled in a course (for frontend checks)
+router.get("/check/:courseId", verifyToken, checkRole(["student"]), async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const existingEnrollment = await Enrollment.findOne({
+      student: req.user.id,
+      course: courseId,
+    });
+    res.json({ enrolled: !!existingEnrollment });
+  } catch (error) {
+    res.status(500).json({ message: "Error checking enrollment", error: error.message });
+  }
+});
+
 module.exports = router;

@@ -20,6 +20,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Button } from "../components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { saveAllUserDataBeforeLogout } from "../lib/saveUserData";
 
 export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -49,7 +50,8 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
     else navigate("/");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await saveAllUserDataBeforeLogout();
     logout();
     localStorage.removeItem("user");
     localStorage.removeItem("token");

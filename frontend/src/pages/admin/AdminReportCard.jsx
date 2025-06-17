@@ -242,7 +242,7 @@ export default function AdminReportCard() {
                 <th className="px-4 py-2">Total Enrolled</th>
                 <th className="px-4 py-2">Total Completed</th>
                 <th className="px-4 py-2">Total Certified</th>
-                <th className="px-4 py-2">Assignments</th>
+                {/* <th className="px-4 py-2">Assignments</th> */}
                 <th className="px-4 py-2">Details</th>
               </tr>
             </thead>
@@ -311,9 +311,9 @@ export default function AdminReportCard() {
                       <td className="px-4 py-2">{course.totalEnrolled ?? 0}</td>
                       <td className="px-4 py-2">{course.totalCompleted ?? 0}</td>
                       <td className="px-4 py-2">{course.totalCertified ?? 0}</td>
-                      <td className="px-4 py-2">
+                      {/* <td className="px-4 py-2">
                         {details.assignments ? details.assignments.length : 0}
-                      </td>
+                      </td> */}
                       <td className="px-4 py-2">
                         <details>
                           <summary className="cursor-pointer text-blue-600">View</summary>

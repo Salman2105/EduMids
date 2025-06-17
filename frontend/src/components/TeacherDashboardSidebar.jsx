@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { saveAllUserDataBeforeLogout } from "../lib/saveUserData";
 
 const SidebarItem = ({ icon, label, active, href, onClick, collapsed }) => (
   <div
@@ -46,7 +47,8 @@ const TeacherDashboardSidebar = () => {
   const navigate = useNavigate();
 
   // Logout logic
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await saveAllUserDataBeforeLogout();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/"); // Redirect to landing/home page

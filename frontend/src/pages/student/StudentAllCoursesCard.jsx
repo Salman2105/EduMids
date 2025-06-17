@@ -2,16 +2,40 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BuyButton from "../../components/BuyButton";
 import { useAuthStore } from "../../lib/auth";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function EnrollButton({ course }) {
   const navigate = useNavigate();
 
   const isFree = (course.category && course.category.toLowerCase() === 'free') || Number(course.price) === 0;
 
+  // Helper to check enrollment status
+  const checkEnrollment = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/api/enrollments/check/${course._id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to check enrollment");
+      const data = await res.json();
+      // Accept both { enrolled: true/false } and { isEnrolled: true/false }
+      return data.enrolled !== undefined ? data.enrolled : data.isEnrolled;
+    } catch (err) {
+      // fallback: treat as not enrolled if error
+      return false;
+    }
+  };
+
   const handleEnroll = async () => {
-    if (isFree) {
-      // Directly enroll the user (simulate API call)
-      try {
+    try {
+      const alreadyEnrolled = await checkEnrollment();
+      if (alreadyEnrolled) {
+        toast.info("Already enrolled in this course");
+        return;
+      }
+      if (isFree) {
+        // Directly enroll the user (simulate API call)
         const token = localStorage.getItem("token");
         const res = await fetch(`http://localhost:5000/api/enrollments/${course._id}`, {
           method: "POST",
@@ -32,11 +56,12 @@ function EnrollButton({ course }) {
         }
         // Optionally show a toast or redirect
         navigate("/student/courses");
-      } catch (err) {
-        alert(err.message || "Could not enroll in course");
+      } else {
+        // Paid: go to checkout only if not enrolled
+        setTimeout(() => navigate(`/checkout/${course._id}`), 0);
       }
-    } else {
-      navigate(`/checkout/${course._id}`);
+    } catch (err) {
+      toast.error(err.message || "Could not enroll in course");
     }
   };
 
@@ -82,6 +107,7 @@ export default function StudentAllCoursesCard() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <ToastContainer position="top-center" autoClose={2000} />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">All Courses</h2>
