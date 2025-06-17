@@ -93,7 +93,7 @@ export default function Setting() {
           </p>
         </div>
         <img
-          src="/assets/setting.jpg"
+          src="/assets/logo.png"
           alt="Settings"
           className="w-20 h-20 md:w-28 md:h-28 object-contain hidden md:block"
         />

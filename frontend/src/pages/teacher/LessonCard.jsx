@@ -217,7 +217,7 @@ export default function LessonCard() {
           </p>
         </div>
         <img
-          src="/assets/lesson.jpg"
+          src="/assets/logo.png"
           alt="Lesson"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
         />

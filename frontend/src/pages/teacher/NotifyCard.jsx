@@ -64,7 +64,7 @@ export default function TeacherNotify() {
           </p>
         </div>
         <img
-          src="/assets/notify.png"
+          src="/assets/logo.png"
           alt="Notifications"
           className="w-20 h-20 md:w-28 md:h-28 object-contain hidden md:block"
         />
