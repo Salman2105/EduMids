@@ -388,19 +388,22 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
           )}
         </div>
         <div className="mb-4">
-          <label className="font-semibold mr-2">Select Assignment:</label>
-          <select
-            className="border border-blue-200 px-2 py-1 rounded-lg focus:ring-2 focus:ring-blue-400"
-            value={selectedAssignmentId || ""}
-            onChange={e => setSelectedAssignmentId(e.target.value)}
-          >
-            <option value="">-- Select Assignment --</option>
-            {myAssignments.map(a => (
-              <option key={a._id} value={a._id}>
-                {a.title} (Course: {a.course?.title || "N/A"}, Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"})
-              </option>
-            ))}
-          </select>
+          {/* Responsive flex container for label and select */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label className="font-semibold mr-2 min-w-max">Select Assignment:</label>
+            <select
+              className="border border-blue-200 px-2 py-1 rounded-lg focus:ring-2 focus:ring-blue-400 flex-1 min-w-[180px]"
+              value={selectedAssignmentId || ""}
+              onChange={e => setSelectedAssignmentId(e.target.value)}
+            >
+              <option value="">-- Select Assignment --</option>
+              {myAssignments.map(a => (
+                <option key={a._id} value={a._id}>
+                  {a.title} (Course: {a.course?.title || "N/A"}, Deadline: {a.deadline ? new Date(a.deadline).toLocaleString() : "N/A"})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         {editAssignmentId && (
           <form onSubmit={handleEditAssignmentSubmit} className="mb-6 bg-yellow-50 p-4 rounded-xl">
