@@ -5,6 +5,7 @@ const { Course } = require("../Models/course");
 const { verifyToken, checkRole } = require("../middleware/authMiddleware"); // Correct import
 const notifyUser = require("../utils/notifyUser");
 const Progress = require("../Models/Progress"); // Import Progress model
+const Payment = require("../Models/payment"); // Import Payment model
 
 // Middleware for auth & roles
 router.use(verifyToken);
@@ -73,49 +74,56 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
     });
 
     // Build the dashboard data
-    const courses = enrollments
-      .filter(enroll => enroll.course)
-      .map(enroll => {
-        const course = enroll.course;
-        // Lessons breakdown
-        const completedLessons = progressMap[String(course._id)] || [];
-        const lessons = (course.lessons || []).map(lesson => ({
-          lessonId: lesson._id,
-          title: lesson.title,
-          type: lesson.type,
-          duration: lesson.duration,
-          url: lesson.contentURL,
-          status: completedLessons.includes(String(lesson._id)) ? "completed" : "pending"
-        }));
-        // Quizzes breakdown (show all quizzes, mark submitted if student has submission)
-        const quizzes = Array.isArray(course.quizzes) ? course.quizzes.map(quiz => {
-          const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
-          return {
-            quizId: quiz._id,
-            title: quiz.title,
-            submitted: !!submission,
-            score: submission ? submission.score : null
-          };
-        }) : [];
-        // Course progress (from enrollment)
-        // Debug log for createdAt
-        console.log("Enrollment createdAt for course", course.title, ":", enroll.createdAt);
-        // Fallback for enrolledAt if createdAt is missing (for old records)
-        let enrolledAt = enroll.createdAt;
-        if (!enrolledAt && enroll._id && typeof enroll._id.getTimestamp === "function") {
-          enrolledAt = enroll._id.getTimestamp();
-        }
+    const courses = [];
+    for (const enroll of enrollments.filter(enroll => enroll.course)) {
+      const course = enroll.course;
+      // Lessons breakdown
+      const completedLessons = progressMap[String(course._id)] || [];
+      const lessons = (course.lessons || []).map(lesson => ({
+        lessonId: lesson._id,
+        title: lesson.title,
+        type: lesson.type,
+        duration: lesson.duration,
+        url: lesson.contentURL,
+        status: completedLessons.includes(String(lesson._id)) ? "completed" : "pending"
+      }));
+      // Quizzes breakdown (show all quizzes, mark submitted if student has submission)
+      const quizzes = Array.isArray(course.quizzes) ? course.quizzes.map(quiz => {
+        const submission = quizSubmissions.find(qs => String(qs.quiz) === String(quiz._id));
         return {
-          courseId: course._id,
-          title: course.title,
-          description: course.description,
-          picture: course.picture || "", // Include picture
-          enrolledAt, // always send a value
-          progress: typeof enroll.progress === "number" ? enroll.progress : 0,
-          lessons,
-          quizzes // always an array
+          quizId: quiz._id,
+          title: quiz.title,
+          submitted: !!submission,
+          score: submission ? submission.score : null
         };
+      }) : [];
+      // Course progress (from enrollment)
+      // Debug log for createdAt
+      console.log("Enrollment createdAt for course", course.title, ":", enroll.createdAt);
+      // Fallback for enrolledAt if createdAt is missing (for old records)
+      let enrolledAt = enroll.createdAt;
+      if (!enrolledAt && enroll._id && typeof enroll._id.getTimestamp === "function") {
+        enrolledAt = enroll._id.getTimestamp();
+      }
+      // Check payment status
+      let paymentStatus = "free";
+      if (typeof course.price === "number" && course.price > 0) {
+        const payment = await Payment.findOne({ student: user.id, course: course._id });
+        paymentStatus = payment ? "paid" : "unpaid";
+      }
+      courses.push({
+        courseId: course._id,
+        title: course.title,
+        description: course.description,
+        picture: course.picture || "", // Include picture
+        enrolledAt, // always send a value
+        progress: typeof enroll.progress === "number" ? enroll.progress : 0,
+        lessons,
+        quizzes, // always an array
+        paymentStatus,
+        price: course.price
       });
+    }
 
     res.status(200).json({
       user: {

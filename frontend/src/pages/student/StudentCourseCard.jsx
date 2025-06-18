@@ -135,6 +135,22 @@ const StudentCourseCard = () => {
 
           return (
             <div key={course.courseId} className="bg-white rounded-xl shadow-lg p-6">
+              {/* Payment status badge */}
+              {course.paymentStatus === "paid" && (
+                <div className="mb-2">
+                  <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">Paid Course</span>
+                </div>
+              )}
+              {course.paymentStatus === "unpaid" && (
+                <div className="mb-2">
+                  <span className="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">Payment Required</span>
+                </div>
+              )}
+              {course.paymentStatus === "free" && (
+                <div className="mb-2">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">Free Course</span>
+                </div>
+              )}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <div>
                   <h2 className="text-xl font-bold mb-1">{course.title}</h2>
