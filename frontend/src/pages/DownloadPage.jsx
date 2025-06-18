@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import Searchbar from "../components/SearchBar";
 
 const DownloadPage = () => {
   const [lessons, setLessons] = useState([]);
@@ -22,35 +23,27 @@ const DownloadPage = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(null); // NEW: single course mode
   const [user, setUser] = useState(null); // NEW: store logged-in user
 
-  // Fetch lessons (downloadable files)
-  useEffect(() => {
-    const fetchLessons = async () => {
-      try {
-        // There is no /api/lessons/all endpoint. Instead, fetch all lessons for all courses the user is enrolled in (student) or created (teacher).
-        // For simplicity, let's fetch all lessons for all courses (admin/teacher) or all enrolled courses (student).
-        const token = localStorage.getItem("token");
-        let lessonsArr = [];
-        // Try to get all courses for the user (student or teacher)
-        let coursesRes = await axios.get("http://localhost:5000/api/student/enrolled-courses", {
-          headers: { Authorization: `Bearer ${token}` },
+  // Refactor fetch logic into functions so we can call them on refresh
+  const fetchLessons = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      let lessonsArr = [];
+      let coursesRes = await axios.get("http://localhost:5000/api/student/enrolled-courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (Array.isArray(coursesRes.data)) {
+        coursesRes.data.forEach((course) => {
+          if (Array.isArray(course.lessons)) {
+            lessonsArr = lessonsArr.concat(course.lessons.map(l => ({ ...l, courseTitle: course.title })));
+          }
         });
-        // coursesRes.data is an array of courses, each with lessons
-        if (Array.isArray(coursesRes.data)) {
-          coursesRes.data.forEach((course) => {
-            if (Array.isArray(course.lessons)) {
-              lessonsArr = lessonsArr.concat(course.lessons.map(l => ({ ...l, courseTitle: course.title })));
-            }
-          });
-        }
-        setLessons(lessonsArr);
-      } catch (err) {
-        setError("Failed to fetch lessons");
       }
-    };
-    fetchLessons();
+      setLessons(lessonsArr);
+    } catch (err) {
+      setError("Failed to fetch lessons");
+    }
   }, []);
 
-  // Fetch download history (admin only)
   const fetchHistory = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/download/history", {
@@ -64,116 +57,126 @@ const DownloadPage = () => {
     }
   };
 
+  const fetchCourses = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      const result = await res.json();
+      setCourses(result.courses || []);
+    } catch (err) {
+      // Optionally handle error
+    }
+  }, []);
+
+  const fetchAllQuizzes = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/quizzes/student/all", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch all quizzes");
+      const data = await res.json();
+      setAllQuizzes(data.quizzes || []);
+    } catch (err) {
+      // Optionally handle error
+    }
+  }, []);
+
+  const fetchAllAssignments = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/submissions/student/assignments", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch all assignments");
+      const data = await res.json();
+      const assignmentsObj = {};
+      (data.assignmentsByCourse || []).forEach(courseBlock => {
+        assignmentsObj[courseBlock.courseId] = courseBlock.assignments;
+      });
+      setAllAssignments(assignmentsObj);
+    } catch (err) {
+      // Optionally handle error
+    }
+  }, []);
+
+  const fetchAssignmentMarks = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/submissions/student", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch assignment submissions");
+      const data = await res.json();
+      const map = {};
+      if (Array.isArray(data.submissions)) {
+        data.submissions.forEach(sub => {
+          if (sub.assignment && sub.assignment._id && typeof sub.marksObtained === "number") {
+            map[sub.assignment._id] = sub.marksObtained;
+          }
+        });
+      }
+      setAssignmentMarksMap(map);
+    } catch (err) {
+      // Optionally handle error
+    }
+  }, []);
+
+  const fetchCertificates = useCallback(async () => {
+    setCertLoading(true);
+    setCertError(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/certificates/my-certificates", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch certificates");
+      const data = await res.json();
+      setCertificates(data.certificates || []);
+    } catch (err) {
+      setCertError(err.message);
+    } finally {
+      setCertLoading(false);
+    }
+  }, []);
+
+  // Fetch lessons (downloadable files)
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
+
+  // Fetch download history (admin only)
   useEffect(() => {
     fetchHistory();
   }, []);
 
   // Fetch all courses (for progress, etc)
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
-        const result = await res.json();
-        setCourses(result.courses || []);
-      } catch (err) {
-        // Optionally handle error
-      }
-    };
     fetchCourses();
-  }, []);
+  }, [fetchCourses]);
 
   // Fetch all quizzes for all courses
   useEffect(() => {
-    const fetchAllQuizzes = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/quizzes/student/all", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch all quizzes");
-        const data = await res.json();
-        setAllQuizzes(data.quizzes || []);
-      } catch (err) {
-        // Optionally handle error
-      }
-    };
     fetchAllQuizzes();
-  }, []);
+  }, [fetchAllQuizzes]);
 
   // Fetch all assignments for all courses
   useEffect(() => {
-    const fetchAllAssignments = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/submissions/student/assignments", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch all assignments");
-        const data = await res.json();
-        const assignmentsObj = {};
-        (data.assignmentsByCourse || []).forEach(courseBlock => {
-          assignmentsObj[courseBlock.courseId] = courseBlock.assignments;
-        });
-        setAllAssignments(assignmentsObj);
-      } catch (err) {
-        // Optionally handle error
-      }
-    };
     fetchAllAssignments();
-  }, []);
+  }, [fetchAllAssignments]);
 
   // Fetch student submissions to get marks for assignments
   useEffect(() => {
-    const fetchAssignmentMarks = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/submissions/student", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch assignment submissions");
-        const data = await res.json();
-        // Build a map: assignmentId -> marksObtained
-        const map = {};
-        if (Array.isArray(data.submissions)) {
-          data.submissions.forEach(sub => {
-            if (sub.assignment && sub.assignment._id && typeof sub.marksObtained === "number") {
-              map[sub.assignment._id] = sub.marksObtained;
-            }
-          });
-        }
-        setAssignmentMarksMap(map);
-      } catch (err) {
-        // Optionally handle error
-      }
-    };
     fetchAssignmentMarks();
-  }, []);
+  }, [fetchAssignmentMarks]);
 
   // Fetch certificates (same logic as StudentCertificateCard)
   useEffect(() => {
-    const fetchCertificates = async () => {
-      setCertLoading(true);
-      setCertError(null);
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/certificates/my-certificates", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch certificates");
-        const data = await res.json();
-        setCertificates(data.certificates || []);
-      } catch (err) {
-        setCertError(err.message);
-      } finally {
-        setCertLoading(false);
-      }
-    };
     fetchCertificates();
-  }, []);
+  }, [fetchCertificates]);
 
   // Fetch logged-in user info for report header
   useEffect(() => {
@@ -437,8 +440,29 @@ const DownloadPage = () => {
 
   const filteredCourses = getFilteredCourses();
 
+  // Add a refresh handler to reload all data
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchLessons();
+    fetchCourses();
+    fetchAllQuizzes();
+    fetchAllAssignments();
+    fetchAssignmentMarks();
+    fetchCertificates();
+    fetchHistory();
+    setTimeout(() => setLoading(false), 500); // quick loading state
+  };
+
+  // Optionally, auto-refresh when tab regains focus
+  useEffect(() => {
+    const onFocus = () => handleRefresh();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <Searchbar/>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2">
@@ -756,8 +780,12 @@ const DownloadPage = () => {
                   }
                   // Progress
                   let progress = "";
+                  let isCompleted = false;
                   if (typeof course.progress === "number") {
                     progress = Math.round(course.progress) + "%";
+                    isCompleted = Math.round(course.progress) === 100;
+                  } else if (course.completed) {
+                    isCompleted = true;
                   }
                   // Date Earned
                   let dateEarnedStr = "";
@@ -776,7 +804,7 @@ const DownloadPage = () => {
                       <td className="p-3">{progress}</td>
                       <td className="p-3">{quizScore}</td>
                       <td className="p-3">{assignmentMarks}</td>
-                      <td className="p-3">{course.completed ? 'Yes' : 'No'}</td>
+                      <td className="p-3">{isCompleted ? 'Yes' : 'No'}</td>
                       <td className="p-3">{cert?.certificateId ? 'Yes' : 'No'}</td>
                       {/* Add View Report button after Certificate Issued column */}
                       {!selectedCourseId && (
@@ -796,6 +824,16 @@ const DownloadPage = () => {
             </table>
           </div>
         )}
+      </div>
+      <div className="flex justify-end mb-4">
+        <button
+          className="px-3 py-1 rounded border bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+          onClick={handleRefresh}
+          disabled={loading}
+          title="Refresh Data"
+        >
+          &#x21bb; Refresh
+        </button>
       </div>
     </div>
   );

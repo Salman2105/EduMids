@@ -8,9 +8,11 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  InputAdornment,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { LogIn, UserPlus, Eye, EyeOff } from "lucide-react"; // <-- Add Eye, EyeOff
+import { LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+import LockIcon from "@mui/icons-material/Lock";
 
 const roles = [
   { label: "Student", value: "student" },
@@ -35,7 +37,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // <-- Add state
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -244,6 +246,11 @@ const Login = () => {
                 error={!isLogin && !!passwordError}
                 helperText={!isLogin && passwordError ? passwordError : ""}
                 InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon fontSize="small" sx={{ color: "#888" }} />
+                    </InputAdornment>
+                  ),
                   endAdornment: (
                     <span
                       style={{

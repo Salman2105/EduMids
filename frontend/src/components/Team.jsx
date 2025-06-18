@@ -7,13 +7,13 @@ export default function Team() {
       name: 'SALMAN AHMED',
       position: 'Junior Software Engineer',
       bio: 'With over 1 years of Development, Salman create the Backend for Eduminds ',
-      imageUrl: '/assets/2.jpg'
+      imageUrl: '/assets/rollno5.jpg'
     },
     {
       name: 'M Rehman Mujahid',
       position: 'frontend Developer',
       bio: 'Previously create many websites using react.',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400'
+      imageUrl: '/assets/rollno44.jpg'
     }
   ];
   const ref = useRef(null);
