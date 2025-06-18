@@ -41,7 +41,7 @@ import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminNotify from "./pages/admin/AdminNotify";
 import AdminQna from "./pages/admin/AdminQna"; // Assuming you have a Q&A page for teachers
 import AdminSettingCard from "./pages/admin/AdminSettingCard"; // Assuming you have a settings page for admin
-import AdminDownloadPage from "./pages/admin/AdminDownloadPage"; // Assuming you have a download page
+import AdminDownloadPageCard from "./pages/admin/AdminDownloadPageCard"; // Assuming you have a download page
 import AdminManagement from "./pages/admin/AdminManagement"; // Assuming you have a management page
 // Teacher
 import TeacherDashboardSidebar from "./components/TeacherDashboardSidebar";
@@ -196,7 +196,7 @@ function App() {
                 path="/admin/DownloadPage"
                 element={
                   <LayoutWithSidebar Sidebar={AdminDashboardSidebar}>
-                    <AdminDownloadPage />
+                    <AdminDownloadPageCard />
                   </LayoutWithSidebar>
                 }
               />
