@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Searchbar from "../../components/SearchBar";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const DownloadPage = () => {
   const [history, setHistory] = useState([]);
@@ -73,6 +75,87 @@ const DownloadPage = () => {
     }
   };
 
+  // PDF download logic for Download History
+  const handleDownloadPDF = () => {
+    if (!history.length) return;
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(14);
+    doc.text("EduMinds - Download History Report", 14, 14);
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+    const tableColumn = [
+      "User",
+      "Email",
+      "File Name",
+      "Course",
+      "Path",
+      "Date",
+      "IP",
+      "User Agent"
+    ];
+    // Truncate long fields for better fit
+    const truncate = (str, n = 40) => str && str.length > n ? str.slice(0, n) + "..." : str;
+    const tableRows = history.map((h) => [
+      h.user?.name || "Guest",
+      h.user?.email || "-",
+      h.fileName || "-",
+      h.lesson?.course?.title || h.courseTitle || h.course?.title || h.lesson?.courseTitle || "-",
+      truncate(h.filePath || "-", 50),
+      h.downloadedAt ? new Date(h.downloadedAt).toLocaleString() : "-",
+      h.ip || "-",
+      truncate(h.userAgent || "-", 40)
+    ]);
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 28,
+      styles: { fontSize: 7, cellWidth: 'wrap' },
+      headStyles: { fillColor: [59, 130, 246] },
+      columnStyles: {
+        0: { cellWidth: 22 }, // User
+        1: { cellWidth: 38 }, // Email
+        2: { cellWidth: 28 }, // File Name
+        3: { cellWidth: 32 }, // Course
+        4: { cellWidth: 60 }, // Path
+        5: { cellWidth: 32 }, // Date
+        6: { cellWidth: 22 }, // IP
+        7: { cellWidth: 50 }, // User Agent
+      }
+    });
+    doc.save('download_history_' + new Date().toISOString().slice(0,10) + '.pdf');
+  };
+
+  // CSV download logic for Download History
+  const handleDownloadCSV = () => {
+    if (!history.length) return;
+    const csvRows = [];
+    csvRows.push('User,Email,File Name,Course,Path,Date,IP,User Agent');
+    const truncate = (str, n = 40) => str && str.length > n ? str.slice(0, n) + "..." : str;
+    history.forEach(h => {
+      const row = [
+        '"' + (h.user?.name || 'Guest') + '"',
+        '"' + (h.user?.email || '-') + '"',
+        '"' + (h.fileName || '-') + '"',
+        '"' + (h.lesson?.course?.title || h.courseTitle || h.course?.title || h.lesson?.courseTitle || '-') + '"',
+        '"' + truncate(h.filePath || '-', 50) + '"',
+        '"' + (h.downloadedAt ? new Date(h.downloadedAt).toLocaleString() : '-') + '"',
+        '"' + (h.ip || '-') + '"',
+        '"' + truncate(h.userAgent || '-', 40) + '"'
+      ];
+      csvRows.push(row.join(','));
+    });
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'download_history_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <Searchbar/>
@@ -92,12 +175,30 @@ const DownloadPage = () => {
         />
       </div>
       <div className="bg-white rounded-xl shadow-lg p-4 md:p-8">
-        <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">
-          Download History
-          <span className="text-sm text-gray-400 font-normal">
-            (All Downloads)
-          </span>
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-blue-700">
+            Download History
+            <span className="text-sm text-gray-400 font-normal">
+              (All Downloads)
+            </span>
+          </h2>
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1 rounded border bg-green-600 text-white font-semibold hover:bg-green-700 transition text-sm"
+              onClick={handleDownloadCSV}
+              disabled={loading || !history.length}
+            >
+              Download CSV
+            </button>
+            <button
+              className="px-3 py-1 rounded border bg-red-600 text-white font-semibold hover:bg-red-700 transition text-sm"
+              onClick={handleDownloadPDF}
+              disabled={loading || !history.length}
+            >
+              Download PDF
+            </button>
+          </div>
+        </div>
         {error && (
           <div className="text-red-500 mb-4 font-semibold">{error}</div>
         )}
