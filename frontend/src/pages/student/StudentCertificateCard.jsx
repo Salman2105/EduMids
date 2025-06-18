@@ -91,7 +91,7 @@ export default function StudentCertificateCard() {
                 Date Earned: {
                   (() => {
                     // Debug log to see what values are present
-                    console.log("Certificate dateEarned:", cert.dateEarned, "createdAt:", cert.createdAt, "certificateId:", cert.certificateId);
+                    // console.log("Certificate dateEarned:", cert.dateEarned, "createdAt:", cert.createdAt, "certificateId:", cert.certificateId);
                     let dateVal = cert.dateEarned || cert.createdAt;
                     // Try to parse ObjectId timestamp if no date fields
                     if (!dateVal && cert.certificateId && typeof cert.certificateId === "string" && cert.certificateId.length === 24) {

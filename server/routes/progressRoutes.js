@@ -117,7 +117,7 @@ router.get("/my-enrolled-progress", verifyToken, checkRole(["student"]), async (
         teacherName = course.createdBy.name || "-";
       }
       // Debug log for teacherName
-      console.log("[DEBUG] teacherName for course", course.title, ":", teacherName);
+      // console.log("[DEBUG] teacherName for course", course.title, ":", teacherName);
 
       const progress = progressMap[course._id.toString()];
       result.push({
@@ -162,7 +162,7 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
   try {
     const lessonId = req.params.lessonId;
     const lesson = await require("../Models/lesson").findById(lessonId);
-    console.log(lesson);
+    // console.log(lesson);
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
     // Only allow download for video/pdf
     if (!lesson.contentType || !["video", "pdf"].includes(lesson.contentType.toLowerCase())) {
@@ -187,7 +187,7 @@ router.get("/download-lesson/:lessonId", verifyToken, async (req, res) => {
             return res.status(400).json({ message: "Invalid Cloudinary URL for download." });
           }
           // Debug log
-          console.log("[DEBUG] Extracted publicId for PDF:", publicId);
+          // console.log("[DEBUG] Extracted publicId for PDF:", publicId);
           // Always use resource_type: 'raw' for PDF
           const signedUrl = cloudinary.utils.private_download_url(
             publicId,

@@ -272,11 +272,11 @@ const TeacherGradeSubmissions = ({ assignmentId: propAssignmentId, onBack }) => 
             Manage assignments and grade student submissions for your courses.
           </p>
         </div>
-        <img
+        {/* <img
           src="/assets/logo.png"
           alt="Assignments"
           className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
-        />
+        /> */}
       </div>
       <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-10">
         <div className="flex items-center justify-between mb-4">

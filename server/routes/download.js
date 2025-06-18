@@ -81,6 +81,42 @@ router.get("/lesson/:lessonId", verifyToken, async (req, res) => {
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File does not exist on server." });
     }
+    // If PDF, add logo to top right before sending
+    if (lesson.contentType && lesson.contentType.toLowerCase() === "pdf" && filePath.endsWith('.pdf')) {
+      const PDFDocument = require("pdfkit");
+      const tmp = require("os").tmpdir();
+      const logoPath = path.join(__dirname, '../../frontend/public/assets/logo.png');
+      const outPath = path.join(tmp, `LessonWithLogo-${lesson._id}-${Date.now()}.pdf`);
+      const doc = new PDFDocument({ autoFirstPage: false });
+      const writeStream = fs.createWriteStream(outPath);
+      doc.pipe(writeStream);
+      // Read original PDF and add as background
+      const hummus = require('hummus');
+      try {
+        const pdfReader = hummus.createReader(filePath);
+        for (let i = 0; i < pdfReader.getPagesCount(); i++) {
+          doc.addPage({ size: pdfReader.parsePage(i).getMediaBox() });
+          // Add logo to top right
+          if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, doc.page.width - 120, 30, { width: 80 });
+          }
+        }
+        doc.end();
+        writeStream.on('finish', () => {
+          res.download(outPath, path.basename(filePath), (err) => {
+            if (fs.existsSync(outPath)) fs.unlinkSync(outPath);
+            if (err) {
+              console.error("Download error:", err);
+              res.status(500).json({ message: "Error downloading file." });
+            }
+          });
+        });
+      } catch (e) {
+        // fallback: send original file
+        res.download(filePath, path.basename(filePath));
+      }
+      return;
+    }
     // Download file
     res.download(filePath, path.basename(filePath), (err) => {
       if (err) {

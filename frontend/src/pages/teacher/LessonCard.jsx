@@ -195,7 +195,9 @@ export default function LessonCard() {
   const getFileSrc = (url) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    return url.startsWith("/") ? url : `/${url}`;
+    // Always serve from Cloudinary or local server
+    if (url.startsWith("/")) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/${url}`;
   };
 
   // Helper to check if a file is an image (for mis-uploaded PDFs)
@@ -414,7 +416,7 @@ export default function LessonCard() {
                         <span className="italic">{lesson.contentType}</span>
                         {lesson.contentType === "video" && lesson.contentURL && (
                           <video
-                            src={`http://localhost:5000/${lesson.contentURL}`}
+                            src={getFileSrc(lesson.contentURL)}
                             controls
                             className="w-40 h-24 rounded mt-1"
                           />
@@ -422,13 +424,13 @@ export default function LessonCard() {
                         {lesson.contentType === "pdf" && lesson.contentURL && (
                           isImageFile(lesson.contentURL) ? (
                             <img
-                              src={`http://localhost:5000/${lesson.contentURL}`}
+                              src={getFileSrc(lesson.contentURL)}
                               alt="PDF as image"
                               className="w-40 h-24 rounded mt-1 object-contain border"
                             />
                           ) : (
                             <a
-                              href={`${lesson.contentURL}`}
+                              href={getFileSrc(lesson.contentURL)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 underline ml-2"

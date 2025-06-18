@@ -26,7 +26,7 @@ export default function CourseCard() {
 
     // Always get token right before the request
     const token = localStorage.getItem("token");
-    console.log("token from localStorage:", token); // Debug line
+    // console.log("token from localStorage:", token);
 
     if (!token) {
       setMessage("Invalid token. Please log in again.");

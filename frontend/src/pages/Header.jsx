@@ -31,7 +31,7 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
 
   
   // Debug: log isAuthenticated
-  console.log("isAuthenticated:", isAuthenticated);
+  // console.log("isAuthenticated:", isAuthenticated);
 
   // Fetch user role from localStorage
   let userRole = null;

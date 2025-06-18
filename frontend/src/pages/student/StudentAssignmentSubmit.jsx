@@ -149,11 +149,11 @@ const StudentAssignmentSubmit = () => {
               Submit your assignments for all enrolled courses.
             </p>
           </div>
-          <img
+          {/* <img
             src="/assets/logo.png"
             alt="Assignments"
             className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block"
-          />
+          /> */}
         </div>
         {allAssignments.map((course) => (
           <div key={course.courseId} className="mb-6">

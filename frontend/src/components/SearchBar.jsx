@@ -20,7 +20,7 @@ const SearchBar = () => {
     // Get user info from localStorage (assuming user object is stored after login)
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
-    console.log("User from localStorage:", user);
+    // console.log("User from localStorage:", user);
     if (user && user.name && user.name.length > 0) {
       setUserInitial(user.name[0].toUpperCase());
       setUserName(user.name); // Add this line
@@ -30,7 +30,7 @@ const SearchBar = () => {
     const fetchNotifications = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log("token from localStorage:", token);
+        // console.log("token from localStorage:", token);
         const res = await fetch("http://localhost:5000/api/notifications", {
           headers: {
             Authorization: `Bearer ${token}`,

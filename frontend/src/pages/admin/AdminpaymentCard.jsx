@@ -324,10 +324,10 @@ const AdminpaymentCard = ({ onRevenueChange }) => {
       {/* --- End new table --- */}
 
       {/* --- New: Course filter dropdown --- */}
-      <div className="mb-4 flex items-center gap-2">
-        <label className="font-semibold text-blue-700">Filter by Course:</label>
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+        <label className="font-semibold text-blue-700 min-w-max">Filter by Course:</label>
         <select
-          className="border rounded px-2 py-1"
+          className="border rounded px-2 py-1 w-full sm:w-auto"
           value={selectedCourseId}
           onChange={(e) => setSelectedCourseId(e.target.value)}
         >
@@ -340,13 +340,13 @@ const AdminpaymentCard = ({ onRevenueChange }) => {
         </select>
         {/* --- Download filtered table buttons --- */}
         <button
-          className="px-3 py-1 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition"
+          className="px-3 py-1 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition w-full sm:w-auto"
           onClick={handleDownloadFilteredCSV}
         >
           Download Table CSV
         </button>
         <button
-          className="px-3 py-1 rounded bg-red-500 text-white font-semibold hover:bg-red-600 transition"
+          className="px-3 py-1 rounded bg-red-500 text-white font-semibold hover:bg-red-600 transition w-full sm:w-auto"
           onClick={handleDownloadFilteredPDF}
         >
           Download Table PDF

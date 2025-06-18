@@ -76,9 +76,33 @@ const DownloadPage = () => {
   };
 
   // PDF download logic for Download History
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!history.length) return;
     const doc = new jsPDF({ orientation: "landscape" });
+    // Add logo image (assets/logo.png)
+    const getBase64Logo = (url) => {
+      return new Promise((resolve, reject) => {
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    };
+    const logoUrl = '/assets/logo.png';
+    try {
+      const logoBase64 = await getBase64Logo(logoUrl);
+      doc.addImage(logoBase64, 'PNG', 250, 4, 40, 18); // x, y, width, height (adjust for landscape)
+    } catch (e) {
+      // Logo failed to load, continue without it
+    }
     doc.setFontSize(14);
     doc.text("EduMinds - Download History Report", 14, 14);
     doc.setFontSize(10);

@@ -12,7 +12,7 @@ export default function TeacherNotify() {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        console.log("Authorization header:", `Bearer ${token}`); // <-- Add this line
+        // console.log("Authorization header:", `Bearer ${token}`); // <-- Add this line
         const res = await fetch("http://localhost:5000/api/notifications", {
           headers: {
             Authorization: `Bearer ${token}`,

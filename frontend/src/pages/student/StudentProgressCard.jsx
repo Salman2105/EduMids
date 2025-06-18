@@ -15,9 +15,9 @@ const StudentProgressCard = () => {
 
   // Replace with your auth token logic
   const token = localStorage.getItem("token");
-  console.log("Token:", token);
+  // console.log("Token:", token);
   const user = localStorage.getItem("user");
-  console.log("User:", user);
+  // console.log("User:", user);
 
   // Fetch all enrolled courses with progress
   useEffect(() => {

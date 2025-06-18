@@ -10,9 +10,9 @@ export default function Setting() {
 
   // Get token from localStorage (adjust if you store it elsewhere)
   const token = localStorage.getItem('token')
-  console.log('Token:', token)
+  // console.log('Token:', token)
   const username = localStorage.getItem('user')
-  console.log('User:', username)
+  // console.log('User:', username)
 
 
   // Fetch user info on mount

@@ -99,7 +99,7 @@ router.get("/enroll-courses",verifyToken, checkRole(["student"]), async (req, re
       }) : [];
       // Course progress (from enrollment)
       // Debug log for createdAt
-      console.log("Enrollment createdAt for course", course.title, ":", enroll.createdAt);
+      // console.log("Enrollment createdAt for course", course.title, ":", enroll.createdAt);
       // Fallback for enrolledAt if createdAt is missing (for old records)
       let enrolledAt = enroll.createdAt;
       if (!enrolledAt && enroll._id && typeof enroll._id.getTimestamp === "function") {

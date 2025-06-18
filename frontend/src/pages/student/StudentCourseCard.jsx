@@ -11,9 +11,9 @@ const StudentCourseCard = () => {
   const fetchData = async () => {
     try {
       const user = localStorage.getItem("user");
-      console.log("User from localStorage:", user);
+      // console.log("User from localStorage:", user);
       const token = localStorage.getItem("token"); // always get fresh token
-      console.log("token from localStorage:", token);
+      // console.log("token from localStorage:", token);
       const res = await fetch("http://localhost:5000/api/enrollments/enroll-courses", {
         headers: { Authorization: `Bearer ${token}` },
       });

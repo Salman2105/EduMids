@@ -95,10 +95,18 @@ router.get("/certificate/:courseId", auth, async (req, res) => {
     // Professional border
     doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).stroke('#1e3a8a');
 
-    // Organization logo (optional, if you have a path)
-    // doc.image('path/to/logo.png', doc.page.width/2 - 40, 40, { width: 80 });
+    // Organization logo (inserted at the top right)
+    try {
+      const logoPath = path.join(__dirname, '../../frontend/public/assets/logo.png');
+      if (fs.existsSync(logoPath)) {
+        // Place logo at top right, inside border, with some margin
+        doc.image(logoPath, doc.page.width - 120, 30, { width: 80 });
+      }
+    } catch (e) {
+      // If logo not found, skip image
+    }
 
-    doc.moveDown(2);
+    doc.moveDown(2.5); // Adjust spacing after logo
     doc.fontSize(28).fillColor('#1e3a8a').text(organization, { align: "center", underline: true });
     doc.moveDown(1);
     doc.fontSize(24).fillColor('black').text("Certificate of Completion", { align: "center" });

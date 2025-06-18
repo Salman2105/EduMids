@@ -9,9 +9,9 @@ const notifyUser = require("../utils/notifyUser");
 // Get all notifications for logged-in user
 router.get("/", auth, async (req, res) => {
   try {
-    console.log("Fetching notifications for user:", req.user.id); // Debug log
+    // console.log("Fetching notifications for user:", req.user.id); // Debug log
     const notifications = await Notification.find({ user: req.user.id }).sort({ createdAt: -1 });
-    console.log("Found notifications:", notifications); // Debug log
+    // console.log("Found notifications:", notifications); // Debug log
     res.json(notifications);
   } catch (err) {
     res.status(500).json({ message: "Error fetching notifications" });
