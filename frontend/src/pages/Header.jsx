@@ -114,7 +114,7 @@ export default function Header({ sidebarOpen, onSidebarToggle, showSidebarToggle
                   <img
                     src="/assets/logo.png"
                     alt="EduMids Logo"
-                    className="w-8 h-8 object-contain"
+                    className="w-20 h-20 object-contain"
                   />
                 </div>
                 <span className="text-xl font-bold text-primary">EduMinds</span>

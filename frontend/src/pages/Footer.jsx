@@ -14,7 +14,7 @@ export default function Footer() {
                 <img
                   src="/assets/logo.png"
                   alt="EduMinds Logo"
-                  className="w-6 h-6 object-contain"
+                  className="w-30 h-30 object-contain"
                 />
               </div>
               <span className="text-xl font-medium">EduMinds</span>
