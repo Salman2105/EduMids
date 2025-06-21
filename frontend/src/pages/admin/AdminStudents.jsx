@@ -4,7 +4,7 @@ import AdminStudentsCard from "./AdminStudentsCard";
 
 const AdminStudents = () => {
   return (
-    <div className="p-6 p-6 bg-gradient-to-br from-blue-50 to-white">
+    <div className="p-4  bg-gradient-to-br from-blue-50 to-white">
     {/* // <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen bg-gradient-to-br from-blue-50 to-white">
     //   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
     //     <div>

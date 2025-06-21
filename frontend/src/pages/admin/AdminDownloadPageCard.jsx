@@ -5,7 +5,7 @@ import Searchbar from "../../components/SearchBar";
 
 export default function AdminDownloadPageCard() {
   return (
-    <div className="p-6 bg-gradient-to-br from-blue-50 to-white ">
+    <div className="p-4 bg-gradient-to-br from-blue-50 to-white ">
     <Searchbar/>
       <AdminDownloadPage />
     </div>

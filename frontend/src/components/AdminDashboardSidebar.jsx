@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -46,6 +46,20 @@ const AdminDashboardSidebar = () => {
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
+
+  // Collapse sidebar on small screens automatically
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setCollapsed(true);
+      } else {
+        setCollapsed(false);
+      }
+    };
+    handleResize(); // Set initial state
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Logout logic
   const handleLogout = async () => {
